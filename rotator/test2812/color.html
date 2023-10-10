@@ -1,0 +1,25 @@
+<html>
+<script>
+let colorDisp;
+const cl = console.log
+
+function color(v){
+    v = +v
+    cl({color:v})
+    let r = 120-Math.abs(v-120);
+    let g = 120-Math.abs(v-240);
+    let b = v > 120 ? 120-Math.abs(v-360) : 120-v;
+    col = [r,g,b].map(v => v < 0 ? 0 : v*4)
+    cl(col)
+    colorDisp.style.background = `rgba(${col[0]},${col[1]},${col[2]},100)`
+}
+
+window.onload = ()=>{
+    colorDisp = document.getElementById('colorDisp')
+}
+</script>    
+<body>
+<input type="range" min="0" max="360" oninput="color(this.value)">
+<div id="colorDisp" style="border: 1px solid #ddd; width:100px; height:100px"></div>
+</body>
+</html>

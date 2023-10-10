@@ -1,0 +1,1 @@
+ampy --port COM6 -d 10 put main.py

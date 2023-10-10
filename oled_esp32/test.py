@@ -1,0 +1,1 @@
+print([x%16 for x in range(64)])
