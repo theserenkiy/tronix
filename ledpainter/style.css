@@ -1,0 +1,100 @@
+body {
+  background: #222;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #ddd;
+}
+#app {
+  display: flex;
+  flex-direction: column;
+  width: 800px;
+}
+#app .panelarea {
+  display: flex;
+  justify-content: center;
+}
+#app .panelarea .panel {
+  display: flex;
+  flex-wrap: wrap;
+  width: 150px;
+  background: #322;
+  border: 1px solid #aaa;
+  margin: 10px;
+}
+#app .panelarea .panel > div {
+  width: 30px;
+  height: 30px;
+  background: url('led.png') no-repeat center center;
+  background-size: contain;
+}
+#app .panelarea .panel > div > div {
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#app .panelarea .panel > div > div > div {
+  width: 47%;
+  height: 47%;
+  border-radius: 100%;
+  --opacity: 0.7;
+}
+#app .size {
+  display: flex;
+  justify-content: center;
+  padding: 10px 0;
+}
+#app .size input {
+  width: 40px;
+}
+#app .palette {
+  display: flex;
+}
+#app .palette .color_info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+#app .palette .color_info .color {
+  width: 150px;
+  height: 60px;
+  border: 1px solid #aaa;
+  margin: 0 5px;
+}
+#app .palette .color_info .rgb {
+  display: flex;
+}
+#app .palette .color_info .rgb .label {
+  margin-left: 5px;
+}
+#app .palette .color_info .rgb input {
+  width: 25px;
+}
+#app .palette .colors {
+  display: flex;
+}
+#app .palette .colors > div {
+  display: flex;
+  flex-direction: column;
+}
+#app .palette .colors > div > div {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  --border: 1px solid red;
+}
+#app .palette .colors > div > div:hover::after {
+  content: '';
+  position: absolute;
+  border: 1px solid #333;
+  width: 8px;
+  height: 8px;
+}
+#app textarea {
+  width: 600px;
+  height: 200px;
+}
+#app .export_sett label {
+  margin-left: 10px;
+}

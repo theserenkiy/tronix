@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Paint leds</title>
+	<link rel="stylesheet" href="style.css">
+	<script src="jquery.js"></script>
+	<!-- <script src="vue.js"></script> -->
+	<script src="lib.mjs"></script>
+	<script src="app.mjs"></script>
+
+<script type="module">
+
+const degreeResolution = 3;
+const stripSize = 16
+
+const imgSize = stripSize*2
+const srcSize = imgSize*2
+const degreeSteps = Math.floor(360/degreeResolution)
+
+
+$(async ()=>{
+
+
+
+$('#canvs').html(`
+    <canvas class="src" width="${srcSize}" height="${srcSize}" style="border: 1px solid red"></canvas>
+    <br>
+    <canvas class="tgt" width="${degreeSteps}" height="${stripSize}" style="border: 1px solid red"></canvas>
+`)
+
+//Vue.createApp(app).mount('#app')
+
+
+$('input[type="file"]').change(function(){
+    let reader = new FileReader()
+    reader.onload = ()=>{
+        processImage(reader.result)
+    }
+    reader.readAsDataURL(this.files[0])
+})
+
+
+
+})
+
+
+async function processImage(src){
+    let img = await loadImage(src);
+
+    let sx=0,sy=0,sw=img.w,sh=img.h;
+    if(img.ar > 1){
+        sw = img.h
+        sx = (img.w-sw)/2
+    }else{
+        sh = img.w
+        sy = (img.h-sh)/2
+    }
+
+    //$(img.img).appendTo('body')
+
+    let ctx = $('canvas.src')[0].getContext('2d')
+    let ctx2 = $('canvas.tgt')[0].getContext('2d')
+
+    ctx.drawImage(img.img,sx,sy,sw,sh,-stripSize,-stripSize,imgSize,imgSize)
+
+    ctx.save()
+    ctx.translate(imgSize,imgSize)
+    ctx.rotate((Math.PI/180)*-45)
+    ctx.drawImage(img.img,sx,sy,sw,sh,-stripSize,-stripSize,imgSize,imgSize)
+
+    ctx.restore()
+    //return
+
+    for(let deg=0;deg < degreeSteps;deg++)
+    {
+        ctx.fillStyle = '#ff0000'
+        ctx.fillRect(0,0,srcSize,srcSize)
+
+        ctx.save()
+        ctx.translate(imgSize,imgSize)
+        ctx.rotate((Math.PI/180)*-deg*degreeResolution)
+        ctx.drawImage(img.img,sx,sy,sw,sh,-stripSize,-stripSize,imgSize,imgSize)
+
+        ctx.restore()
+        // ctx.fillStyle = '#000'
+        // ctx.fillRect(0, 0, 10, 10);
+
+        let imgdata = ctx.getImageData(imgSize,stripSize,1,stripSize);
+        //cl([...imgdata.data])
+
+        ctx2.putImageData(imgdata,deg,0)
+    }
+}
+
+
+async function loadImage(src){
+    let img = new Image()
+
+    let prm = new Promise((s,j) => {
+        img.onload = () => s({
+            img,
+            w: img.naturalWidth,
+            h: img.naturalHeight,
+            ar: img.naturalWidth/img.naturalHeight,
+        })
+        img.onerror = e => j(e)
+    })
+    
+    img.src = src
+
+    return prm
+}
+
+
+
+
+</script>
+</head>
+<body>
+<div id="app">
+<div id="canvs">
+    
+</div>
+
+<input type="file" >
+</div>
+</body>
+</html>
