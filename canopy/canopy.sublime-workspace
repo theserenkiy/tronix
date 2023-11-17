@@ -1,0 +1,1536 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"t",
+				"temp2"
+			],
+			[
+				"PARSE",
+				"PARSE_NEXT_BYTE"
+			],
+			[
+				"pa",
+				"parser_pos"
+			],
+			[
+				"pars",
+				"parser_flags"
+			],
+			[
+				"REA",
+				"READ_USER_BYTE"
+			],
+			[
+				"TWI_S",
+				"TWI_STOP"
+			],
+			[
+				"twi_",
+				"twi_data"
+			],
+			[
+				"te",
+				"temp"
+			],
+			[
+				"uart_",
+				"uart_reg"
+			],
+			[
+				"twi",
+				"twi_sla"
+			],
+			[
+				"uart",
+				"uart_byte"
+			],
+			[
+				"ua",
+				"uart_byte"
+			],
+			[
+				"tw",
+				"twi_data_len"
+			],
+			[
+				"twi_d",
+				"twi_data_len"
+			],
+			[
+				"TWI",
+				"TWI_WRITE"
+			],
+			[
+				"TWI_R",
+				"TWI_RUN_ERR"
+			],
+			[
+				"TWI_W",
+				"TWI_WRITE"
+			],
+			[
+				"TWI_RU",
+				"TWI_RUN_END"
+			],
+			[
+				"TWI_RE",
+				"TWI_READ_DATA"
+			],
+			[
+				"tem",
+				"temp2"
+			],
+			[
+				"twi_data_",
+				"twi_data_index"
+			],
+			[
+				"twi_data",
+				"twi_data_len"
+			],
+			[
+				"TWI_ST",
+				"TWI_STOP"
+			],
+			[
+				"twi_da",
+				"twi_data_index"
+			],
+			[
+				"TWI_SEND",
+				"TWI_SEND_SLA"
+			],
+			[
+				"temp",
+				"temp1"
+			],
+			[
+				"check",
+				"CHECK_STATUS"
+			],
+			[
+				"flex",
+				"flex-grow"
+			],
+			[
+				"space",
+				"space-between\tjustify-content"
+			],
+			[
+				"margn",
+				"margin-top\tproperty"
+			],
+			[
+				"ob_get",
+				"ob_get_contents"
+			],
+			[
+				"rese",
+				"reserved_by"
+			],
+			[
+				"repla",
+				"replaceData"
+			],
+			[
+				"wa",
+				"wasInited"
+			],
+			[
+				"sub",
+				"submitCallback"
+			],
+			[
+				"call",
+				"callback"
+			],
+			[
+				"ba",
+				"background-position\tproperty"
+			],
+			[
+				"fons-",
+				"font-size\tproperty"
+			],
+			[
+				"fl",
+				"flex-end\talign-items"
+			],
+			[
+				"text",
+				"text-shadow"
+			],
+			[
+				"block",
+				"blockHTML"
+			],
+			[
+				"blo",
+				"block_clean"
+			],
+			[
+				"spa",
+				"space-between\tjustify-content"
+			],
+			[
+				"liteg",
+				"litegreen2"
+			],
+			[
+				"s",
+				"space-between"
+			],
+			[
+				"padd",
+				"padding-bottom\tproperty"
+			],
+			[
+				"flex-",
+				"flex-direction\tproperty"
+			],
+			[
+				"litte",
+				"litters"
+			],
+			[
+				"after",
+				"afterClose"
+			],
+			[
+				"setTi",
+				"setTimeout\t( handler: any, timeout?: long, arguments_..: any ): long Window"
+			],
+			[
+				"strr",
+				"strrev"
+			],
+			[
+				"func_get_a",
+				"func_get_args"
+			],
+			[
+				"bl",
+				"block"
+			],
+			[
+				"select",
+				"selectCatsFull"
+			],
+			[
+				"ava",
+				"ava_id"
+			],
+			[
+				"fath",
+				"father_id"
+			],
+			[
+				"aja",
+				"ajax_base"
+			],
+			[
+				"uploa",
+				"uploadbox"
+			],
+			[
+				"send",
+				"sendOK"
+			],
+			[
+				"fle",
+				"flex-start\tjustify-content"
+			],
+			[
+				"is_a",
+				"is_array"
+			],
+			[
+				"preg_",
+				"preg_match"
+			],
+			[
+				"imagecop",
+				"imagecopyresampled"
+			],
+			[
+				"su",
+				"submenu"
+			],
+			[
+				"bac",
+				"background\tproperty"
+			],
+			[
+				"pu",
+				"public"
+			],
+			[
+				"__",
+				"__construct"
+			],
+			[
+				"upart",
+				"uparts"
+			],
+			[
+				"upa",
+				"uparts"
+			],
+			[
+				"array_s",
+				"array_slice"
+			],
+			[
+				"val",
+				"value"
+			],
+			[
+				"debug",
+				"debug_print_backtrace"
+			],
+			[
+				"getT",
+				"getTopEl"
+			],
+			[
+				"rout",
+				"routerPath"
+			],
+			[
+				"butt",
+				"buttonVal"
+			],
+			[
+				"chec",
+				"checkbox"
+			],
+			[
+				"sele",
+				"selectable"
+			],
+			[
+				"stat",
+				"static"
+			],
+			[
+				"method",
+				"method_exists"
+			],
+			[
+				"fun",
+				"function"
+			],
+			[
+				"fu",
+				"function"
+			],
+			[
+				"Fo",
+				"FormField"
+			],
+			[
+				"op",
+				"options"
+			],
+			[
+				"fc",
+				"fconf"
+			],
+			[
+				"cir",
+				"circWidth"
+			],
+			[
+				"pare",
+				"parent"
+			],
+			[
+				"setTim",
+				"setTimeout"
+			],
+			[
+				"setT",
+				"setTimeout\t( handler: any, timeout?: long, arguments_..: any ): long Window"
+			],
+			[
+				"preve",
+				"preventDefault\t(): void Event"
+			],
+			[
+				"body",
+				"description-body\tDocument"
+			],
+			[
+				"box",
+				"box-shadow\tproperty"
+			],
+			[
+				"shad",
+				"box-shadow\tproperty"
+			],
+			[
+				"a",
+				"auto\toverflow"
+			],
+			[
+				"eye",
+				"eyecenter"
+			],
+			[
+				"di",
+				"display\tproperty"
+			],
+			[
+				"font-s",
+				"font-size\tproperty"
+			],
+			[
+				"lig",
+				"lighten(color, 10%)"
+			],
+			[
+				"font-",
+				"font-family\tproperty"
+			],
+			[
+				"back",
+				"background\tproperty"
+			],
+			[
+				"text-a",
+				"text-align\tproperty"
+			],
+			[
+				"box-s",
+				"box-shadow\tproperty"
+			],
+			[
+				"jso",
+				"json"
+			],
+			[
+				"de",
+				"device"
+			],
+			[
+				"inp",
+				"inpCount"
+			],
+			[
+				"exte",
+				"extends"
+			],
+			[
+				"ex",
+				"extends"
+			],
+			[
+				"pattern",
+				"pattern_size"
+			],
+			[
+				"const",
+				"constructor"
+			],
+			[
+				"signa",
+				"signalRate"
+			],
+			[
+				"N",
+				"New"
+			],
+			[
+				"red",
+				"redrWait"
+			],
+			[
+				"redr",
+				"redrWait"
+			],
+			[
+				"h",
+				"head\tTag"
+			],
+			[
+				"arg",
+				"process.argv"
+			],
+			[
+				"JS",
+				"JSON_UNESCAPED_SLASHES"
+			],
+			[
+				"json_",
+				"json_encode"
+			],
+			[
+				"align-",
+				"align-items\tproperty"
+			],
+			[
+				"ena",
+				"enableScroll"
+			],
+			[
+				"disa",
+				"disableScroll"
+			],
+			[
+				"cont",
+				"contentHeight"
+			],
+			[
+				"saved",
+				"savedFields"
+			],
+			[
+				"_S",
+				"_SERVER"
+			],
+			[
+				"inline",
+				"inline-block\tdisplay"
+			],
+			[
+				"padding-",
+				"padding-right\tproperty"
+			],
+			[
+				"min-",
+				"min-height\tproperty"
+			],
+			[
+				"file_",
+				"file_get_contents"
+			],
+			[
+				"doc",
+				"document\t: Document Window"
+			],
+			[
+				"align",
+				"align-items\tproperty"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "lora/lora_txrx_i2c_test.asm",
+			"settings":
+			{
+				"buffer_size": 8467,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "lora/i2c_test.asm",
+			"settings":
+			{
+				"buffer_size": 3568,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"contents": "Ищу идеал. Поэтому нихрена не найду, ну да и пофиг. Это ж Тиндер ))\nТы ничего не боишься: ни в воду, ни в воздух, ни на крайний север, ничего вообще (можно бояться пауков, ладно). Ты согласна открывать купальный сезон в апреле (на нашей широте). У тебя есть слух, а если еще и голос - тогда \"дайте две\". Ты уже повзрослела настолько, что вместо поисков драйва и экшна по достоинству ценишь такие вещи как тепло, взаимная поддержка в развитии, и прочие скучные вещи из этого списка...\n\n\nИщу подельницу и соучастницу на долгосрочное сотрудничество.\n\nТут я рассказываю как много путешествую, какие у меня разнообразные увлечения, и что спортом занимаюсь, и книжки почитываю, ну и о саморазвитии что-нибудь - куда ж без саморазвития!? Обязательно указываю рост и заворачиваю какую-нибудь шутку, чтоб показаться оригинальным.\n\nА ты такая смотришь, зеваешь - и свайпаешь вправо. Потому что ну ничё вроде, пусть будет +1 к списку говорящих попугайчиков!\n\nИ потом мы молчим...\n\nОй, забыл! 185",
+			"settings":
+			{
+				"buffer_size": 984,
+				"line_ending": "Windows",
+				"name": "Ищу идеал. Поэтому нихрена не найду, ну да и пофиг"
+			}
+		},
+		{
+			"file": "/D/srv/todo/www/index.php",
+			"settings":
+			{
+				"buffer_size": 1191,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/D/tmp/ogult/my-compliment.txt",
+			"settings":
+			{
+				"buffer_size": 845,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"contents": "\n\nОх ну и попочка же ты! Загрузила меня, теперь ведь думаю об этом обо всём весь день!\nВ общем, у меня к тебе есть один важный вопрос. Я бы хотел понимать, как ты видишь режим нашего общения, если мы решаем \"попробовать снова\"? \n\nВедь ты же не ждешь, что я скажу: \"бросай всё, женщина, приезжай ко мне\"? Или ждешь? Откровенно говоря, это же безумие — выдергивать тебя из стабильной жизни в неизвестность! Да и такой еще момент: мы с тобой плотно прообщались всего-то два месяца. Срок и так не самый большой, чтобы что-то понять, а ведь это еще не принимая во внимание такой милый фактор как 630 километров! По факту, все наши встречи легко перечесть по пальцам. И если отмести розовые сопли и прочую лирику, в сухом остатке будет суровый вывод: кажется, мы не так уж хорошо друг друга знаем! Тебе не страшно, Оль? \n\nА если все же не ждешь - то в каком режиме это могло бы быть? Старые добрые покатушки по Октябрьской ЖД? Нет, в своём длиннопосте ты дала понять что тебя это больше не устроит. Так ведь?\nИли я опять читаю не между тех строк?\n\n\n\n",
+			"settings":
+			{
+				"buffer_size": 1044,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"contents": "\nОх, женщина... Ну вот только в поезде тебе говорил, что не надо на мужиков давить. А тем паче - пугать их )))\nИ да. Разве со мной ты тоже всё решала сама? По-моему, нет. И это касается не только окончания отношений ) Мне кажется, ты не можешь меня обвинить в пассивности. По сему, не сравнивай меня, пожалуйста, со своими бывшими и не вешай ярлыков. Спасибо.\nИ нет, мне не надо чтоб со мной трахались просто так. Я потому и говорю про ответственность. Потому что не хочу, чтоб получилось, будто я воспользовался твоей эмоциональной слабостью ко мне. \nИ кстати, если что, ты мне тоже не безразлична. Я пока не очень понял, что именно у меня самого в башке творится. Мне надо с этим разобраться и решить для себя. Но так или иначе, я думал о тебе весь год, и это говорит о чем-то...\n\nНе могу сказать, что прямо сейчас я сам — сильно заинтересованная сторона. По крайней мере, настолько заинтересованная, чтобы что-то кому-то доказывать и сражаться с мельницами.\nУ меня только-что закончилась недолгая но довольно эмоциональная история, после которой нужно привести мысли и чувства в порядок.\nУ меня есть ряд решающихся проблем, и это наверно до осени. Не хочу никуда дергаться до их решения. \nДа и тебя вырывать из наконец-то стабилизировавшейся жизни — не хотел бы.\nИ у тебя отношения (пусть и с префиксом \"недо-\"), с которыми нужно будет в любом случае что-то делать...\nМне вообще немного неловко, что я опять появился, вот такой весь красивый, и спутал тебе все карты. Впрочем, себе ведь тоже спутал. \n\nНе думал, ох не думал я дождливым утром среды, идя по мосту через Москву-реку и набирая тебе сообщение, что уже в субботу мы будем обсуждать такие вот темы. (Впрочем, если скажу что вообще ни о чем таком не предполагал - совру.)\nНадо всё переварить. Я не ожидал что у тебя ко мне всё еще вот так. И не ожидал, что мы так хорошо пообщаемся. И что будем потом переписываться запоем, как будто всё ещё прошлое лето и не было всего говна...\nДай мне время. Я уже не пылкий 15-летний юноша, способный сходу прыгать в омуты и обещать золотые горы. Но теперь у меня появилась новая информация, пища к размышлению. Сейчас я уеду на две недели. Будет время все обдумать и чего-нибудь придумать. Да и у тебя будет время понять, надо ли тебе вообще это всё.\nНо так или иначе, я очень рад что мы говорим. Вот это вот все обсуждаем. И мне очень тепло с тобой. И вот это позабытое - просыпаться с утра и проверять телефон...\n\nИ странно это всё, ой странно.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+			"settings":
+			{
+				"buffer_size": 2483,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"contents": "\n\nДоброе утро, Танюшочек! \nКажется, пора уже сделать доброй традицией писать тебе длинные ночные послания :)\nСейчас 3:36, а я только сел за на стул и могу черкнуть пару слов о сегодняшнем дне. (Дне - от слова день)\nЯ таки попрощался с уютненьким местом на Гражданке. Поэтому настрой немного философский.\nВсё-таки много там всего хорошего было...\nА еще очень хочется спать! Идет вторая моя бессонная ночь подряд, и я только и жду чтоб коснуться головой подушки. Кажется, мозг отключится уже за несколько миллиметров до касания.\n\nА мульт не видел...\n\nМмм да...Недлинное получилось послание.\nПотому что меня просто рубит. Пойду-ка все ж спать.\nНу а тебе — счастливого пути и интереснейших приключений!\n\n\nНа самом деле, о том, что мне надо съехать, я узнал еще 30 мая. У них там изменились сем.обстоятельства (а именно - подрсла внучка) - и было решено что пора изымать из личного пользования столь полезный ресурс как квартира. И мы договорились, что до 6го июля я съеду...\nА 16 июня я встретил одну очаровательную барышню, которая неоднозначно намекнула мне прямо с первого свидания: \"Серенький, целуй меня везде!\". Ну и еще она намекнула, что через месяц уезжает на месяц... Ну и не дожидаясь  \n",
+			"settings":
+			{
+				"buffer_size": 1194,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/D/tronix/avr/twi2.asm",
+			"settings":
+			{
+				"buffer_size": 4304,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/D/tronix/avr/core.inc.asm",
+			"settings":
+			{
+				"buffer_size": 3503,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/D/tronix/avr/twi.asm",
+			"settings":
+			{
+				"buffer_size": 4095,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/D/tronix/avr/twi2.asm",
+			"settings":
+			{
+				"buffer_size": 4304,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/D/tronix/avr/functions.inc.asm",
+			"settings":
+			{
+				"buffer_size": 1879,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "/D/tronix/avr/macros.inc.asm",
+			"settings":
+			{
+				"buffer_size": 2353,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		}
+	],
+	"build_system": "Packages/User/ASM.sublime-build",
+	"build_system_choices":
+	[
+		[
+			[
+				[
+					"Packages/User/ASM.sublime-build",
+					""
+				],
+				[
+					"Packages/User/ASM.sublime-build",
+					"Compile"
+				],
+				[
+					"Packages/User/ASM.sublime-build",
+					"Compile + Prog"
+				]
+			],
+			[
+				"Packages/User/ASM.sublime-build",
+				"Compile + Prog"
+			]
+		]
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 392.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"Package Control: ",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 444.0
+	},
+	"console":
+	{
+		"height": 416.0,
+		"history":
+		[
+			"import urllib.request,os,hashlib; h = '6f4c264a24d933ce70df5dedcf1dcaee' + 'ebe013ee18cced0ef93d5f746d80ef60'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by)"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/D/tronix/canopy",
+		"/D/tronix/canopy/lora",
+		"/D/tronix/avr"
+	],
+	"file_history":
+	[
+		"/D/tmp/tonna/letter.txt",
+		"/D/srv/tonna/www/index.php",
+		"/D/srv/todo/package.json",
+		"/D/srv/tiantonna/www/taglines.txt",
+		"/D/srv/tiantonna/www/foo.php",
+		"/D/srv/tiantonna/www/ajax.php",
+		"/D/srv/tiantonna/www/m/style.css",
+		"/D/srv/tiantonna/www/index.php",
+		"/D/tonna/logo_insta_description.txt",
+		"/D/srv/tiantonna/work/Кокосы не пройдут.txt",
+		"/D/tronix/canopy/lora/core.inc.asm",
+		"/D/srv/foggy/www/admin/modules/login/login.route.php",
+		"/D/srv/foggy/www/conf/site.json5",
+		"/D/srv/foggy/www/widgets/forms/formfield.class.php",
+		"/D/srv/foggy/www/widgets/forms/form.class.php",
+		"/D/srv/foggy/work/_notes.txt",
+		"/D/srv/foggy/www/admin/modules/cats/cats.ajax.php",
+		"/D/srv/foggy/www/admin/modules/cats/cats.lib.php",
+		"/D/srv/foggy/www/admin/modules/cats/cats.json5",
+		"/D/srv/foggy/www/admin/views/header.tpl.php",
+		"/D/srv/foggy/www/admin/modules/cats/js/cats-item.js",
+		"/D/srv/foggy/www/admin/views/footer.tpl.php",
+		"/D/srv/foggy/www/admin/m/less/adm-style.less",
+		"/D/srv/foggy/www/views/cat_card.tpl.php",
+		"/D/srv/foggy/www/m/less/catcard.less",
+		"/D/srv/foggy/www/m/less/style.less",
+		"/D/srv/foggy/www/modules/main/js/main.js",
+		"/D/srv/foggy/www/modules/main/block-litters.tpl.php",
+		"/D/srv/foggy/www/views/cat_info.tpl.php",
+		"/D/srv/foggy/www/widgets/forms/form.js",
+		"/D/srv/foggy/www/lib/lib.inc.php",
+		"/D/srv/foggy/www/admin/modules/cats/cats.less",
+		"/D/srv/foggy/www/admin/m/admlib.js",
+		"/D/srv/foggy/www/m/lib/lib.js",
+		"/D/srv/foggy/www/admin/modules/cats/cats-item-main.tpl.php",
+		"/D/srv/foggy/www/admin/modules/login/login.json5",
+		"/D/srv/foggy/www/admin/modules/login/login-form.tpl.php",
+		"/D/srv/foggy/www/admin/modules/login/js/login.js",
+		"/D/tin.txt",
+		"/D/srv/foggy/www/admin/modules/litters/litters.tpl.php",
+		"/D/srv/foggy/www/modules/main/main.tpl.php",
+		"/D/srv/foggy/www/views/header.tpl.php",
+		"/D/srv/foggy/mysql.json",
+		"/D/srv/foggy/www/m/less/page-main.less",
+		"/D/srv/foggy/www/admin/modules/litters/litters.json5",
+		"/D/srv/foggy/www/m/less/mixins.less",
+		"/D/srv/foggy/work/instagram.svg",
+		"/D/srv/foggy/www/m/i/icons/vk.svg",
+		"/D/srv/foggy/www/foo.php",
+		"/D/srv/foggy/www/admin/modules/litters/litters-item.tpl.php",
+		"/D/srv/foggy/www/admin/modules/litters/litters.lib.php",
+		"/D/srv/foggy/www/admin/modules/litters/litters.ajax.php",
+		"/D/srv/foggy/www/admin/modules/cats/cats.tpl.php",
+		"/D/srv/foggy/www/admin/modules/cats/cats-item.tpl.php",
+		"/D/srv/foggy/www/admin/admin.route.php",
+		"/D/srv/foggy/www/widgets/galviewer/galviewer.js",
+		"/D/srv/foggy/www/widgets/galviewer/galviewer.less",
+		"/D/srv/foggy/www/modules/cats/cats.route.php",
+		"/D/srv/foggy/www/modules/cats/cats-item.tpl.php",
+		"/D/srv/foggy/www/modules/cats/js/cats-item.js",
+		"/D/srv/foggy/www/m/less/page-test.less",
+		"/D/srv/foggy/www/lib/db.class.php",
+		"/D/srv/foggy/www/modules/cats/cats_item.tpl.php",
+		"/D/srv/foggy/www/m/js/app.js",
+		"/D/srv/foggy/www/widgets/gallery/gallery.class.php",
+		"/D/srv/foggy/www/widgets/gallery/gallery.js",
+		"/D/srv/foggy/www/modules/our-cats/our-cats.route.php",
+		"/D/srv/foggy/www/admin/modules/cats/cats-item-photos.tpl.php",
+		"/D/srv/foggy/www/admin/modules/cats/js/cats-gallery.js",
+		"/D/srv/foggy/www/admin/m/css/adm-style.css",
+		"/D/srv/foggy/www/widgets/gallery/gallery.less",
+		"/D/srv/foggy/www/admin/m/adm-style.css",
+		"/D/srv/foggy/www/admin/views/basic-header.tpl.php",
+		"/D/srv/foggy/www/admin/m/app.js",
+		"/D/srv/foggy/.gitignore",
+		"/D/srv/foggy/www/admin/modules/cats/gallery.less",
+		"/D/srv/foggy/www/m/lib/i18n.js",
+		"/D/srv/foggy/www/admin/modules/cats/js/gallery.js",
+		"/D/srv/foggy/www/admin/modules/cats/gallery.lib.php",
+		"/D/srv/foggy/www/m/less/common.less",
+		"/D/srv/foggy/www/admin/modules/cats/cats-upload-frame.tpl.php",
+		"/D/srv/foggy/www/admin/modules/cats/cats-main.tpl.php",
+		"/D/srv/foggy/www/admin/admin.lib.php",
+		"/D/srv/foggy/gulpfile.js",
+		"/D/srv/foggy/www/widgets/forms/config.json",
+		"/D/srv/foggy/www/admin/m/less/imports.less",
+		"/D/srv/foggy/www/admin/modules/login/login.tpl.php",
+		"/D/srv/vog.loc/www/admin/modules/reviews/js/reviews-item.js",
+		"/D/srv/vog.loc/www/config.inc.php",
+		"/D/srv/foggy/www/widgets/forms/form.less",
+		"/D/srv/foggy/www/admin/modules/login/adm-loginform.tpl.php",
+		"/D/srv/foggy/www/admin/modules/login/adm-login.tpl.php",
+		"/D/srv/foggy/www/config.inc.php",
+		"/D/srv/vog.loc/www/admin/modules/reviews/reviews-item.tpl.php",
+		"/D/srv/foggy/www/lib/json5.php",
+		"/D/srv/vog.loc/www/admin/modules/reviews/reviews-style.less",
+		"/D/srv/foggy/www/admin/m/less/item.less",
+		"/D/srv/foggy/www/admin/m/less/list.less",
+		"/D/srv/foggy/www/lib/json5/SyntaxError.php",
+		"/D/srv/foggy/www/admin/modules/cats/reviews.json5",
+		"/D/srv/vog.loc/www/admin/adm-router.php",
+		"/D/srv/vog.loc/www/m/less/order.less",
+		"/D/srv/vog.loc/www/modules/order/order.tpl.php",
+		"/D/srv/vog.loc/www/modules/order/order-form-try.tpl.php",
+		"/D/srv/vog.loc/www/m/css/style.css",
+		"/D/srv/foggy/www/index.php",
+		"/D/srv/foggy/www/admin/views/adm-login.tpl.php",
+		"/D/srv/foggy/www/.htaccess",
+		"/D/tmp/tin.txt",
+		"/D/srv/foggy/www/m/css/style.css",
+		"/D/srv/vog.loc/www/modules/order/order-form-try.json5",
+		"/D/srv/vog.loc/www/views/header.tpl.php",
+		"/D/srv/vog.loc/www/conf/site.json5",
+		"/D/srv/vog.loc/www/modules/order/order.ajax.php",
+		"/D/srv/vog.loc/www/modules/order/js/order-form-try.js",
+		"/D/srv/vog.loc/www/lib/lib.inc.php",
+		"/D/srv/vog.loc/www/modules/order/order.route.php",
+		"/D/srv/vog.loc/www/modules/order/order.json5",
+		"/D/srv/foggy/www/cats/MMagnolia/conf.json5",
+		"/D/srv/foggy/www/cats/_kittens/20190406/conf.json5",
+		"/D/srv/foggy/www/cats/Okkami/conf.json5",
+		"/D/srv/foggy/www/cats/Urman/conf.json5",
+		"/D/srv/foggy/www/cats/Haseena/conf.json5",
+		"/D/srv/foggy/www/modules/our-cats/our-cats_item.tpl.php",
+		"/D/srv/foggy/www/modules/our_cats/our_cats_item.tpl.php",
+		"/D/srv/foggy/www/modules/our_cats/our_cats.route.php",
+		"/D/srv/foggy/www/views/footer.tpl.php",
+		"/D/srv/vog.loc/www/index.php"
+	],
+	"find":
+	{
+		"height": 42.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"имя",
+			"uart_",
+			"RBERR",
+			"macro",
+			"twi_write",
+			"U",
+			"uart_",
+			"TWI_SENT",
+			"rcvd",
+			"rstrt",
+			"uart_",
+			"TWI_WAIT",
+			"twi_init",
+			"twi_data_len",
+			"TWI_INIT",
+			"X",
+			"UART_TX_HEX",
+			"Y",
+			"UART_TX_HEX",
+			"Y",
+			"TWI_RESET_DATA",
+			"TWI_RESET_LEN",
+			"TWI_READ",
+			"UART_TX",
+			"push",
+			"UART_TX_STR_CONST",
+			"CHECK_STATUS",
+			"UART_TX_STR_CONST",
+			"uart_reg",
+			"uart_byte",
+			"uart",
+			"end_twsi",
+			"twi_oncomplete",
+			"TWI_COMPLETE",
+			"osw",
+			"cardHTML",
+			".ava",
+			"ava",
+			"setInfo",
+			"jsMainScript",
+			".post",
+			"ajax",
+			"checkRecaptcha",
+			"g-re",
+			"validateon",
+			"jsMainScript",
+			"autosear",
+			"validateOnSubmit",
+			"forest-bg",
+			"sub",
+			"'\n",
+			"jsMainScript",
+			">script",
+			".info",
+			"$ava",
+			"$info",
+			"history",
+			"info",
+			".info",
+			"about",
+			"js",
+			"svg",
+			"svgic",
+			"svg",
+			".close",
+			"close",
+			"addItems",
+			"objid",
+			"uploads",
+			"resources",
+			"gallery",
+			".gallery",
+			"cl =",
+			"cl(",
+			" cl",
+			"cl",
+			"ajax_base",
+			"admlib",
+			"adml",
+			"ajax",
+			"_ajax",
+			"send",
+			"additem",
+			"item_",
+			"item",
+			"conf.ajax_base",
+			"alib",
+			".form",
+			"uploadbox",
+			"sendo",
+			"sendok",
+			"cat",
+			"zero",
+			"zf",
+			".js",
+			"zf",
+			">script",
+			"script",
+			"loadPage",
+			"upart",
+			"rendero",
+			"getd",
+			">form",
+			"prerender",
+			"checked",
+			"rece",
+			"validate",
+			"checkbox",
+			"format",
+			">options",
+			"options",
+			"readConfig",
+			"assign",
+			"route",
+			".send(",
+			" send(",
+			"render",
+			"load",
+			"pr(",
+			"pr",
+			"set_va",
+			"value",
+			"pr(",
+			"value",
+			"init",
+			"topEl",
+			"getTopEl",
+			"topEl"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"gallery",
+			"opts.ajax_base",
+			"opts",
+			".$form",
+			"$uploadbox",
+			"modpath",
+			">_result",
+			">_fields",
+			">_config",
+			"LANG",
+			">_fconf",
+			"",
+			"<div",
+			"div>",
+			"csspair",
+			"trg.size",
+			"csspair",
+			"",
+			"opened",
+			"",
+			">fconf",
+			"fconf.",
+			"constr.",
+			"too_small",
+			"too_big",
+			"too_short",
+			"too_long",
+			"\",",
+			"\": \"",
+			"\\\\",
+			"var ",
+			".mainmenu",
+			"//cl(",
+			",",
+			"]",
+			"/m/fonts",
+			"$",
+			"time",
+			"ready",
+			"---",
+			"&",
+			"",
+			" ",
+			"\\\\n",
+			"\\n",
+			"видеокурсам"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 1,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "lora/lora_txrx_i2c_test.asm",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 8467,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4456,
+								4448
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/AvrAssembler/avr-asm.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 4500.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 12,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "lora/i2c_test.asm",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3568,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								1186
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/AvrAssembler/avr-asm.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 285.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 984,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								483,
+								483
+							]
+						],
+						"settings":
+						{
+							"auto_name": "Ищу идеал. Поэтому нихрена не найду, ну да и пофиг",
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "/D/srv/todo/www/index.php",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1191,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								967,
+								973
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/PHP/PHP.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 201.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "/D/tmp/ogult/my-compliment.txt",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 845,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1044,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2,
+								2
+							]
+						],
+						"settings":
+						{
+							"auto_name": "",
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2483,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								782,
+								782
+							]
+						],
+						"settings":
+						{
+							"auto_name": "",
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1194,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								699,
+								699
+							]
+						],
+						"settings":
+						{
+							"auto_name": "",
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "/D/tronix/avr/twi2.asm",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4304,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								236,
+								236
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/AvrAssembler/avr-asm.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1949.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 7,
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "/D/tronix/avr/core.inc.asm",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3503,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								266,
+								271
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/AvrAssembler/avr-asm.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 65.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 9,
+					"type": "text"
+				},
+				{
+					"buffer": 10,
+					"file": "/D/tronix/avr/twi.asm",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4095,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								539,
+								733
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/AvrAssembler/avr-asm.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 3780.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 8,
+					"type": "text"
+				},
+				{
+					"buffer": 11,
+					"file": "/D/tronix/avr/twi2.asm",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4304,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2,
+								2
+							]
+						],
+						"settings":
+						{
+							"auto_name": "",
+							"syntax": "Packages/AvrAssembler/avr-asm.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 11,
+					"type": "text"
+				},
+				{
+					"buffer": 12,
+					"file": "/D/tronix/avr/functions.inc.asm",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1879,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/AvrAssembler/avr-asm.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 13,
+					"type": "text"
+				},
+				{
+					"buffer": 13,
+					"file": "/D/tronix/avr/macros.inc.asm",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2353,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								187,
+								187
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/AvrAssembler/avr-asm.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 45.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 10,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 29.0
+	},
+	"input":
+	{
+		"height": 60.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 78.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "",
+	"project": "canopy.sublime-project",
+	"replace":
+	{
+		"height": 54.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": true,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 282.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

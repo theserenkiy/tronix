@@ -1,0 +1,18 @@
+
+
+A27
+	Dimensions:						8 x 27 mm
+	Discharge to 8V @ 2k load = 6mA initial = 72mW:	3 Hr
+		Capacity @ 2k load:						15maH (140mwH)
+
+	Discharge currents
+	 	standard: 					0.06 mA
+	 	max. recomm. continuous: 	0.5 mA
+	 	max. recomm. pulse: 		5 mA
+
+AAAA
+	Dimensions:			8.3 x 42 mm
+	Capacity @10mA 		600mAh (900mWH)			
+
+
+LR754 60mAh

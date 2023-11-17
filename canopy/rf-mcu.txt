@@ -1,0 +1,8 @@
+CC1110Fx / CC1111Fx  -110 dBm @ 1.2k; 6.1mm; 
+
+ADF7030 -134 dBm @ 100bps; 6.1mm
+
+CC1310 1.8V; -124dBm; 10dBm @ 13.4mA; 5.2mm
+
+
+
