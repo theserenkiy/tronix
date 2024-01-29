@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<title></title>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript">
+
+const config = {
+	dpi: 470,
+	folder: 'print1',
+	files: [
+		{name: '/remote_rx_circuit.png',rotate:0,repeat:2,margin:7},
+	]
+
+}
+
+
+function addFile(d)
+{
+	if(typeof d == 'string')
+		d = {name:d}
+
+	let css = {};
+
+	if(d.rotate)
+ 		css.transform = 'rotate(90deg)';
+	if(d.name[0]=='/')
+		d.name = config.folder+d.name;
+
+	if(!d.repeat)
+		d.repeat = 1;
+
+	let containers = []
+	for(let i=0;i < d.repeat;i++)
+	{
+		let c = $('<div style="display:flex;justify-content:center;align-items:center;margin:'+(d.margin)+'mm"/>').appendTo('body');
+		//c.css(css)
+		containers.push(c);
+	}
+
+	let im = new Image();
+	im.onload = ()=>{
+		let w = css.width = (im.naturalWidth/config.dpi)+'in';
+		let h = css.height = (im.naturalHeight/config.dpi)+'in';
+
+		for(let c of containers)
+		{
+			let $im = $('<img src="'+d.name+'">');
+			$im.css(css);
+			c.css(d.rotate ? {width:h,height:w} : {width:w,height:h});
+			c.append($im);
+		}
+	}
+	im.src = d.name;
+
+}
+
+$(()=>{
+	for(let d of config.files)
+	{
+		addFile(d);
+	}
+
+})
+
+</script>
+</head>
+<body style="width: 210mm;height: 297mm; display: flex; flex-wrap:wrap; align-items:flex-start; align-content:flex-start;border: 1px solid #777">
+
+</body>
+</html>

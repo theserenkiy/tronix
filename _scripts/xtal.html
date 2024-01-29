@@ -1,0 +1,160 @@
+<html>
+<head>
+</head>
+<body>
+<script type="text/javascript" src="/vue.js"></script>
+<script type="text/javascript">
+
+const patterns = [
+	[2],[3],[2,2],[5],[2,3],[7],[2,2,2],[3,3],[2,5],
+	[2,2,3],[2,7],[3,5],[2,2,2,2],[2,3,3],[2,2,5],
+	[3,7],[2,2,2,3],[5,5],[3,3,3],[2,2,7],[2,3,5],
+	[2,2,2,2,2],[5,7],[2,2,3,3],[2,2,2,5],
+	[2,3,7],[3,3,5],[7,7],[2,5,5],
+	[2,3,3,3],[2,2,2,7],[2,2,3,5],
+	[2,2,2,2,2,2],[2,5,7]
+]
+
+const fm_stations = [87.50,88.00,88.40,88.90,89.30,89.70,90.10,90.60,91.10,91.50,92.00,92.40,92.90,93.30,94.10,95.00,95.50,95.70,95.90,97.00,98.60,99.00,100.10,100.50,100.90,101.40,102.00,102.40,102.80,103.40,103.70,104.00,104.40,104.80,105.30,105.90,106.30,107.00,107.40,107.80];
+
+const fm_range = [87.5,108.0];
+
+
+window.onload = ()=>{
+let app = new Vue({
+	el: '#app',
+	data: {
+		input: '27',
+		mode: 'xtal',
+		use_2: true,
+		use_3: true,
+		use_5: true,
+		use_7: true
+	},
+	methods: {
+		getFreqsByXtal: function(){
+			let out = [];
+			for(let p of this.filterPatterns())
+			{
+				let f = +this.input;
+				for(let mul of p)
+					f *= mul;
+
+				let nearest_fm = null;
+				let fm_distance = null;
+				let nearest_distance = Infinity;
+				if(f >= fm_range[0] && f <= fm_range[1])
+				{
+					for(let ffm of fm_stations)
+					{
+						fm_distance = Math.abs(ffm-f);
+						if(fm_distance < nearest_distance)
+						{
+							nearest_fm = ffm;
+							nearest_distance = fm_distance;
+						}
+					}
+				}
+
+				let bgcolor = '';
+				if(nearest_fm)
+				{
+					if(nearest_distance < 0.2)bgcolor = '#f00';
+					else if(nearest_distance < 0.4)bgcolor = '#f00';
+				}
+
+				let bgcol = nearest_fm ? (nearest_distance < 0.09 ? '#f00' : (nearest_distance < 0.29 ? '#fa0' : (nearest_distance < 0.39 ? '#ff0' : '#0f0'))) : '';
+
+				out.push({
+					freq: f.toFixed(3),
+					multipliers: p.map(v => ' x <b>'+v+'</b>').join(''),
+					nearest: nearest_fm ? nearest_fm+' ('+nearest_distance.toFixed(2)+')' : '',
+					style: {background: bgcol}
+				})
+			}
+			return out;
+		},
+		getXtalsByFreq: function()
+		{
+			let out = [];
+			for(let p of this.filterPatterns())
+			{
+				let f = +this.input;
+				for(let mul of p)
+					f /= mul;
+
+				out.push({
+					freq: f.toFixed(3),
+					multipliers: p.map(v => ' x <b>'+v+'</b>').join('')
+				})
+			}
+			return out;
+		},
+		filterPatterns: function(){
+			return patterns.filter(p => !(
+				!this.use_2 && p.includes(2) ||
+				!this.use_3 && p.includes(3) ||
+				!this.use_5 && p.includes(5) ||
+				!this.use_7 && p.includes(7)
+			))
+		}
+	},
+	computed: {
+		items: function(){
+			return this.mode=='xtal' ? this.getFreqsByXtal() : this.getXtalsByFreq();
+		}
+	}
+});
+}
+
+</script>
+<style media="screen">
+*{
+	font-family: Consolas;
+}
+label,input,select{
+	font-size: 30px;
+}
+
+.list>div{
+	font-size: 24px;
+	border-bottom: 1px solid #ddd;
+	--padding: 10px 0;
+}
+
+.list>div>b{
+	display: inline-block;
+	width: 100px;
+}
+
+.muls>b{
+	color: green
+}
+
+.muls{width: 200px;display: inline-block;}
+
+</style>
+
+<div id=app>
+	<div class=inputs>
+		<select v-model="mode">
+			<option value=xtal>XTAL freq.:</option>
+			<option value=res>Result freq.:</option>
+		</select>
+		<input v-model=input>
+		Use multipliers:
+		<label><input type=checkbox v-model="use_2">2 </label>
+		<label><input type=checkbox v-model="use_3">3 </label>
+		<label><input type=checkbox v-model="use_5">5 </label>
+		<label><input type=checkbox v-model="use_7">7 </label>
+	</div>
+	<div class=list>
+		<div v-for="item of items" :style=item.style>
+			<b v-html="item.freq"></b>
+			<span class=muls v-html="item.multipliers"></span>
+			<span class=nears v-html="item.nearest || ''"></span>
+		</div>
+	</div>
+</div>
+</body>
+</html>
