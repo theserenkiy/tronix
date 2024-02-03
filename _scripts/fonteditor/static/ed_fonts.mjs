@@ -3,6 +3,8 @@ import Glyph from './glyph.mjs';
 import { apiCall,cl, debounce, p_alert} from './lib.mjs';
 import env from './env.mjs';
 
+import fontExport from './fontexport.mjs';
+
 const similars = {
 	en: 'AaBCcEeHKMOoPpTXx'.split(''),
 	ru: 'АаВСсЕеНКМОоРрТХх'.split('')
@@ -71,8 +73,11 @@ export default {
 			
 			await apiCall('writeFile',{
 				path:`/${this.project}/fonts/${this.name}.json`,
-				data: JSON.stringify(this.font)
+				data: JSON.stringify(this.font,null,'	')
 			})
+
+			cl(fontExport(this.font,this.name))
+			
 		},100)
 	},
 	watch:{
@@ -136,22 +141,32 @@ export default {
 				name: '',
 				symbols: [],
 				sort_weight: Date.now(),
-				width: +this.c_default_width,
+				width: +this.font.default_width,
 			});
 			this.save();
 		},
 
 		setDfltWidth(ev)
 		{
-			let val = ev.target.value;
-			//cl({setDefltWidth:val})
-			this.font.default_width = +val;
+			let w = +ev.target.value;
+			if(w > 32)
+			{
+				alert("Maximum font width is 32");
+				w = 32;
+			}
+			this.font.default_width = w;
 			this.save();
 		},
 
 		setHeight(ev)
 		{
-			this.font.height = +ev.target.value;
+			let h = +ev.target.value;
+			if(h > 32)
+			{
+				alert("Maximum font height is 32");
+				h = 32;
+			}
+			this.font.height = h;
 			this.save();
 		},
 
@@ -232,7 +247,7 @@ export default {
 		<div class=controls>
 			<h2>Шрифт "{{name}}"</h2>
 			<div>
-				Высота:&nbsp;<input type="number" min="1" max="128" :value="font.height" @change="setHeight">
+				Высота:&nbsp;<input type="number" min="1" max="32" :value="font.height" @change="setHeight">
 			</div>
 			<div>
 				Ширина по умолч.:&nbsp;<input type="number" min="1" max="32" :value="font.default_width" @change="setDfltWidth">
@@ -274,13 +289,13 @@ export default {
 				<Glyph v-for="gl in c_glyphs" 
 					:gl="gl" 
 					:height="font.height"
-					:style="c_glyphStyle" 
+					
 					:key="gl.id"
 					@save="save" 
 					@delete="delGlyph"
 					@duplicate="dupGlyph"
 				/>
-				<div class="glyph addnew" :style="c_glyphStyle" @click="addnew([])"></div>
+				<div class="glyph addnew" @click="addnew([])"></div>
 			</div>
 		</div>
 	</div>`

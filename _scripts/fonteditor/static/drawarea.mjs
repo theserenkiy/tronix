@@ -25,81 +25,52 @@ export default {
     created(){
         this.debouncedSave = debounce(()=>{
            
-            this.$emit('change',this.pixels);
+            this.$emit('change');
 
             //this.saved = this.pixels.filter(v => v.value).map(v => v.addr)
         },100)
-        this.init();
+        //this.init();
     },
     watch:{
-        width(){
-            this.updatePixels();
-            this.debouncedSave();
-        },
-        image(){
-            if(!this.readonly)
-                return;
-            this.updatePixels();
-        }
+        
     },
     computed:{
-        style(){
-            let s = this.env.settings;
-            let fullsz = this.pixel_size+this.pixel_padding;
-            let w = this.width*fullsz;
-            let h = this.height*fullsz;
-            let style = {width:w+'px',height:h+'px'};
-            return style;
+        image_view(){
+            let out = [];
+            for(let y=0;y < this.height; y++)
+            {
+                out[y] = [];
+                if(!this.image[y])
+                    this.image[y] = [];
+                for(let x=0; x < this.width; x++)
+                {
+                    if(!this.image[y][x])
+                        this.image[y][x] = 0;
+                    out[y][x] = this.image[y][x] ? 1 : 0;
+                }
+            }
+            return out;
         }
     },
     methods:{
-        getBitAddress(addr)
-        {
-            let img_index = (addr[0]*this.height_bytes)+Math.floor(addr[1]/8);
-            let bit_number = addr[1]%8;
-            let mask = ~(1 << bit_number);
-            return {img_index,bit_number,mask}
-        },
         focus(){
             cur_drawarea_regid = this.regid;
         },
-        init(){
-            this.height_bytes = Math.ceil(this.height/8);
-            this.updatePixels();
-            this.resize();
-            this.regid = Date.now();
-        },
-        updatePixels(){
-            this.pixels = [];
-
-            for(let y=0; y < this.height; y++)
-            {
-                for(let x=0; x < this.width; x++)
-                {
-                    this.pixels.push({
-                        value: this.image[y] ? (this.image[y][x] || 0) : 0, 
-                        addr: [x,y]
-                    });
-                }
-            }
-        },
-        resize(){
-            
-        },
         onPixel(ev){
             this.focus = true;
-            this.pixels[ev.addr[1]*this.width+ev.addr[0]] = ev.value;
+            this.image[ev.addr[1]][ev.addr[0]] = ev.value ? 1 : 0;
             this.debouncedSave()
         }
     },
-    template: `<div class=drawarea :style="style">
-        <Pixel v-for="pixel in pixels" 
-            :addr="pixel.addr" 
-            :value="pixel.value" 
-            :size="pixel_size"
-            :padding="pixel_padding"
-            :key="pixel.addr"
-            @set="onPixel">
-        </Pixel>
+    template: `<div class=drawarea>
+        <div class=row v-for="(row,y) in image_view">
+            <Pixel v-for="(pixel,x) in row" 
+                :addr="[x,y]" 
+                :value="pixel" 
+                :key="x+'_'+y"
+                @set="onPixel">
+            </Pixel>
+        </div>
+        
     </div>`
 }

@@ -58,7 +58,7 @@ export default {
 
 		saveImage(img)
 		{
-			this.gl.image = img;
+			this.save()
 		}
     },
 	template: `
