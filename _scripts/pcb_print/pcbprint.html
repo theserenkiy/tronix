@@ -2,19 +2,36 @@
 <html lang="en" dir="ltr">
 <head>
 <meta charset="utf-8">
-<title></title>
+<title>PRINT PCB</title>
+<style>
+body{
+	border: 1px solid #777;
+	width: 210mm;
+	height: 297mm;
+	display: flex;
+	flex-wrap:wrap;
+	align-items:flex-start;
+	align-content:flex-start;
+}
+@media print{
+	body{
+		border: 0;
+	}
+}
+</style>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript">
 
 const config = {
-	dpi: 470,
+	dpi: 600,
 	folder: 'print1',
 	files: [
-		{name: '/remote_rx_circuit.png',rotate:0,repeat:2,margin:7},
+		//{name: '/remote_rx_circuit.png',rotate:0,repeat:2,margin:5},
+		{name: '/remote_rx_drill_v22.png',rotate:1,repeat:8,margin:1},
+		//{name: '/pcb_rx_mirror.png',rotate:1,repeat:8,margin:1},
 	]
 
 }
-
 
 function addFile(d)
 {
@@ -66,7 +83,7 @@ $(()=>{
 
 </script>
 </head>
-<body style="width: 210mm;height: 297mm; display: flex; flex-wrap:wrap; align-items:flex-start; align-content:flex-start;border: 1px solid #777">
+<body style="">
 
 </body>
 </html>
