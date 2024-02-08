@@ -1,7 +1,7 @@
 import {cl} from '/lib.mjs';
 
 export default {
-	props: ['value','addr','size','padding'],
+	props: ['value','addr'],
 	data(){
 		return {
 			
@@ -14,13 +14,6 @@ export default {
 		
 	},
 	computed:{
-		style(){
-			return {
-				width:this.size+'px',
-				height:this.size+'px',
-				padding:this.padding+'px'
-			}
-		}
 	},
 	methods:{
 		resize(){
@@ -32,7 +25,7 @@ export default {
 			cl('over',ev.buttons)
 			this.isOver = true;
 			if(ev.buttons>0){
-				this.$emit('set',{num:this.num,value:ev.buttons==1})
+				this.$emit('set',{addr:this.addr,value:ev.buttons==1})
 			}
 		},
 		mOut(){
@@ -50,7 +43,6 @@ export default {
 	<div class="pixel nodrag noselect" 
 		draggable="false"
 		:class="{active:value}" 
-		:style="style"
 		@mousedown="click"
 		@mouseenter="mOver" 
 		@mouseleave="mOut"
