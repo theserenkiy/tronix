@@ -12,6 +12,7 @@ body{
 	flex-wrap:wrap;
 	align-items:flex-start;
 	align-content:flex-start;
+	box-sizing: border-box;
 }
 @media print{
 	body{
@@ -25,10 +26,11 @@ body{
 const config = {
 	dpi: 600,
 	folder: 'print1',
+	//top: '4cm',
+	left: '1.3cm',
 	files: [
-		{name: '/heart_pcb.png',rotate:0,repeat:3,margin:7},
+		{name: '/heartv2_pcb_bottom.png',rotate:0,repeat:3,margin:14},
 	]
-
 }
 
 function addFile(d)
@@ -72,6 +74,10 @@ function addFile(d)
 }
 
 $(()=>{
+	if(config.top)
+		document.body.style.paddingTop = config.top;
+	if(config.left)
+		document.body.style.paddingLeft = config.left;
 	for(let d of config.files)
 	{
 		addFile(d);
