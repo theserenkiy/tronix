@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<title>PRINT PCB</title>
+<style>
+body{
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+#app>div{
+	display: flex;
+}
+.sheet{
+	border: 1px solid #777;
+	width: 210mm;
+	height: 297mm;
+	display: flex;
+	flex-wrap:wrap;
+	align-items:flex-start;
+	align-content:flex-start;
+	box-sizing: border-box;
+}
+.rcol{
+	width: 300px;
+	min-height: 100vh;
+	background-color: #ddd;
+	margin-left: 10px;
+	display: flex;
+	flex-direction: column;
+	padding: 10px;
+}
+.imlist .im{
+	margin: 10px 0;
+	padding: 4px;
+	background-color: #eee;
+	border-radius: 4px;
+	box-shadow: 0 3px 5px #0007;
+	display: flex;
+	align-items: center;
+}
+.imlist .im .thumb{
+	width: 100px;
+	height: 100px;
+	background-repeat: no-repeat;
+	background-size: contain;
+	background-position: center center;
+}
+.imlist .im .controls{
+	margin-left: 10px;
+	display: flex;
+	flex-direction: column;
+}
+.imlist .im .controls a{
+	color: #37a;
+	text-decoration: underline;
+	text-decoration-style: dashed;
+	cursor: pointer;
+
+}
+.imblock{
+	display:flex;
+	justify-content:center;
+	align-items:center;
+}
+@media print{
+	.sheet{
+		border: 0;
+	}
+	.rcol{display: none;}
+}
+</style>
+<script type="text/javascript" src="jquery.js"></script>
+<script src="vue.js"></script>
+<!-- <script src="exif.js"></script> -->
+<script>
+const cl = console.log;
+Vue.component('app',{
+	data(){return{
+		imblocks: [],
+		images: []
+	}},
+	created(){
+		
+		if(localStorage.pcbprint_save)
+		{
+			let save = JSON.parse(localStorage.pcbprint_save);
+			for(let im of (save.images || []))
+			{
+				this.images.push(im);
+			}
+		}
+	},
+	methods: {
+		loadFile(ev)
+		{
+			let file = ev.target.files[0];
+			let reader = new FileReader();
+			reader.onload = ()=>{
+				this.images.push({
+					id: Date.now(),
+					name: file.name,
+					img: reader.result,
+					dpi: 600
+				})
+				this.save(file);
+			}
+			reader.readAsDataURL(file);
+		},
+
+		save(){
+			let save = {}
+			for(let k of ['images','imblocks'])
+				save[k] = this[k];
+			localStorage.pcbprint_save = JSON.stringify(save);
+		},
+
+		delImage(id)
+		{
+			this.images = this.images.filter(v => v.id != id);
+			this.save();
+		}
+	},
+	template: `
+		<div>
+			<div class="sheet">
+				<div v-for="b in imblocks" class=imblock :style="">
+					<img src="b.img_src" />
+				</div>
+			</div>
+			<div class="rcol">
+				<div class="imlist">
+					<div class="im" v-for="im in images">
+						<div class="thumb" :style="{backgroundImage: 'url('+im.img+')'}"></div>
+						<div class="controls">
+							<b>{{im.name}}</b>
+							<a @click="delImage(im.id)">Delete</a>
+						</div>
+					</div>
+				</div>
+				<input type=file @change=loadFile />
+			</div>
+		</div>
+	`	
+})
+
+//app.mount('.rcol');
+
+</script>
+<script>
+
+</script>
+<script type="text/javascript">
+
+const config = {
+	dpi: 600,
+	folder: 'print1',
+	//top: '4cm',
+	left: '1.3cm',
+	files: [
+		{name: '/heartv2_pcb_bottom.png',rotate:0,repeat:3,margin:14},
+	]
+}
+
+function addFile(d)
+{
+	if(typeof d == 'string')
+		d = {name:d}
+
+	let css = {};
+
+	if(d.rotate)
+ 		css.transform = 'rotate(90deg)';
+	if(d.name[0]=='/')
+		d.name = config.folder+d.name;
+
+	if(!d.repeat)
+		d.repeat = 1;
+
+	let containers = []
+	for(let i=0;i < d.repeat;i++)
+	{
+		let c = $('<div style="display:flex;justify-content:center;align-items:center;margin:'+(d.margin)+'mm"/>').appendTo('.sheet');
+		//c.css(css)
+		containers.push(c);
+	}
+
+	let im = new Image();
+	im.onload = ()=>{
+		let w = css.width = (im.naturalWidth/config.dpi)+'in';
+		let h = css.height = (im.naturalHeight/config.dpi)+'in';
+
+		for(let c of containers)
+		{
+			let $im = $('<img src="'+d.name+'">');
+			$im.css(css);
+			c.css(d.rotate ? {width:h,height:w} : {width:w,height:h});
+			c.append($im);
+		}
+	}
+	im.src = d.name;
+
+}
+
+$(()=>{
+	if(config.top)
+		$('.sheet').css('paddingTop',config.top);
+	if(config.left)
+		$('.sheet').css('paddingLeft',config.left);
+	for(let d of config.files)
+	{
+		addFile(d);
+	}
+
+	let app = new Vue({
+		el: '#app'
+	})
+
+
+})
+
+</script>
+</head>
+<body style="">
+	<div id="app">
+		<app></app>
+	</div>
+</body>
+</html>
