@@ -1,0 +1,77 @@
+body{
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+#app>div{
+	display: flex;
+}
+.sheet{
+	border: 1px solid #777;
+	width: 210mm;
+	height: 297mm;
+	display: flex;
+	flex-wrap:wrap;
+	align-items:flex-start;
+	align-content:flex-start;
+	box-sizing: border-box;
+	overflow: hidden;
+}
+.sheet>div{
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+.rcol{
+	width: 300px;
+	min-height: 100vh;
+	background-color: #ddd;
+	margin-left: 10px;
+	display: flex;
+	flex-direction: column;
+	padding: 10px;
+}
+.imlist .im{
+	margin: 10px 0;
+	padding: 4px;
+	background-color: #eee;
+	border-radius: 4px;
+	box-shadow: 0 3px 5px #0007;
+	display: flex;
+	align-items: center;
+}
+.imlist .im .thumb{
+	width: 100px;
+	height: 100px;
+	background-repeat: no-repeat;
+	background-size: contain;
+	background-position: center center;
+}
+.imlist .im .controls{
+	margin-left: 10px;
+	display: flex;
+	flex-direction: column;
+}
+.imlist .im .controls a{
+	color: #37a;
+	text-decoration: underline;
+	text-decoration-style: dashed;
+	cursor: pointer;
+
+}
+.imlist .im .controls input{
+	width: 50px;
+}
+.imblock{
+	position: absolute;
+	display:flex;
+	justify-content:center;
+	align-items:center;
+}
+.imblock.active{
+	box-shadow: 0 0 5px #2ae;
+}
+@media print{
+	.sheet{
+		border: 0;
+	}
+	.rcol{display: none;}
+}
