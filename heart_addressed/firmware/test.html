@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+<script>
+function hue2color(hue)
+{
+	let r = 0
+	let g = 0
+	let b = 0
+
+	if(hue < 42)	//5
+	{
+		b = 42
+		r = hue
+	}
+	else if(hue < 84)	//10
+	{
+		b = 84-hue
+		r = 42
+	}
+	else if(hue < 126)	//15
+	{
+		r = 42
+		g = hue-84
+	}
+	else if(hue < 168)	//20
+	{
+		r = 168-hue
+		g = 42
+	}
+	else if(hue < 210)	//25
+	{
+		g = 42
+		b = hue-168
+	}
+	else
+	{
+		b = 42
+		g = 255-hue
+	}
+	r <<= 2
+	g <<= 2
+	b <<= 2
+	return {r,g,b}
+}
+
+window.onload = () => {
+	document.getElementById('slider').oninput = ev => {
+		let c = hue2color(ev.target.value)
+		document.getElementById('color').style.backgroundColor = `rgb(${c.r},${c.g},${c.b})`
+	}
+}
+
+</script>
+</head>
+<body>
+	<input type="range" min="0" max="255" id="slider">
+	<div id="color" style="width:100px;height: 100px;border: 1px solid #aaa"></div>
+</body>
+</html>
