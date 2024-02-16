@@ -6,9 +6,22 @@
 .equ MEASEN_PIN = 1
 .equ MEASURE_PIN = 2
 
+.equ HUEBITS = 8
+.equ HUEMAX = (1 << HUEBITS) - 1
+.equ HUESTEP = HUEMAX/6
+
 .def R = r23
 .def G = r24
 .def B = r25
+
+.def Ro = r13
+.def Go = r14
+.def Bo = r15
+
+.macro ldil
+	ldi r19,@1
+	mov @0, r19
+.endmacro
 
 .dseg
 image: 	.byte 48
@@ -16,159 +29,80 @@ image: 	.byte 48
 .cseg
 .org 0
 RESET: 
+	ldi r16,RAMEND
+	out SPL,r16
 	sbi DDRB,LED_PIN
 	sbi DDRB,LEDEN_PIN
 	sbi PORTB, LEDEN_PIN
 
-	ldi r22,0
+	ldi r16,HUESTEP*4
 MAIN:
-	;rcall LEDS_WRITE
-	;rcall DUMMY_IMAGE
-	mov r16,r22
-	inc r22
-	rcall RAINBOW
-	rcall WRITE_LEDS
+_decr:
+	mov r9,r16
+	ldi r16,HUESTEP*4+1  
+	rcall HUE2COLOR
+	rcall HEARTBEAT
+	mov r16,r9
+	subi r16,1
+	cpi r16,(HUESTEP*35)/10
+	brcc _decr
+_incr:
+	mov r9,r16
+	ldi r16,HUESTEP*4-1
+	rcall HUE2COLOR
+	rcall HEARTBEAT
+	mov r16,r9
+	subi r16,-1
+	cpi r16,(HUESTEP*43)/10
+	brcs _incr
 
-	rcall DELAY
 	rjmp MAIN
 
 
+.include "drv.asm"
 
-;##########################################################
-;writes the array `image` to LEDs, shifting each value 4 times right
-;uses: r16, r17, r18
-WRITE_LEDS_SHIFTED:
-	ldi r16, 48
-	ldi YL, low(image)
-	ldi YH, high(image)
-	
-_dump_byte:
-	ld r17,Y+
-	ldi r18,8
-;first 4 bits are 0
-_zero_bit:
-	sbi PORTB, LED_PIN
-	nop
-	nop
-	nop
-	cbi PORTB, LED_PIN
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	dec r18
-	cpi r18,4
-	brcc _zero_bit
-
-_dump_bit:
-	rol r17
-	brcs _one
-	sbi PORTB, LED_PIN
-	nop
-	nop
-	nop
-	cbi PORTB, LED_PIN
-	nop
-	nop
-	nop
-	nop
-	nop
-	rjmp _end_bit
-_one:
-	sbi PORTB, LED_PIN
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	nop
-	cbi PORTB, LED_PIN
-_end_bit:
-	dec r18
-	brne _dump_bit
-	dec r16
-	brne _dump_byte
-	ret
-;end WRITE_LEDS_SHIFTED
-;##########################################################
-
-
-;##########################################################
-;in:	r16 - hue, 0..31
-;out:	R,G,B
-;uses:	r16
-.equ HUEBITS = 8
-.equ HUEMAX = (1 << HUEBITS) - 1
-.equ HUESTEP = HUEMAX/6
-HUE2COLOR:
-	ldi R,0
-	ldi G,0
-	ldi B,0
-	andi r16,HUEMAX
-	cpi r16,HUESTEP
-	brcc _p2
-	ldi B, HUESTEP
-	mov R,r16
-	rjmp _end
-_p2:
-	cpi r16,HUESTEP*2
-	brcc _p3
-	ldi R,HUESTEP
-    ldi B,HUESTEP*2
-	sub B,r16
-	rjmp _end
-_p3:
-	cpi r16,HUESTEP*3
-	brcc _p4
-	ldi R,HUESTEP
-	mov G,r16
-	subi G,HUESTEP*2
-	rjmp _end
-_p4:
-	cpi r16,HUESTEP*4
-	brcc _p5
-	ldi G,HUESTEP
-	ldi R,HUESTEP*4
-	sub R,r16
-	rjmp _end
-_p5:
-	cpi r16,HUESTEP*5
-	brcc _p6
-	ldi G,HUESTEP
-	mov B,r16
-	subi B,HUESTEP*4
-	rjmp _end
-_p6:
-	cpi r16,HUESTEP*6
-	brcc _p7
-	ldi B,HUESTEP
-	ldi G,HUESTEP*6
-	sub G,r16
-	rjmp _end
-_p7:
-	ldi B,HUESTEP
-	ldi R,1
-_end:
-	lsl R
-	lsl G
-	lsl B
-    lsl R
-	lsl G
-	lsl B
-	ret
-
+FILLNSHOW:
+	;rcall FILL
+	;rcall WRITE_LEDS
+	rcall HEARTBEAT
+	ldi r16,100
+	rcall DELAY
+	ret 
 
 ;######################################################
-;Places R G B registers to array `image` at pointer Y
-RGB2MEM:
-	st Y+,G
-	st Y+,R
-	st Y+,B
+;RGB - color, r16 - speed, r17 - brightness to stop at
+FADEOUT:
+	mov Ro,R
+	mov Go,G
+	mov Bo,B
+	mov r11,r16		;speed
+	mov r10,r17		;stop at
+	ldil r12,63		;brightness
+_loop:
+	mov r16,r12
+	dec r12
+	rcall LED_BRIGHTNESS
+	rcall FILL
+	rcall WRITE_LEDS
+	mov r16,r11
+	rcall DELAY
+	mov R,Ro
+	mov G,Go
+	mov B,Bo
+	cp r12,r10
+	brne _loop
+	ret
+
+;######################################################
+HEARTBEAT:
+	ldi r16,5
+	ldi r17,10
+	rcall FADEOUT
+	ldi r16,10
+	ldi r17,4
+	rcall FADEOUT
+	ldi r16,80
+	rcall DELAY
 	ret
 
 ;######################################################
@@ -185,39 +119,12 @@ _FILL:
 	mov r16,r20
 	rcall HUE2COLOR
 	rcall RGB2MEM
-	inc r20
-	inc r20
+	ldi r16,16
+	add r20,r16
 	dec r21
 	brne _FILL
 	ret	
 
-;######################################################
-;Shifts RIGHT each LED in memory fot 1 bit
-;in: none
-;out: none
-;uses: r16, r17
-DIM_OUT:
-	ldi YL, low(image)
-	ldi YH, high(image)
-	ldi r16,48
-	ld r17,Y
-	lsr r17
-	st Y+,r17
-	ret
-
-;######################################################
-;Shifts LEFT each LED in memory fot 1 bit
-;in: none
-;out: none
-;uses: r16, r17
-DIM_IN:
-	ldi YL, low(image)
-	ldi YH, high(image)
-	ldi r16,48
-	ld r17,Y
-	lsl r17
-	st Y+,r17
-	ret
 
 ;######################################################
 ;Copy right heart branch (1..7 pixels) to left branch (15..9 pixels)
@@ -227,16 +134,16 @@ DIM_IN:
 BRANCH:
 	ldi YL, low(image+3)
 	ldi YH, high(image+3)
-	ldi XL, low(image+45)
-	ldi XH, high(image+45)
+	ldi XL, low(image+48)
+	ldi XH, high(image+48)
 	ldi r16,7
 _loop:
 	ld G,Y+
 	ld R,Y+
 	ld B,Y+
-	st X-,B
-	st X-,R
-	st X-,G
+	st -X,B
+	st -X,R
+	st -X,G
 	dec r16
 	brne _loop
 	ret
@@ -245,7 +152,7 @@ _loop:
 ;Writes RGB registers to the bottom pixel of right branch, 
 ;shifting the branch up.
 ;! Need to call BRANCH afterwards!
-;in: RGB
+;in: RGB, r16 - start position, r17 - end position
 BRANCH_SHIFT_UP:
 	ldi YL, low(image+3)
 	ldi YH, high(image+3)
@@ -268,27 +175,78 @@ _loop:
 ;! Need to call BRANCH afterwards!
 ;in: RGB
 BRANCH_SHIFT_DOWN:
-	ldi YL, low(image+24)
-	ldi YH, high(image+24)
+	ldi YL, low(image+25)
+	ldi YH, high(image+25)
 	ldi XL, low(image+27)
 	ldi XH, high(image+27)
 	ldi r16,24
 _loop:
-	ld r17,Y-
-	st X-,r17
+	ld r1,-Y
+	st -X,r1
 	dec r16
 	brne _loop
-	st X-,B
-	st X-,R
-	st X-,G
+	st -X,B
+	st -X,R
+	st -X,G
 	ret
 
 ;######################################################
-;in: R, G, B, r16 - brightness (0-15)
-BRIGHTNESS:
-	andi r16,0x0f
-	
+;in: R, G, B, r16 - brightness (0-63)
+LED_BRIGHTNESS:
+	andi r16,0x3f
+	mov r17,R
+	rcall BRIGHT_BYTE
+	mov R,r1
+	mov r17,G
+	rcall BRIGHT_BYTE
+	mov G,r1
+	mov r17,B
+	rcall BRIGHT_BYTE
+	mov B,r1
 	ret
+
+BRIGHT_BYTE:
+	mov r1,r17
+	swap r17
+	lsr r17
+	lsr r17
+	andi r17,0x03
+	ldil r2,63
+	sub r2,r16
+	
+_addloop:
+	tst r2
+	brne _sub
+	ret
+_sub:
+	sub r1,r17
+	dec r2
+	rjmp _addloop
+
+;##########################################################
+;in: RGB - base color, r16 - start offset (bytes), r17 - step
+BRANCH_GRADIENT:
+	ldi YL, low(image)
+	ldi YH, high(image)
+	add YL,r16
+	ldi r16,15
+
+;##########################################################
+;in: RGB - fill color
+FILL:
+	ldi YL, low(image)
+	ldi YH, high(image)
+	ldi r16,16
+_loop:
+	st Y+,G
+	st Y+,R
+	st Y+,B
+	dec r16
+	brne _loop
+	ret
+
+
+
 
 ;######################################################
 DELAY_50us:
@@ -299,12 +257,17 @@ _loop:
 	ret
 
 ;######################################################
+;in: r16
 DELAY:
-	ldi r16,0
-	ldi r17,0
+	ldi r18,0
+_loop1:
+	ldi r17,10
 _loop:
-	dec r16
-	brne _loop
 	dec r17
 	brne _loop
+	dec r18
+	brne _loop1
+	dec r16
+	brne _loop1
 	ret
+
