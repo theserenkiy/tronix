@@ -230,6 +230,7 @@ BRANCH_GRADIENT:
 	ldi YH, high(image)
 	add YL,r16
 	ldi r16,15
+	;TODO
 
 ;##########################################################
 ;in: RGB - fill color

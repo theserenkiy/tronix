@@ -148,7 +148,7 @@ Vue.component('app',{
 			let bl = this.getActiveBlock();
 			if(!bl)return;
 			bl.rotation = ((bl.rotation+90)%360)-180;
-			bl.pivot = this.dragOffset;
+			
 			this.save();
 		},
 		delete()
@@ -176,7 +176,7 @@ Vue.component('app',{
 				width: (im.natdim[0]/im.dpi)+'in',
 				height: (im.natdim[1]/im.dpi)+'in',
 				transform: 'rotate('+b.rotation+'deg)',
-				transformOrigin: b.pivot[0]+'px '+b.pivot[1]+'px'
+				transformOrigin: '50% 50%'
 				
 			}
 		},
