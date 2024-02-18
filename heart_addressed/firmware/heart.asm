@@ -33,13 +33,53 @@ RESET:
 	out SPL,r16
 	sbi DDRB,LED_PIN
 	sbi DDRB,LEDEN_PIN
+	sbi DDRB,MEASEN_PIN
 	sbi PORTB, LEDEN_PIN
+	sbi PORTB, MEASEN_PIN
 
-	ldi r16,HUESTEP*4
+	;ADC setup
+	ldi r16, (1 << ADLAR) | 3
+	out ADMUX,r16
+
+	ldi r16, (1 << ADEN) | 0b101
+	out ADCSRA, r16
+
+	ldi r16,0
+	out ADCSRB, r16
+	
+	sbi DIDR0,3
+
+	;SLEEP setup
+	;sleep en, mode: Power down
+	ldi r16, (1 << SE) | (0b10 << SM0)	
+	out MCUCR, r16
+
+	;WDT
+	ldi r16, (1 << WDTIE) | (0b110 << WDP0)
+
+	
+
+
+WAKEUP:
+
+	ldil r11,0
 MAIN:
+	rcall MEASURE
+	rjmp MAIN
+
+	mov r16,r11
+	inc r16
+	mov r11,r16
+	rcall SHOW_NUMBER
+	rcall WRITE_LEDS
+	ldi r16,250
+	rcall DELAY
+	rjmp MAIN
+	
+
 _decr:
 	mov r9,r16
-	ldi r16,HUESTEP*4+1  
+	;ldi r16,HUESTEP*4
 	rcall HUE2COLOR
 	rcall HEARTBEAT
 	mov r16,r9
@@ -48,18 +88,51 @@ _decr:
 	brcc _decr
 _incr:
 	mov r9,r16
-	ldi r16,HUESTEP*4-1
+	;ldi r16,HUESTEP*4
 	rcall HUE2COLOR
 	rcall HEARTBEAT
 	mov r16,r9
 	subi r16,-1
-	cpi r16,(HUESTEP*43)/10
+	cpi r16,(HUESTEP*42)/10
 	brcs _incr
 
 	rjmp MAIN
 
 
 .include "drv.asm"
+
+
+
+MEASURE:
+	sbi ADCSRA, ADCSRA
+_wait:
+	sbic ADCSRA, 6
+	rjmp _wait
+	in r16, ADCL
+	in r16,ADCH
+	rcall SHOW_NUMBER
+	rcall WRITE_LEDS
+	ldi r16,200
+	rcall DELAY
+	ret
+
+
+
+SHOW_NUMBER:
+	ldi YL, low(image)
+	ldi YH, high(image)
+	ldil r12,8
+_loop:
+	ldi r17,0
+	st Y+,r17
+	rol r16
+	ror r17
+	st Y+,r17
+	ldi r17,0
+	st Y+,r17
+	dec r12
+	brne _loop
+	ret
 
 FILLNSHOW:
 	;rcall FILL
@@ -68,6 +141,40 @@ FILLNSHOW:
 	ldi r16,100
 	rcall DELAY
 	ret 
+
+
+RAINBOW_MOVE:
+	ldil r8,HUESTEP*4
+_asc:
+	mov r16,r8
+	subi r16,-2
+	cpi r16,HUESTEP*4+4
+	brcc _desc
+	mov r8,r16
+	ldi r17,2
+	rcall BRANCH_RAINBOW
+	rcall BRANCH
+	rcall WRITE_LEDS
+	ldi r16,100
+	rcall DELAY
+	rjmp _asc
+_desc:
+	mov r16,r8
+	subi r16,2
+	cpi r16,HUESTEP*4-70
+	brcs _asc
+	mov r8,r16
+	ldi r17,2
+	rcall BRANCH_RAINBOW
+	rcall BRANCH
+	rcall WRITE_LEDS
+	ldi r16,100
+	rcall DELAY
+	rjmp _desc
+	
+_end:
+	ret
+
 
 ;######################################################
 ;RGB - color, r16 - speed, r17 - brightness to stop at
@@ -107,22 +214,25 @@ HEARTBEAT:
 
 ;######################################################
 ;Draws rainbow starting at hue in r16
-;in: r16 - starting hue
+;in: r16 - starting hue, r17 - hue step
 ;out: none
 ;uses: r16, r20, r21
-RAINBOW:
+BRANCH_RAINBOW:
 	ldi YL, low(image)
 	ldi YH, high(image)
-	mov r20,r16
-	ldi r21,16
+	mov r12,r16
+	mov r11,r17
+	ldi r18,9
 _FILL:
-	mov r16,r20
+	mov r16,r12
 	rcall HUE2COLOR
-	rcall RGB2MEM
-	ldi r16,16
-	add r20,r16
-	dec r21
+	st Y+,G
+	st Y+,R
+	st Y+,B
+	add r12,r11
+	dec r18
 	brne _FILL
+	mov r16,r12
 	ret	
 
 
