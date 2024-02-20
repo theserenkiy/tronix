@@ -1,0 +1,18 @@
+.macro outi
+	ldi R20,@1
+	out @0,R20
+.endm
+
+
+;r16 - delay size
+DELAY:
+	clr r17
+	clr r18
+_loop:
+	dec r17
+	brne _loop
+	dec r18
+	brne _loop
+	dec r16
+	brne _loop
+	ret

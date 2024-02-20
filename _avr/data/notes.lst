@@ -1,0 +1,150 @@
+Toms AVR macro assembler version 1.17 (Apr  3 2001)
+Copyright (C) 2000 - Tom Mortensen
+E-mail: tom@tavrasm.org  WWW: http://www.tavrasm.org
+
++------------------+-----------------------------------------------------------+
+| Value            | Text                                                      |
+|------------------|-----------------------------------------------------------|
+|                  | 
+|                  | .equ Si3        = 1
+|                  | .equ Lad3       = 2
+|                  | .equ La3        = 3
+|                  | .equ Sold3      = 4
+|                  | .equ Sol3       = 5
+|                  | .equ Fad3       = 6
+|                  | .equ Fa3        = 7
+|                  | .equ Mi3        = 8
+|                  | .equ Red3       = 9
+|                  | .equ Re3        = 10
+|                  | .equ Dod3       = 11
+|                  | .equ Do3        = 12
+|                  | .equ Si2        = 13
+|                  | .equ Lad2       = 14
+|                  | .equ La2        = 15
+|                  | .equ Sold2      = 16
+|                  | .equ Sol2       = 17
+|                  | .equ Fad2       = 18
+|                  | .equ Fa2        = 19
+|                  | .equ Mi2        = 20
+|                  | .equ Red2       = 21
+|                  | .equ Re2        = 22
+|                  | .equ Dod2       = 23
+|                  | .equ Do2        = 24
+|                  | .equ Si1        = 25
+|                  | .equ Lad1       = 26
+|                  | .equ La1        = 27
+|                  | .equ Sold1      = 28
+|                  | .equ Sol1       = 29
+|                  | .equ Fad1       = 30
+|                  | .equ Fa1        = 31
+|                  | .equ Mi1        = 32
+|                  | .equ Red1       = 33
+|                  | .equ Re1        = 34
+|                  | .equ Dod1       = 35
+|                  | .equ Do1        = 36
+|                  | .equ Si0        = 37
+|                  | .equ Lad0       = 38
+|                  | .equ La0        = 39
+|                  | .equ Sold0      = 40
+|                  | .equ Sol0       = 41
+|                  | .equ Fad0       = 42
+|                  | .equ Fa0        = 43
+|                  | .equ Mi0        = 44
+|                  | .equ Red0       = 45
+|                  | .equ Re0        = 46
+|                  | .equ Dod0       = 47
+|                  | .equ Do0       = 48
+|                  | 
+|                  | .equ DIV1_NOTE = 34
+|                  | 
+|                  | NOTE_DIVS:
+|                  | ;3oct
+notes.m48:54: Error : Undefined variable referenced in constant in .dw
+notes.m48:55: Error : Undefined variable referenced in constant in .dw
+| 000000           | .dw FOSC/1976, FOSC/1865, FOSC/1720, FOSC/1661, FOSC/1568, FOSC/1480
+notes.m48:56: Error : Undefined variable referenced in constant in .dw
+| 000000           | .dw FOSC/1397, FOSC/1319, FOSC/1245, FOSC/1175, FOSC/1109, FOSC/1047
+|                  | ;2oct
+notes.m48:57: Error : Undefined variable referenced in constant in .dw
+notes.m48:58: Error : Undefined variable referenced in constant in .dw
+| 000000           | .dw FOSC/988 , FOSC/932 , FOSC/880 , FOSC/831 , FOSC/784 , FOSC/740
+notes.m48:59: Error : Undefined variable referenced in constant in .dw
+| 000000           | .dw FOSC/699 , FOSC/659 , FOSC/622 , FOSC/587 , FOSC/554 , FOSC/523
+|                  | ;1oct
+notes.m48:60: Error : Undefined variable referenced in constant in .dw
+notes.m48:61: Error : Undefined variable referenced in constant in .dw
+| 000000           | .dw FOSC/494 , FOSC/466 , FOSC/440 , FOSC/415 , FOSC/392 , FOSC/370
+notes.m48:62: Error : Undefined variable referenced in constant in .dw
+| 000000           | .dw FOSC/349 , FOSC/330 , FOSC/311 , FOSC/8/294 , FOSC/8/277 , FOSC/8/262
+|                  | ;small oct
+notes.m48:63: Error : Undefined variable referenced in constant in .dw
+notes.m48:64: Error : Undefined variable referenced in constant in .dw
+| 000000           | .dw FOSC/8/247 , FOSC/8/233 , FOSC/8/220 , FOSC/8/207 , FOSC/8/196 , FOSC/8/185
+notes.m48:65: Error : Undefined variable referenced in constant in .dw
+| 000000           | .dw FOSC/8/175 , FOSC/8/165 , FOSC/8/156 , FOSC/8/148 , FOSC/8/139 , FOSC/8/131
+|                  | 
+|                  | 
+|                  | .macro play_note_n;     @0 - note number
+|                  |         ldi R16, @0
+|                  |         rcall PLAY_NOTE
+|                  | .endm
+|                  | 
+|                  | .equ TRANSPOND = 18
+|                  | 
+|                  | PLAY_NOTE:
+notes.m48:76: Error : Unknown opcode
+|                  |         addi R16,TRANSPOND
+| 000000 3202      |         cpi R16, DIV1_NOTE
+| 000001 F594      |         brge _DIV1              ;if note >= 34 - set prescaler to F/8
+| 000002 E039      |         ldi R19,0b1001          ;if note < 34 - set prescaler to F/1
+| 000003 C031      |         rjmp _SET_COMPARER
+|                  | _DIV1:
+| 000004 E03A      |         ldi R19,0b1010
+|                  | 
+|                  | _SET_COMPARER:
+| 000005 94F8      |         cli
+| 000006 3102      |         cpi R16,TRANSPOND
+notes.m48:87: Error : Branch out of range by 3 words (forward)
+| 000007 F001      |         breq _END
+| 000008 950A      |         dec R16
+| 000009 0F00      |         lsl R16 ;R16 * 2
+notes.m48:90: Error : Unknown opcode
+|                  |         ldiw Z,NOTE_DIVS*2
+notes.m48:91: Error : Unknown opcode
+|                  |         adrw Z,R16
+| 00000A 9125      |         lpm R18,Z+
+| 00000B 9114      |         lpm R17,Z
+|                  | 
+notes.m48:95: Error : Undefined variable referenced in address
+| 00000C 9330 0000 |         sts TCCR1B, R19 ;set prescaler
+notes.m48:96: Error : Unknown opcode
+|                  |         stsiw TCNT1,0   ;reset counter
+|                  | 
+notes.m48:98: Error : Undefined variable referenced in address
+| 00000E 9310 0000 |         sts OCR1AH, R17 ;set period comparer
+notes.m48:99: Error : Undefined variable referenced in address
+| 000010 9320 0000 |         sts OCR1AL, R18
+| 000012 9488      |         clc
+| 000013 9517      |         ror R17         ;set half-period comparer (k/2)
+| 000014 9527      |         ror R18
+|                  |         ;ror R17                ;set half-period comparer (k/2)
+|                  |         ;ror R18
+notes.m48:105: Error : Undefined variable referenced in address
+| 000015 9310 0000 |         sts OCR1BH, R17
+notes.m48:106: Error : Undefined variable referenced in address
+| 000017 9320 0000 |         sts OCR1BL, R18
+|                  |         ;stsi OCR1BH, 0
+|                  |         ;stsi OCR1BL, 10
+| 000019 9478      |                 sei
+| 00001A 9508      | _END:   ret
+|                  | 
+|                  |         
++------------------+-----------------------------------------------------------+
+
+Errors      : 22
+Warnings    : 0
+Code        : 27
+Rom         : 0
+Data        : 0
+Unused Code : 0
+Unused Rom  : 0

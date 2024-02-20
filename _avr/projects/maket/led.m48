@@ -1,0 +1,6 @@
+.include "C:\avr\includes\m48def.inc"
+
+	LDI R16, 0b00000100
+	OUT DDRB, R16
+	LDI R16, 0b00000100
+	OUT PORTB, R16

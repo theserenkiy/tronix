@@ -1,0 +1,58 @@
+.include "C:\avr\includes\m48def.inc"
+
+.equ BLINK_DELAY = 20
+.equ FADE_DELAY = 20
+
+.macro outi
+	ldi R20,@1
+	out @0,R20
+.endm
+
+	outi DDRB,0xff
+
+BLINK:
+	ldi R21,0
+
+FADE_IN:
+	ldi R16,FADE_DELAY
+	rcall DELAY_PWM
+	inc R21
+	brne FADE_IN
+
+	dec R21
+
+FADE_OUT:
+	ldi R16,FADE_DELAY
+	rcall DELAY_PWM
+	dec R21
+	brne FADE_OUT
+
+	rjmp BLINK
+
+
+;r16 - delay size
+DELAY_PWM:
+	;clr r18
+_loop:
+	rcall PWM
+	;dec r18
+	;brne _loop
+	dec r16
+	brne _loop
+	ret
+
+
+;R21 - PWM value
+PWM:
+	clr R17
+	outi PORTB,0xFF
+_loop0:
+	inc R17
+	cp R17,R21
+	brlo _loop0
+
+	outi PORTB,0
+_loop1:
+	inc R17
+	brne _loop1
+	ret

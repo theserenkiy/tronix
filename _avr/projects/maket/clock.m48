@@ -1,0 +1,112 @@
+.include "C:\avr\includes\m48def.inc"
+
+RESET:
+	ldi r16,0xFF
+	out DDRC,r16
+	out DDRD,r16
+
+MAIN:
+	ldi r16,0b00000011
+	out PORTC,r16
+
+	ldi r16, 42
+                rcall IND_NUMBER
+
+	rjmp MAIN
+
+
+IND_NUMBER:     ;R16 - number
+
+	ldi r20,0
+_tens:
+	cpi r16,10
+	brlo _end
+	subi r16,10
+	inc r20
+	rjmp _tens
+
+_end:
+	mov r21,r16
+	rcall IND_DIGITS
+
+	ret
+
+
+IND_DIGITS:	;R20,R21 - digits
+	sbi PORTC,0
+	cbi PORTC,1
+	mov r16,r20
+	rcall DISPLAY_DIGIT
+
+	rcall DELAY_0
+
+	cbi PORTC,0
+	sbi PORTC,1
+	mov r16,r21
+	rcall DISPLAY_DIGIT
+
+	rcall DELAY_0
+
+	ret
+
+
+COUNT_TO_TEN:
+	ldi r20,0
+
+_loop:
+	mov r16,r20
+	rcall DISPLAY_DIGIT
+	rcall DELAY
+	inc r20
+	cpi r20,10
+	brne _loop
+
+	ret
+
+
+
+DISPLAY_DIGIT:     ;R16 - digit to display
+
+	ldi ZH,high(DIGITS*2)
+	ldi ZL,low(DIGITS*2)
+
+	ldi r17,0
+	add ZL,r16
+	adc ZH,r17
+
+	lpm r16,Z
+
+	out PORTD,r16
+	ret
+
+DELAY:
+	ldi r16,0
+	ldi r17,0
+	ldi r18,20
+_loop:
+	dec r16
+	brne _loop
+                dec r17
+	brne _loop
+	dec r18
+	brne _loop
+	ret
+
+
+DELAY_0:
+	ldi r16,0
+	ldi r17,10
+_loop:
+	dec r16
+	brne _loop
+                dec r17
+	brne _loop
+	ret
+
+DIGITS:
+     ;hgfedcba   ;hgfedcba
+.db 0b00111111, 0b00000110 ;0, 1
+.db 0b01011011, 0b01001111 ;2, 3
+.db 0b01100110, 0b01101101 ;4, 5
+.db 0b01111101, 0b00100111 ;6, 7
+.db 0b01111111, 0b01101111 ;8, 9

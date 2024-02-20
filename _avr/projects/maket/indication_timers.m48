@@ -1,0 +1,196 @@
+.include "C:\avr\includes\m48def.inc"
+
+
+.dseg	;дальше - инициализация оперативной памяти
+.org 0x100
+dgts:	.byte 2
+number: 	.byte 1
+
+.cseg	;дальше - то, что пишем в программную память
+.org 0
+	rjmp RESET
+.org 0x0B
+	rjmp TIMER1_COMPA
+
+.org 0x1A
+RESET:
+	ldi r16,high(RAMEND)
+	out SPH,r16
+	ldi r16,low(RAMEND)
+	out SPL,r16
+
+	ldi r16,0xFF
+	out DDRC,r16
+	out DDRD,r16
+	out DDRB,r16
+
+
+	ldi r16,0b00001101
+	sts TCCR1B,r16
+
+	;19531
+	ldi r16,high(19531)
+	sts OCR1AH,r16
+
+	ldi r16,low(19531)
+	sts OCR1AL,r16
+
+	ldi r16,0b00000010
+	sts TIMSK1,r16
+
+	ldi r16,0
+	sts TCNT1H,r16
+	sts TCNT1L,r16
+
+	ldi r16,42
+	sts number,r16
+
+	sei
+
+
+MAIN:
+	rcall IND_NUMBER
+	rjmp MAIN
+
+;#######################################################
+;INTERRUPTS
+
+TIMER1_COMPA:
+
+
+	push r16
+	in r16,SREG
+	push r16
+
+	lds r16,number
+	inc r16
+	cpi r16,100
+	brne _save
+	ldi r16,0
+
+_save:
+	sts number,r16
+
+	pop r16
+	out SREG,r16
+	pop r16
+	reti
+
+
+;#######################################################
+;FUNCTIONS
+COUNT_0_TO_99:
+	ldi r16,0
+	sts number,r16
+
+_loop:
+	rcall IND_NUMBER
+	rcall DELAY
+	lds r16,number
+	inc r16
+	sts number,r16
+	cpi r16,100
+	brne _loop
+	ret
+
+
+
+IND_NUMBER:
+	lds r16, number
+	ldi r20,0
+_tens:
+	cpi r16,10
+	brlo _end	;branch if lower
+	subi r16,10	;subtract immediate
+	inc r20
+	rjmp _tens
+
+_end:
+	sts dgts,r20	;sts - прямая загрузка данных в ОЗУ
+	sts dgts+1,r16
+	rcall IND_DIGITS
+
+	ret
+
+
+
+
+IND_DIGITS:	;digits - dgts
+
+	sbi PORTC,0
+	cbi PORTC,1
+	lds r16,dgts	;lds - прямая загрузка данных из ячейки ОЗУ
+	rcall DISPLAY_DIGIT
+
+	rcall DELAY_0
+
+	cbi PORTC,0
+	sbi PORTC,1
+	lds r16,dgts+1
+	rcall DISPLAY_DIGIT
+
+	rcall DELAY_0
+
+	ret
+
+
+COUNT_TO_TEN:
+	ldi r20,0
+
+_loop:
+	mov r16,r20
+	rcall DISPLAY_DIGIT
+	rcall DELAY
+	inc r20
+	cpi r20,10
+	brne _loop
+
+	ret
+
+
+
+DISPLAY_DIGIT:     ;R16 - digit to display
+
+	ldi ZH,high(DIGITS*2)
+	ldi ZL,low(DIGITS*2)
+
+	ldi r17,0
+	add ZL,r16
+	adc ZH,r17
+
+	lpm r16,Z
+
+	out PORTD,r16
+	ret
+
+DELAY:
+	ldi r16,0
+	ldi r17,0
+	ldi r18,10
+_loop:
+	dec r16
+	brne _loop
+                dec r17
+	brne _loop
+	dec r18
+	brne _loop
+	ret
+
+
+DELAY_0:
+	ldi r16,0
+	ldi r17,10
+_loop:
+	dec r16
+	brne _loop
+                dec r17
+	brne _loop
+	ret
+
+DIGITS:
+     ;hgfedcba   ;hgfedcba
+.db 0b00111111, 0b00000110 ;0, 1
+.db 0b01011011, 0b01001111 ;2, 3
+.db 0b01100110, 0b01101101 ;4, 5
+.db 0b01111101, 0b00100111 ;6, 7
+.db 0b01111111, 0b01101111 ;8, 9

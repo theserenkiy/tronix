@@ -1,0 +1,92 @@
+
+
+.macro ldiw;
+	ldi @0H,high(@1)
+	ldi @0L,low(@1)
+.endm
+
+.macro adrw	; add register @1 to word @0
+	;example: addw Z,R18
+	ldi R25,0
+	add @0L,@1
+	adc @0H,R25
+.endm
+
+.macro outw	; out register @1 to 16-bit io @0 (@0 = LOW part of 16bit io)
+	;example: outw TCNT1, R17
+
+	ldi R25,0
+	out @0H,R25
+	out @0L,@1
+.endm
+
+.macro outi
+	ldi R25,@1
+	out @0,R25
+.endm
+.macro stsi
+	ldi R25,@1
+	sts @0,R25
+.endm
+
+.macro outiw	; example: outiw TCNT1, 12345
+	ldi R25,high(@1)
+	out @0H,R25
+	ldi R25,low(@1)
+	out @0L,R25
+.endm
+
+.macro stsiw	; example: outiw TCNT1, 12345
+	ldi R25,high(@1)
+	sts @0H,R25
+	ldi R25,low(@1)
+	sts @0L,R25
+.endm
+
+.macro lpmr; load program memory by label @0 plus register @1 to @2
+	ldiw Z,@0/2
+	adrw Z,@1
+	lpm @2, Z
+.endm
+
+.macro IRQ_start
+	cli
+	push R16
+	push R17
+	push R18
+	push R19
+	in R16,SREG
+	push R16
+.endm
+.macro IRQ_end
+	pop R16
+	out SREG,R16
+	pop R19
+	pop R18
+	pop R17
+	pop R16
+	sei
+.endm
+.macro pushw
+	push @0L
+	push @0H
+.endm
+.macro popw
+	pop @0H
+	pop @0L
+.endm
+
+
+; input: R16
+DELAY3:
+	ldi R17,0
+	ldi R18,0
+_LOOP:	dec R17
+	brne _LOOP
+	dec R18
+	brne _LOOP
+	dec R16
+	brne _LOOP
+	ret
+
+	

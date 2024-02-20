@@ -1,0 +1,174 @@
+.include "C:\avr\includes\m48def.inc"
+
+.equ FOSC = 20000000
+.equ T0 = 2
+
+.macro mydelay
+	ldi R16,30
+	rcall DELAY3
+.endm
+
+.org 0
+	rjmp RESET ; Reset Handler
+.org 0xB
+	rjmp TIM1_COMPA
+.org 0xC
+	rjmp TIM1_COMPB
+
+.include "mylib.m48"
+
+
+RESET:
+	outiw SP, RAMEND
+	outi DDRB,0xFF
+	outi DDRD,0xFF
+
+	stsi TIMSK1, 1 << OCIE1A | 1 << OCIE1B
+	stsi TCCR1A, 0
+	stsi TCCR1B, 0b00001001	;set prescaler
+
+                stsiw TCNT1,0
+
+	;stsiw OCR1A,  45455
+	;stsiw OCR1B,  22727
+
+                cli
+	;sei
+
+	rjmp MAIN
+
+
+TIM1_COMPB:
+	IRQ_start
+	sbi PORTB,3
+	sbi PORTB,4
+	sbi PORTD,5
+	cbi PORTD,6
+	IRQ_end
+	reti
+
+TIM1_COMPA:
+	IRQ_start
+	cbi PORTB,3
+	cbi PORTB,5
+	cbi PORTD,5
+	sbi PORTD,6
+	IRQ_end
+	reti
+
+.include "notes.m48"
+
+
+MAIN:
+	rcall PLAY_MUSIC
+	rjmp MAIN
+
+PLAY_MUSIC:
+	;ldiw Z,Sherlock_Livanov*2
+	ldiw Z,USSR*2
+	;ldiw Z,GravityFalls*2
+	;ldiw Z,Sherlock*2
+	;ldiw Z, Polka*2
+	;ldiw Z, GOT*2
+_NEXT:	lpm R16,Z+
+	lpm R17,Z+
+	cpi R16,255
+	breq _END
+	pushw Z
+	push R17
+	rcall PLAY_NOTE
+	pop R16
+	rcall DELAY3
+	cli
+	ldi R16,T0
+	rcall DELAY3
+	sei
+	popw Z
+	rjmp _NEXT
+_END:	ret
+
+
+.equ T05 = T0*2
+.equ T1 = T0*5
+.equ T2 = T1*2
+.equ T2_5 = T0*12
+.equ T3 = T1*3
+.equ T4 = T2*2
+.equ T4_5 = T1*9/2
+.equ T5 = T1*5
+.equ T6 = T2*3
+.equ T7 = T1*7
+.equ T8 = T4*2
+.equ T10 = T1*10
+.equ T11 = T1*11
+.equ T12 = T1*12
+
+USSR:
+.db Do2,T2, Fa2,T4, Do2,T3, Re2,T1, Mi2,T4, La1,T2
+.db La1,T2, Re2,T4, Do2,T3, LaD1,T1, Do2,T4, Fa1,T2
+.db Fa1,T2, Sol1,T4, Sol1,T2, La1,T2, LaD1,T4
+.db LaD1,T2, Do2,T2, Re2,T4, Mi2,T3, Fa2,T1, Sol2,T6;, 0,T2
+.db Do2,T2, La2,T4, Sol2,T3, Fa2,T1, Sol2,T4, Re2,T2
+.db Do2,T2, Fa2,T4, Mi2,T3, Re2,T1, Mi2,T4, La1,T2
+.db La1,T2, Re2,T4, Do2,T3, LaD1,T1, Do2,T4, Fa1,T2
+.db Fa1,T2, Fa2,T4, Mi2,T3, Re2,T1, Do2,T6, 0, T2
+.db La2,T8, Sol2,T2, Fa2,T2, Mi2,T2, Fa2,T2, Sol2,T6, Do2,T2,Do2,T6,0,T2
+.db Fa2,T8, Mi2,T2, Re2,T2, Do2,T2, Re2,T2, Mi2,T6, La1,T2,La1,T6,0,T2
+.db Re2,T4, Lad1,T3, Do2,T1, Re2,T4, Lad1,T3, Do2,T1, Re2,T4, Lad1,T2, Re2,T2, Sol2,T8, 0, T1
+.db Lad2,T8, La2,T2, Sol2,T2, Fa2,T2, Sol2,T2, La2,T6, Fa2,T2,Fa2,T6,0,T2
+.db Sol2,T8, Fa2,T2, Mi2,T2, Re2,T2, Mi2,T2, Fa2,T6, Re2,T2,Re2,T6,0,T2
+.db Fa2,T4, Mi2,T3, Re2,T1, Do2,T4, Fa1,T2, Fa1,T2, Fa2,T4, Mi2,T2, Re2,T2, Do2,T8, 0, 2
+;.db 255, 0
+
+
+
+GravityFalls:
+.db Re2,T6, Mi2,T2, Fa2,T6, 0,T2, La2,T3, Sol2,T3, La2,T2, Do2,T6, 0 ,T2
+.db Re2,T6, Mi2,T2, Fa2,T4, Mi2,T4, Sol2,T4, La2,T4, Sol2,T4, Fa2,T4, 0 ,T2
+.db Fa2,T2, Fa2,T2, Fa2,T2, La2,T2, La2,T2, Sol2,T2, Fa2,T3, 0, T1
+.db La2,T2, La2,T2, La2,T2, Sol2,T2, La2,T2, Sol2,T2, Fa2,T3, 0, T1
+.db Fa2,T2, Fa2,T2, Fa2,T2, La2,T2, La2,T2, Sol2,T2, Fa2,T3, 0, T1
+.db La2,T2, La2,T2, La2,T2, 0, T2, DoD3,T2, DoD3,T2, DoD3,T2, 0, T2
+.db Fa2,T2, Fa2,T2, Fa2,T2, La2,T2, La2,T2, Sol2,T2, Fa2,T3, 0, T1
+.db LaD2,T2, LaD2,T2, LaD2,T2, Sol2,T4_5, Do3,T4_5, La2,T4_5, DoD3,T4_5, Re3,T8, 0, T6
+;.db 255, 0
+
+
+Sherlock:
+.db Si0,T2, Fad1,T4, Fad1,T2, Fa1,T1, Fad1,T1, Sol1,T4, Fad1,T2, Mi1,T2, Si1,T11,0,T4
+.db Mi1,T2, Si1,T4, Si1,T2, Lad1,T1, Si1,T1, Dod2,T4, Si1,T2, Re2,T12, 0,T5
+.db Fad2,T2, Si1,T4, Si1,T2, Dod2,T2, Re2,T2, Dod2,T2, Si1,T2, Mi2,T2, Si1,T10, 0,T2
+.db Si1,T1, Dod2,T1, Re2,T2, Re2,T1, Mi2,T1, Dod2,T2, Dod2,T1, Re2,T1, Si1,T2, Si1,T1, Dod2,T1, Sol1,T2, Fad1,T2,Si1,T8,0,T6
+;.db 255, 0
+
+Polka:
+.db Sol1,T2, Do2,T2, Do2,T3, Re2,T1, Red2,T2, Do2,T2, Do2,T3
+.db Red2,T1, Re2,T2, Lad1,T2, Lad1,T2, Re2,T2, Red2,T2, Do2,T2, Do2,T4
+.db Sol1,T2, Do2,T2, Do2,T3, Re2,T1, Red2,T2, Do2,T2, Do2,T3
+.db Red2,T1, Sol2,T2, Fa2,T2, Red2,T2, Re2,T2, Red2,T2, Do2,T2, Do2,T4
+.db Sol2,T2, Sol2,T2, Fa2,T3, Red2,T1, Re2,T2, Lad1,T2, Lad1,T2
+.db Re2,T2, Fa2,T2, Fa2,T2, Red2,T3, Re2,T1, Red2,T2, Do2,T2, Do2,T2, Red2,T2
+.db Sol2,T2, Sol2,T2, Fa2,T3, Red2,T1, Re2,T2, Lad1,T2, Lad1,T2
+.db Re2,T2, Fa2,T2, Fa2,T2, Red2,T3, Re2,T1, Red2,T2, Do2,T2, Do2,T4
+.db 0,T4;, 255, 0
+
+
+Sherlock_Livanov:
+.db La1,T5, 0,T2, La1,T2, Dod2,T4, Mi2,T4, La2,T1, Sold2,T1, Fad2,T1, Sold2,T1, La2,T6, 0,T05
+.db Sold2,T5, Fad2,T2, Mi2,T1, Re2,T1, Dod2,T1, Re2,T1, Mi2,T2
+.db Mi2,T1, Mi2,T1, Mi2,T1, 0,T1, Re2,T4, 0,T05, Dod2,T2_5, Dod2,T5
+.db Mi1,T4, Mi1,T1, La1,T2_5, Mi1,T2_5, La1,T2_5, Mi1,T2_5
+.db La1,T5, 0,T2, La1,T2, Dod2,T4, Mi2,T4, Dod3,T1, Si2,T1, La2,T1, Si2,T1, Dod3,T6, 0,T05
+.db Si2,T5, La2,T2
+.db Sold2,T1, La2,T1, Si2,T1, La2,T1, Sold2,T2
+.db Si2,T2, Sold2,T2, Si2,T2_5, Fad2,T2, Si2,T2_5
+.db Sold2,T1, La2,T1, Si2,T1, La2,T1, Sold2,T2
+.db Si2,T2, Sold2,T2, Si2,T2_5, Fad2,T2, Si2,T2
+.db Sold2,T2, Sold2,T1, Fad2,T1, Mi2,T2, Mi2,T1, Re2,T1, Dod2,T2, Mi2,T2, La2,T6, 0,T1
+.db Si2,T2, Sold2,T4, La2,T1, La2,T6, 0,T6
+.db 255,0
+
+GoT:
+.db Do2,T3, Fa1,T2, 0,T05,    La1,T1, Lad1,T1, Do2,T3, Fa1,T2, 0,T05,    La1,T1, Lad1,T1, Do2,T3, Fa1,T2, 0,T05;,    La1,T1, Lad1,T1, Do2,T3, Fa1,T2, 0,T05
+
+.db La1,T3, Do2,T8, Fa1,T4, 0,T1, La1,T1, Lad1,T1, Do2,T8, Fa1,T4, 0,T1, Sold1,T1, Lad1,T1, Sol1,T3

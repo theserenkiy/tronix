@@ -1,0 +1,34 @@
+.include "m48def.inc"
+
+.def	rTemp	=R16
+.def	rTemp1	=R17
+.def	rTemp2	=R18
+
+	ldi rTemp,0xFF
+	out ddrb,rTemp
+	out portb,rTemp
+	out ddrc,rTemp
+	out portc,rTemp
+	out ddrd,rTemp
+	out portd,rTemp
+
+	cbi PORTB,2
+
+Loop:	sbi PORTB,5
+	rcall Wait
+	cbi PORTB,5
+	rcall Wait
+
+	rjmp Loop
+
+Wait:	ldi rTemp2,6
+	ldi rTemp1,0
+	ldi rTemp,0
+_1:	dec rTemp
+	brne _1
+	dec rTemp1
+	brne _1
+	dec rTemp2
+	brne _1
+	ret
+

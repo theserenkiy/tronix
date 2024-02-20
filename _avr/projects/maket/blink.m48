@@ -1,0 +1,45 @@
+.include "C:\avr\includes\m48def.inc"
+
+.equ BLINK_PERIOD = 200
+.equ DARK_LIGHT_RATIO = 100
+
+.equ LIGHT_DELAY = BLINK_PERIOD / DARK_LIGHT_RATIO
+.equ DARK_DELAY = BLINK_PERIOD - LIGHT_DELAY
+
+
+
+	LDI R16, 0b00000100
+	OUT DDRB, R16		;настроили порты
+
+	;входим в цикл мигания
+BLINK:
+	LDI R16, 0b00000100	;зажигаем светодиод
+	OUT PORTB, R16
+
+                LDI R18,LIGHT_DELAY
+	RCALL DELAY 		;задержка 1
+
+	LDI R16, 0b00000000	;гасим светодиод
+	OUT PORTB,R16
+
+                LDI R18,DARK_DELAY
+	RCALL DELAY		;задержка 2
+
+	RJMP BLINK
+
+
+;#####################################
+;задержка
+DELAY:
+	LDI R16, 0
+	LDI R17, 0
+
+_LOOP:
+	DEC R16
+	BRNE _LOOP
+	DEC R17
+	BRNE _LOOP
+	DEC R18
+	BRNE _LOOP
+
+	RET
