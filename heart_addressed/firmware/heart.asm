@@ -3,8 +3,8 @@
 
 .equ LED_PIN = 4
 .equ LEDEN_PIN = 0
-.equ MEASEN_PIN = 1
 .equ MEASURE_PIN = 2
+.equ MEASEN_PIN = 1
 
 .equ HUEBITS = 8
 .equ HUEMAX = (1 << HUEBITS) - 1
