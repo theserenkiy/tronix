@@ -1,0 +1,3 @@
+@echo off
+c:\Avr\avrdude\avrdude.exe -p m48 -F -c usbtiny -e -U lfuse:w:0xEF:m
+pause

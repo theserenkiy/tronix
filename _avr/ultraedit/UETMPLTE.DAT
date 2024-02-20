@@ -1,0 +1,56 @@
+Template ID::EndIDUETMPNAME~:                    :~End Template~:Template ID::EndIDUETMPNAME~:                    :~End Template~:Template ID:	:EndIDUETMPNAME~:	if                  			if  then
+
+			else
+
+			end if;
+:~End Template~:Template ID::EndIDUETMPNAME~:std_logic_vector()  std_logic_vector(^ downto 0);:~End Template~:Template ID::EndIDUETMPNAME~:unsigned();         unsigned(^ downto 0);:~End Template~:Template ID::EndIDUETMPNAME~:signed();           signed(^ downto 0);:~End Template~:Template ID::EndIDUETMPNAME~:std_logic;          std_logic;:~End Template~:Template ID::EndIDUETMPNAME~:unsigned();         unsigned(^);:~End Template~:Template ID::EndIDUETMPNAME~:signed();           signed(^);:~End Template~:Template ID::EndIDUETMPNAME~:std_logic;          std_logic;:~End Template~:Template ID::EndIDUETMPNAME~:std_logic_vector(); std_logic_vector(^);:~End Template~:Template ID::EndIDUETMPNAME~:signal std_logic=0  	signal ^			: std_logic:='0';:~End Template~:Template ID::EndIDUETMPNAME~:signal std_vector=0 	signal 			: std_logic_vector(^ downto 0):=(others=>'0');:~End Template~:Template ID::EndIDUETMPNAME~:signal unsigned=0   	signal 			: unsigned(^ downto 0):=(others=>'0');:~End Template~:Template ID::EndIDUETMPNAME~:signal signed=0     	signal 			: signed(^ downto 0):=(others=>'0');:~End Template~:Template ID::EndIDUETMPNAME~:process             	process (Clk)
+	begin
+		if rising_edge(Clk) then
+			^
+		end if;
+	end process;
+:~End Template~:Template ID::EndIDUETMPNAME~:process ena         	process (Clk)
+	begin
+		if rising_edge(Clk) then
+			if Ena='1' then
+				^
+			end if;
+		end if;
+	end process;
+:~End Template~:Template ID::EndIDUETMPNAME~:To_Right             => :~End Template~:Template ID::EndIDUETMPNAME~:To_Left              <= :~End Template~:Template ID::EndIDUETMPNAME~:Separator1          --**************************************************************************
+----------------------------------------
+--**************************************************************************
+:~End Template~:Template ID::EndIDUETMPNAME~:Separator2          --**************************************************************************
+--*-------------------------------------
+--**************************************************************************
+:~End Template~:Template ID::EndIDUETMPNAME~:Separator3          --*       -------------:~End Template~:Template ID::EndIDUETMPNAME~:others              (others => '0'):~End Template~:Template ID:
+:EndIDUETMPNAME~:
+entity              library IEEE;
+use IEEE.STD_LOGIC_1164.all;
+use ieee.std_logic_unsigned.all;
+use ieee.std_logic_arith.all;
+use IEEE.math_real.all;
+library unisim;
+use unisim.vcomponents.all;
+use work.LD_package.all;
+
+entity AAA is
+	port(
+		Clk			: in std_logic;
+		);
+end AAA;
+
+architecture behavioral of AAA is
+
+	component Main_DDS_ROM_ext
+		port(
+			Clk	: in std_logic;
+			);
+	end component;
+
+	signal AAA		: std_logic;
+
+begin
+
+end behavioral;
+:~End Template~:

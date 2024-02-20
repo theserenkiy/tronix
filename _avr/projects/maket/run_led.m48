@@ -1,0 +1,26 @@
+.include "C:\avr\includes\m48def.inc"
+.include "macros.inc.asm"
+
+.equ RUN_DELAY = 16
+
+
+	outi DDRB,0xFF
+	outi DDRC,0xFF
+	outi DDRD,0xFF
+
+
+LOOP:
+
+
+
+RUN_B:
+	out PORTB,R21
+	ldi R16,RUN_DELAY
+	rol R21
+	cpi R21,0b01000000
+	brne RUN_B
+
+	ldi R21,0
+
+RUN_D:
+	out 

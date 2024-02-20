@@ -1,0 +1,85 @@
+Toms AVR macro assembler version 1.17 (Apr  3 2001)
+Copyright (C) 2000 - Tom Mortensen
+E-mail: tom@tavrasm.org  WWW: http://www.tavrasm.org
+
++------------------+-----------------------------------------------------------+
+| Value            | Text                                                      |
+|------------------|-----------------------------------------------------------|
+|                  | 
+|                  | 
+|                  | .macro ldiw;
+|                  |         ldi @0,low(@1)
+|                  |         ldi @0+1,high(@1)
+|                  | .endm
+|                  | 
+|                  | .macro adrw     ; add register @1 to word @0
+|                  |         ;example: addw ZL,R18
+|                  |         ldi R25,0
+|                  |         add @0,@1
+|                  |         adc @0+1,R25
+|                  | .endm
+|                  | 
+|                  | .macro outw     ; out register @1 to 16-bit io @0 (@0 = LOW part of 16bit io)
+|                  |         ;example: outw TCNT1L, R17
+|                  | 
+|                  |         ldi R25,0
+|                  |         out (@0+1),R25
+|                  |         out @0,@1
+|                  | .endm
+|                  | 
+|                  | .macro outi
+|                  |         ldi R25,@1
+|                  |         out @0,R25
+|                  | .endm
+|                  | 
+|                  | .macro outiw    ; example: outiw TCNT1L, 123
+|                  |         ldi R25,0
+|                  |         out (@0+1),R25
+|                  |         ldi R25,@1
+|                  |         out @0,@1
+|                  | .endm
+|                  | 
+|                  | .macro stsiw    ; example: outiw TCNT1L, 123
+|                  |         ldi R25,0
+|                  |         sts (@0+1),R25
+|                  |         ldi R25,@1
+|                  |         sts @0,@1
+|                  | .endm
+|                  | 
+|                  | .macro lpmr; load program memory by label @0 plus register @1 to @2
+|                  |         ldiw ZL,@0/2
+|                  |         adrw ZL,@1
+|                  |         lpm @2
+|                  | .endm
+|                  | 
+|                  | 
+|                  | DELAY:
+| 000000 E000      |         ldi R16,0
+| 000001 950A      | _LOOP:  dec R16
+| 000002 F7F1      |         brne _LOOP
+| 000003 9508      |         ret
+|                  | 
+|                  | ; input: R16
+|                  | DELAY3:
+| 000004 E010      |         ldi R17,0
+| 000005 E020      |         ldi R18,0
+| 000006 951A      | _LOOP:  dec R17
+| 000007 F7F1      |         brne _LOOP
+| 000008 951A      |         dec R17
+| 000009 F7E1      |         brne _LOOP
+| 00000A 950A      |         dec R16
+| 00000B F7D1      |         brne _LOOP
+| 00000C 9508      |         ret
+| 00000D 9508      |         ret
+|                  | 
+|                  | 
+|                  |         
++------------------+-----------------------------------------------------------+
+
+Errors      : 0
+Warnings    : 0
+Code        : 14
+Rom         : 0
+Data        : 0
+Unused Code : 0
+Unused Rom  : 0

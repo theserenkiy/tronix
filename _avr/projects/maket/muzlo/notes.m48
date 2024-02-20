@@ -1,0 +1,106 @@
+
+.equ Si3	= 1
+.equ Lad3	= 2
+.equ La3	= 3
+.equ Sold3	= 4
+.equ Sol3	= 5
+.equ Fad3	= 6
+.equ Fa3	= 7
+.equ Mi3	= 8
+.equ Red3	= 9
+.equ Re3	= 10
+.equ Dod3	= 11
+.equ Do3	= 12
+.equ Si2	= 13
+.equ Lad2	= 14
+.equ La2	= 15
+.equ Sold2	= 16
+.equ Sol2	= 17
+.equ Fad2	= 18
+.equ Fa2	= 19
+.equ Mi2	= 20
+.equ Red2	= 21
+.equ Re2	= 22
+.equ Dod2	= 23
+.equ Do2	= 24
+.equ Si1	= 25
+.equ Lad1	= 26
+.equ La1	= 27
+.equ Sold1	= 28
+.equ Sol1	= 29
+.equ Fad1	= 30
+.equ Fa1	= 31
+.equ Mi1	= 32
+.equ Red1	= 33
+.equ Re1	= 34
+.equ Dod1	= 35
+.equ Do1	= 36
+.equ Si0	= 37
+.equ Lad0	= 38
+.equ La0	= 39
+.equ Sold0	= 40
+.equ Sol0	= 41
+.equ Fad0	= 42
+.equ Fa0	= 43
+.equ Mi0	= 44
+.equ Red0	= 45
+.equ Re0	= 46
+.equ Dod0	= 47
+.equ Do0       = 48
+
+.equ DIV1_NOTE = 34
+
+NOTE_DIVS:
+;3oct
+.dw FOSC/1976, FOSC/1865, FOSC/1720, FOSC/1661, FOSC/1568, FOSC/1480
+.dw FOSC/1397, FOSC/1319, FOSC/1245, FOSC/1175, FOSC/1109, FOSC/1047
+;2oct
+.dw FOSC/988 , FOSC/932 , FOSC/880 , FOSC/831 , FOSC/784 , FOSC/740
+.dw FOSC/699 , FOSC/659 , FOSC/622 , FOSC/587 , FOSC/554 , FOSC/523
+;1oct
+.dw FOSC/494 , FOSC/466 , FOSC/440 , FOSC/415 , FOSC/392 , FOSC/370
+.dw FOSC/349 , FOSC/330 , FOSC/311 , FOSC/8/294 , FOSC/8/277 , FOSC/8/262
+;small oct
+.dw FOSC/8/247 , FOSC/8/233 , FOSC/8/220 , FOSC/8/207 , FOSC/8/196 , FOSC/8/185
+.dw FOSC/8/175 , FOSC/8/165 , FOSC/8/156 , FOSC/8/148 , FOSC/8/139 , FOSC/8/131
+
+
+.macro play_note_n;	@0 - note number
+	ldi R16, @0
+	rcall PLAY_NOTE
+.endm
+
+
+PLAY_NOTE:
+	cpi R16, DIV1_NOTE
+	brge _DIV1		;if note >= 34 - set prescaler to F/8
+	ldi R19,0b1001		;if note < 34 - set prescaler to F/1
+	rjmp _SET_COMPARER
+_DIV1:
+	ldi R19,0b1010
+
+_SET_COMPARER:
+	cli
+	cpi R16,0
+	breq _END
+	dec R16
+	lsl R16	;R16 * 2
+	ldiw Z,NOTE_DIVS*2
+	adrw Z,R16
+	lpm R18,Z+
+	lpm R17,Z
+
+	sts TCCR1B, R19	;set prescaler
+	stsiw TCNT1,0	;reset counter
+
+	sts OCR1AH, R17	;set period comparer
+	sts OCR1AL, R18
+	clc
+	ror R17        	;set half-period comparer (k/2)
+	ror R16
+	sts OCR1BH, R17
+	sts OCR1BL, R18
+                sei
+_END:	ret
+
+	

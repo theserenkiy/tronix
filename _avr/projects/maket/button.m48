@@ -1,0 +1,44 @@
+.include "C:\avr\includes\m48def.inc"
+
+.org 0
+	rjmp RESET
+
+.org 0x003
+	rjmp PCINT_0
+
+
+RESET:
+	LDI R16, 0b11001101
+	OUT DDRB, R16
+
+	ldi R16, 0b00000001
+	sts PCICR,R16
+
+	ldi R16,0b00110010
+	sts PCMSK0,R16
+
+	ldi R16,HIGH(RAMEND)
+	out SPH, R16
+	ldi R16,LOW(RAMEND)
+	out SPL, R16
+
+	sei
+
+
+MAIN:
+	RJMP MAIN
+
+
+
+PCINT_0:
+	SBIS PINB,1
+	RJMP _NOT_PRESSED
+
+	LDI R16,0b00000100
+	OUT PORTB,R16
+	reti
+
+_NOT_PRESSED:
+	LDI R16,0b00000000
+	OUT PORTB,R16
+	reti

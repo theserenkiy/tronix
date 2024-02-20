@@ -10,6 +10,9 @@
 .equ HUEMAX = (1 << HUEBITS) - 1
 .equ HUESTEP = HUEMAX/6
 
+.equ TEMP_THRESHOLD = 130
+
+
 .def R = r23
 .def G = r24
 .def B = r25
@@ -28,13 +31,17 @@ image: 	.byte 48
 
 .cseg
 .org 0
+	rjmp RESET
+.org 0x8
+	reti
+
 RESET: 
 	ldi r16,RAMEND
 	out SPL,r16
 	sbi DDRB,LED_PIN
 	sbi DDRB,LEDEN_PIN
 	sbi DDRB,MEASEN_PIN
-	sbi PORTB, LEDEN_PIN
+	
 	sbi PORTB, MEASEN_PIN
 
 	;ADC setup
@@ -56,15 +63,30 @@ RESET:
 
 	;WDT
 	ldi r16, (1 << WDTIE) | (0b110 << WDP0)
+	out WDTCR, r16
 
-	
+	sei
 
 
-WAKEUP:
 
 	ldil r11,0
 MAIN:
+	sbi PORTB, LEDEN_PIN
+	sbi DDRB, LED_PIN
+	; ldi r16,HUESTEP*4
+	; rcall HUE2COLOR
+	; rcall FILL
+	; rcall WRITE_LEDS
+	; ldi r16,250
+	; rcall DELAY
 	rcall MEASURE
+	ldi r16,250
+	rcall DELAY
+
+	cbi PORTB, LEDEN_PIN
+	cbi DDRB, LED_PIN
+	sleep
+
 	rjmp MAIN
 
 	mov r16,r11
@@ -72,8 +94,7 @@ MAIN:
 	mov r11,r16
 	rcall SHOW_NUMBER
 	rcall WRITE_LEDS
-	ldi r16,250
-	rcall DELAY
+	
 	rjmp MAIN
 	
 
@@ -98,22 +119,34 @@ _incr:
 
 	rjmp MAIN
 
-
 .include "drv.asm"
 
 
 
+
+
 MEASURE:
+	sbi PORTB, MEASEN_PIN
 	sbi ADCSRA, ADCSRA
 _wait:
 	sbic ADCSRA, 6
 	rjmp _wait
 	in r16, ADCL
 	in r16,ADCH
+	;cpi r16,0;TEMP_THRESHOLD
+	;brcs _turn_on
 	rcall SHOW_NUMBER
 	rcall WRITE_LEDS
-	ldi r16,200
+	rjmp _end
+_turn_on:
+	ldi r16,HUESTEP*4
+	rcall HUE2COLOR
+	rcall FILL
+	rcall WRITE_LEDS
+_end:
+	ldi r16,250
 	rcall DELAY
+	;cbi PORTB, MEASEN_PIN
 	ret
 
 

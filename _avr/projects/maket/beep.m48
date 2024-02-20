@@ -1,0 +1,59 @@
+.include "C:\avr\includes\m48def.inc"
+
+
+
+
+	ldi R16,0xff
+	out DDRD, R16
+
+
+
+MAIN:
+
+	ldi R20,20	;число периодов частоты 1
+BEEP1:
+	ldi R16,50      ;длина периода частоты 1
+	rcall BEEP
+	dec R20
+	brne BEEP1
+
+	ldi R20,200	;число периодов частоты 2
+BEEP2:
+	ldi R16,20	;длина периода частоты 2
+	rcall SILENCE
+	dec R20
+	brne BEEP2
+
+	rjmp MAIN
+
+
+;проигрывает 1 период звуковой частоты. R16 - длина половины периода
+BEEP:
+	sbi PORTD,2	;вывод в динамик 1
+	cbi PORTD,1
+	mov R18,R16
+	rcall DELAY
+	cbi PORTD,2	;вывод в динамик 0
+	sbi PORTD,1
+	mov R18,R16
+	rcall DELAY
+	ret
+
+SILENCE:
+	mov R18,R16
+	rcall DELAY
+	mov R18,R16
+	rcall DELAY
+	ret
+
+;задержка. Принимает R18 - длина задержки
+DELAY:
+	ldi R17,0
+_loop:
+	dec R17
+	brne _loop
+	dec R18
+	brne _loop
+	ret
+
+	
