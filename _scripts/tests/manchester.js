@@ -21,7 +21,7 @@ function mkManchester(data)
 		for(let i=7; i >= 0;i--)
 		{
 			let bit = (byte & (1 << i)) ? 1 : 0;
-			//cl(bit)
+			//cl(bit)	
 			if(!bit)
 			{
 				state = !state;
