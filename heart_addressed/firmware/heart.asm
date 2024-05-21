@@ -85,17 +85,14 @@ MAIN:
 
 	cbi PORTB, LEDEN_PIN
 	cbi DDRB, LED_PIN
+
+
+	ldi r16,250
+	rcall DELAY
 	sleep
 
 	rjmp MAIN
 
-	mov r16,r11
-	inc r16
-	mov r11,r16
-	rcall SHOW_NUMBER
-	rcall WRITE_LEDS
-	
-	rjmp MAIN
 	
 
 _decr:
