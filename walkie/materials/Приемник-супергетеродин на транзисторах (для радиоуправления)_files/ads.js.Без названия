@@ -1,0 +1,8 @@
+/**
+ * AdBlock flag
+ */
+window.ab = false;
+var e=document.createElement('div');
+e.id='j8UG448A4aP5vSv';
+e.style.display='none';
+document.body.appendChild(e);

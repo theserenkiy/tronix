@@ -1,0 +1,64 @@
+var adfoxBiddersMap = {
+    "betweenDigital": "1366074",
+	"alfasense": "1366075",
+	"rtbhouse": "1366077",
+	"getintent": "1366078",
+	"mytarget": "1366072",
+    "adriver": "1366076"
+};
+
+var adUnits = [
+    {
+        "code": "adfox_160458363178846398",
+        "bids": [
+            {
+                "bidder": "betweenDigital",
+                "params": {
+                    "placementId": "3976126"
+                }
+            },
+			{
+                "bidder": "alfasense",
+                "params": {
+                    "placementId": "5651"
+                }
+            },
+			{
+                "bidder": "getintent",
+                "params": {
+                    "placementId": "66_970x90_alfadart"
+                }
+            },
+			{
+                "bidder": "rtbhouse",
+                "params": {
+                    "placementId": "Mp6nDymhcpPJLmlpiwMu"
+                }
+            },
+			{
+                "bidder": "mytarget",
+                "params": {
+                    "placementId": "842130"
+                }
+            },
+            {
+                "bidder": "adriver",
+                "params": {
+                    "placementId": "57:qrz_970x90"
+                }
+            }
+        ],
+        "sizes": [
+            [
+                970,
+                90
+            ]
+        ]
+    }
+];
+var userTimeout = 1000;
+window.YaHeaderBiddingSettings = {
+    biddersMap: adfoxBiddersMap,
+    adUnits: adUnits,
+    timeout: userTimeout
+};

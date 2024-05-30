@@ -1,0 +1,348 @@
+﻿(function() {
+    var preSelection = "<!!!>";
+    var postSelection = "<!!!>";
+    var snippetMaxLen = 60;
+    var textMaxLen = 256;
+    var messages = { // Russian (Русский)
+        alt: "Выделите орфографическую ошибку мышью и нажмите Ctrl+Enter. Сделаем язык чище!",
+        badbrowser: "Ваш браузер не поддерживает возможность перехвата выделенного текста или IFRAME. "+
+                    "Возможно, слишком старая версия, а возможно, еще какая-нибудь ошибка.",
+        toobig: "Вы выбрали слишком большой объем текста!",
+        thanks: "Спасибо за сотрудничество!",
+        subject: "Орфографическая ошибка",
+        docmsg: "Документ:",
+        intextmsg: "Орфографическая ошибка в тексте:",
+        ifsendmsg: "Послать сообщение об ошибке редактору сайта?\nВаш браузер останется на этой же странице.",
+        newwin: "Страница откроется в новом окне.",
+    };
+    var cssMarker = "css";
+    var w = window;
+    var d = w.document;
+    var de = d.documentElement;
+    var b = d.body;
+    var orphoDiv = null;
+    var orphoObject = {};
+    var isFormEnabled = false;
+    var inputValue = "";
+    var changeStatus = function() {
+        var n = 0;
+        var delayStatus = function() {
+            if (++n > 20) {
+                return;
+            }
+            w.status = (n % 5) ? messages.thanks : " ";
+            setTimeout(delayStatus, 100);
+        };
+        delayStatus();
+    };
+    var hideDiv = function(e) {
+        e.style.position = "absolute";
+        e.style.top = "-10000px";
+        if (b.lastChild) {
+            b.insertBefore(e, b.lastChild);
+        } else {
+            b.appendChild(e);
+        }
+    };
+    var createDiv = function(text) {
+        var div = d.createElement("DIV");
+        div.innerHTML = "<iframe name=\"" + text + "\"></iframe>";
+        hideDiv(div);
+        return d.childNodes[0];
+    };
+    var createForm = function(url, selection, comment) {
+        var iframeID = "orphus_ifr";
+        if (!orphoDiv) {
+            orphoDiv = createDiv(iframeID);
+        }
+        var f = d.createElement("FORM");
+        f.style.position = "absolute";
+        f.style.top = "-10000px";
+        f.action = "/spellcheck/";
+        f.method = "post";
+        f.target = iframeID;
+        var formFields = {
+            ref: url,
+            c_pre: selection.pre,
+            c_sel: selection.text,
+            c_suf: selection.suf,
+            c_pos: selection.pos,
+            charset: d.charset || d.characterSet || "",
+            comment: comment
+        };
+        for (var k in formFields) {
+            var h = d.createElement("INPUT");
+            h.type = "hidden";
+            h.name = k;
+            h.value = formFields[k];
+            f.appendChild(h);
+        }
+        hideDiv(f);
+        f.submit();
+        f.parentNode.removeChild(f);
+    };
+    var getDimensions = function() {
+        var width = 0,
+            height = 0;
+        if (typeof(w.innerWidth) == "number") {
+            width = w.innerWidth;
+            height = w.innerHeight;
+        } else {
+            if (de && (de.clientWidth || de.clientHeight)) {
+                width = de.clientWidth;
+                height = de.clientHeight;
+            } else {
+                if (b && (b.clientWidth || b.clientHeight)) {
+                    width = b.clientWidth;
+                    height = b.clientHeight;
+                }
+            }
+        }
+        var offsetX = 0,
+            offsetY = 0;
+        if (typeof(w.pageYOffset) == "number") {
+            offsetY = w.pageYOffset;
+            offsetX = w.pageXOffset;
+        } else {
+            if (b && (b.scrollLeft || b.scrollTop)) {
+                offsetY = b.scrollTop;
+                offsetX = b.scrollLeft;
+            } else {
+                if (de && (de.scrollLeft || de.scrollTop)) {
+                    offsetY = de.scrollTop;
+                    offsetX = de.scrollLeft;
+                }
+            }
+        }
+        return {
+            w: width,
+            h: height,
+            x: offsetX,
+            y: offsetY
+        };
+    };
+    orphoObject.confirm = function(confirmMessage, flag, showConfirm) {
+        var ts = new Date().getTime();
+        var confirmResult = confirm(messages.docmsg + "\n   " + d.location.href + "\n" + messages.intextmsg + "\n   \"" + confirmMessage + "\"\n\n" + messages.ifsendmsg);
+        var dt = new Date().getTime() - ts;
+        if (confirmResult) {
+            flag("");
+        } else {
+            if (!showConfirm && dt < 50) {
+                var sv = d.onkeyup;
+                d.onkeyup = function(e) {
+                    if (!e) {
+                        e = window.event;
+                    }
+                    if (e.keyCode == 17) {
+                        d.onkeyup = sv;
+                        orphoObject.confirm(confirmMessage, flag, true);
+                    }
+                };
+            }
+        }
+    };
+    orphoObject.css = function(userSelection, commentValue) {
+        if (isFormEnabled) return;
+        isFormEnabled = true;
+        var div = d.createElement("DIV");
+        var w = 550;
+        if (w > b.clientWidth - 10) {
+            w = b.clientWidth - 10;
+        }
+        div.style.zIndex = "10001";
+        div.innerHTML = "" + '<div class="block-orphochecker" style="width:' + w + 'px; z-index:10001;">' +
+                        "<a href=\"javascript:void(0)\" onclick=\"$(this).parent('.block-orphochecker').find('form .buttons input:last').click();\" class=\"close\">×</a>" +
+                        '<div class="header">Орфографическая ошибка в тексте:</div>' +
+                        '<div class="item">«...' + userSelection.replace(preSelection, '<u style="color:red;">').replace(postSelection, '</u>') + '...»</div>' +
+                        '<div class="message">Послать сообщение об ошибке редактору сайта?<br>Ваш браузер останется на этой же странице.</div>' +
+                        '<form><input type="text" maxlength="250" placeholder="Комментарий для редактора (необязательно):" style="width:98%;" />' +
+                        '<div class="buttons"><input type="submit" value="Отправить"> &nbsp; ' +
+                        '<input type="button" value="Отмена" class="cancel">' +
+                        '</div></form></div>';
+        hideDiv(div);
+        var inputsArray = div.getElementsByTagName("input");
+        var formsArray = div.getElementsByTagName("form");
+        var t = inputsArray[0];
+        var documentKeyDownCode = null;
+        var formElements = [];
+        var hideForm = function() {
+            d.onkeydown = documentKeyDownCode;
+            documentKeyDownCode = null;
+            div.parentNode.removeChild(div);
+            for (var i = 0; i < formElements.length; i++) {
+                formElements[i][0].style.visibility = formElements[i][1];
+            }
+            isFormEnabled = false;
+            inputValue = t.value;
+        };
+        var pos = function(p) {
+            var s = {
+                x: 0,
+                y: 0
+            };
+            while (p.offsetParent) {
+                s.x += p.offsetLeft;
+                s.y += p.offsetTop;
+                p = p.offsetParent;
+            }
+            return s;
+        };
+        setTimeout(function() {
+            var w = div.clientWidth;
+            var h = div.clientHeight;
+            var dim = getDimensions();
+            var x = (dim.w - w) / 2 + dim.x;
+            if (x < 10) {
+                x = 10;
+            }
+            var y = (dim.h - h) / 2 + dim.y - 10;
+            if (y < 10) {
+                y = 10;
+            }
+            div.style.left = x + "px";
+            div.style.top = y + "px";
+            if (navigator.userAgent.match(/MSIE (\d+)/) && RegExp.$1 < 7) {
+                var selectsArray = d.getElementsByTagName("SELECT");
+                for (var i = 0; i < selectsArray.length; i++) {
+                    var s = selectsArray[i];
+                    var p = pos(s);
+                    if (p.x > x + w || p.y > y + h || p.x + s.offsetWidth < x || p.y + s.offsetHeight < y) {
+                        continue;
+                    }
+                    formElements[formElements.length] = [s, s.style.visibility];
+                    s.style.visibility = "hidden";
+                }
+            }
+            t.value = inputValue;
+            t.focus();
+            t.select();
+            documentKeyDownCode = d.onkeydown;
+            d.onkeydown = function(e) {
+                if (!e) {
+                    e = window.event;
+                }
+                if (e.keyCode == 27) {
+                    hideForm();
+                }
+            };
+            formsArray[0].onsubmit = function() {
+                commentValue(t.value);
+                hideForm();
+                inputValue = "";
+                return false;
+            };
+            inputsArray[2].onclick = function() {
+                hideForm();
+            };
+        }, 10);
+    };
+    var stripSpace = function(text) {
+        return ("" + text).replace(/[\r\n]+/g, " ").replace(/^\s+|\s+$/g, "");
+    };
+    var getUserSelection = function() {
+        try {
+            var text = null;
+            var selection = null;
+            if (w.getSelection) {
+                selection = w.getSelection();
+            } else {
+                if (d.getSelection) {
+                    selection = d.getSelection();
+                } else {
+                    selection = d.selection;
+                }
+            }
+            var marker = null;
+            if (selection != null) {
+                var pre = "",
+                    text = null,
+                    suf = "",
+                    pos = -1;
+                if (selection.getRangeAt) {
+                    var r = selection.getRangeAt(0);
+                    text = r.toString();
+                    var subSelection1 = d.createRange();
+                    subSelection1.setStartBefore(r.startContainer.ownerDocument.body);
+                    subSelection1.setEnd(r.startContainer, r.startOffset);
+                    pre = subSelection1.toString();
+                    var subSelection2 = r.cloneRange();
+                    subSelection2.setStart(r.endContainer, r.endOffset);
+                    subSelection2.setEndAfter(r.endContainer.ownerDocument.body);
+                    suf = subSelection2.toString();
+                } else {
+                    if (selection.createRange) {
+                        var r = selection.createRange();
+                        text = r.text;
+                        var subSelection1 = selection.createRange();
+                        subSelection1.moveStart("character", -snippetMaxLen);
+                        subSelection1.moveEnd("character", -text.length);
+                        pre = subSelection1.text;
+                        var subSelection2 = selection.createRange();
+                        subSelection2.moveEnd("character", snippetMaxLen);
+                        subSelection2.moveStart("character", text.length);
+                        suf = subSelection2.text;
+                    } else {
+                        text = "" + selection;
+                    }
+                }
+                var p;
+                var s = (p = text.match(/^(\s*)/)) && p[0].length;
+                var e = (p = text.match(/(\s*)$/)) && p[0].length;
+                pre = pre + text.substring(0, s);
+                suf = text.substring(text.length - e, text.length) + suf;
+                text = text.substring(s, text.length - e);
+                if (text == "") {
+                    return null;
+                }
+                return {
+                    pre: pre,
+                    text: text,
+                    suf: suf,
+                    pos: pos
+                };
+            } else {
+                alert(messages.badbrowser);
+                return;
+            }
+        } catch (e) {
+            return null;
+        }
+    };
+
+    d.onkeypress = function(e) {
+        var correctKeyCode = 0;
+        var we = w.event;
+        if (we) {
+            correctKeyCode = we.keyCode == 10 || (we.keyCode == 13 && we.ctrlKey);
+        } else {
+            if (e) {
+                correctKeyCode = (e.which == 10 && e.modifiers == 2) || (e.keyCode == 0 && e.charCode == 106 && e.ctrlKey) || (e.keyCode == 13 && e.ctrlKey);
+            }
+        }
+        if (correctKeyCode) {
+            if (navigator.appName.indexOf("Netscape") != -1 && eval(navigator.appVersion.substring(0, 1)) < 5) {
+                alert(messages.badbrowser);
+                return;
+            }
+            var selectedText = getUserSelection();
+            if (!selectedText) {
+                return;
+            }
+            with(selectedText) {
+                pre = pre.substring(pre.length - snippetMaxLen, pre.length).replace(/^\S{1,10}\s+/, "");
+                suf = suf.substring(0, snippetMaxLen).replace(/\s+\S{1,10}$/, "");
+            }
+            var correctedText = stripSpace(selectedText.pre + preSelection + selectedText.text + postSelection + selectedText.suf);
+            if (correctedText.length > textMaxLen) {
+                alert(messages.toobig);
+                return;
+            }
+            orphoObject[cssMarker](correctedText, function(comment) {
+                createForm(d.location.href, selectedText, comment);
+                changeStatus();
+            });
+            return false;
+        }
+    };
+})();

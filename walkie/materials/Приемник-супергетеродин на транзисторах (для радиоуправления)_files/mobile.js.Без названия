@@ -1,0 +1,377 @@
+(function() {
+    window.ENV = 'production';
+
+    window.STAGING = false;
+
+    if ('production' === ENV) {
+        window.console = {
+            log: function() {},
+            dir: function() {},
+            info: function() {}
+        };
+    }
+
+    if ((navigator.userAgent.match(/MSIE\s(6|7)/) == null) && 'production' === ENV) {
+        $(function() {
+            return window.documentIsReady = true;
+        });
+        window.MaximumErrorCount = 1;
+        window.onerror = function(errorMsg, file, lineNumber) {
+            window.errorCount || (window.errorCount = 0);
+            if (window.errorCount <= window.MaximumErrorCount) {
+                window.errorCount += 1;
+                return $.post('/javascript_error', {
+                    error: errorMsg,
+                    file: file,
+                    location: window.location.href,
+                    lineNumber: lineNumber,
+                    documentReady: window.documentIsReady,
+                    ua: navigator.userAgent
+                });
+            }
+        };
+    }
+
+    window.App = {
+        initialize: function() {
+            this.has3d = has3d();
+            this.hideBrowserBar();
+            this.addTabs();
+            this.addMenuToggler();
+            this.setActiveMenuItem();
+            this.initSubmenuSwipe();
+            this.setActiveSubmenuItem();
+            $(window).bind("orientationchange resize", function() {
+                return App.setActiveSubmenuItem();
+            });
+            this.supportHistory = supportsHistoryApi();
+            this.addDateTime();
+            this.addTopSearch();
+            return this.versionSwitcher();
+        },
+        hideBrowserBar: function() {
+            return $(window).load(function() {
+                return $(this).scrollTop();
+            });
+        },
+        addTabs: function() {
+            return $(".b-tab").click(function() {
+                var index;
+                index = $(this).attr("data-for");
+                return $(this).addClass("selected").siblings().removeClass("selected").end().closest(".b-tabs-box").find(".b-tab-content").removeClass("selected").filter("#" + index).addClass("selected");
+            });
+        },
+        setActiveMenuItem: function() {
+            var url;
+            if ('/' === document.location.pathname) {
+                url = '/';
+            }
+            if (url != null) {
+                return $('#nav').find('a[href="' + url + '"]').parent().addClass('b-nav__item_active');
+            }
+        },
+        addMenuToggler: function() {
+            return $(".js-nav-opener").click(function() {
+                var nav, navItemsHeight, subheader, subheaderHeight;
+                nav = $("#nav");
+                subheader = $("#subheader");
+                navItemsHeight = 0;
+                subheaderHeight = 40;
+                if ($("#nav .b-nav__item:nth-child(1)").hasClass("b-nav__item_separator")) {
+                    $("#nav .b-nav__item:nth-child(1)").remove();
+                }
+                if ($("#nav .b-nav__item:last-child").hasClass("b-nav__item_separator")) {
+                    $("#nav .b-nav__item:last-child").remove();
+                }
+                $("#nav .b-nav__item").each(function() {
+                    return navItemsHeight += $(this).height();
+                });
+                if (nav.height() > 0) {
+                    nav.find(".b-nav-opener").hide().end().transition({
+                        height: "0px"
+                    }, 500, function() {
+                        $(this).find(".b-nav-opener").show();
+                        return subheader.removeClass("b-subheader_disabled");
+                    });
+                    return subheader.find(".b-nav-opener").hide().end().transition({
+                        height: "40px"
+                    }, 500, function() {
+                        return $(this).find(".b-nav-opener").show();
+                    });
+                } else {
+                    subheader.addClass("b-subheader_disabled").find(".b-nav-opener").hide().end().transition({
+                        height: "0px"
+                    }, 500, function() {
+                        return $(this).find(".b-nav-opener").show();
+                    });
+                    return nav.find(".b-nav-opener").hide().end().transition({
+                        height: navItemsHeight + "px"
+                    }, 500, function() {
+                        return $(this).find(".b-nav-opener").show();
+                    });
+                }
+            });
+        },
+        setActiveSubmenuItem: function() {
+            var activeBloc, activeBlocLeft, activeBlocWidth, blocsEl, blocsItemsEl, blocsItemsWidth, blocsWidth, left;
+            blocsEl = $("#blocs");
+            if (blocsEl.length) {
+                blocsWidth = blocsEl.width();
+                blocsItemsEl = $("#blocs_items");
+                blocsItemsWidth = blocsItemsEl.width();
+                activeBloc = blocsEl.find(".b-blocs__item_active");
+                activeBlocWidth = activeBloc.width();
+                activeBlocLeft = activeBloc.position().left;
+                left = 0;
+                if (blocsItemsWidth > blocsWidth && activeBlocLeft > blocsWidth / 2) {
+                    left = -activeBlocLeft - activeBlocWidth / 2 + blocsWidth / 2;
+                    if (left > 0) {
+                        left = 0;
+                    } else {
+                        if (left < blocsWidth - blocsItemsWidth) {
+                            left = blocsWidth - blocsItemsWidth;
+                        }
+                    }
+                    if (App.has3d) {
+                        blocsItemsEl.css({
+                            "transform": "translate3d(" + left + "px,0px,0px)"
+                        });
+                    } else {
+                        blocsItemsEl.css({
+                            "left": left + "px"
+                        });
+                    }
+                }
+                return this.fadeSubmenu(left);
+            }
+        },
+        fadeSubmenu: function(left) {
+            var blocsEl, blocsItemsEl, blocsItemsLeft, blocsItemsWidth, blocsWidth;
+            blocsEl = $("#blocs");
+            if (blocsEl.length) {
+                blocsWidth = blocsEl.width();
+                blocsItemsEl = $("#blocs_items");
+                blocsItemsWidth = blocsItemsEl.width();
+                blocsItemsLeft = left || blocsItemsEl.position().left;
+                if (blocsWidth < blocsItemsWidth) {
+                    if (blocsItemsLeft < 0) {
+                        blocsEl.find(".b-blocs__fade_left").show();
+                    } else {
+                        blocsEl.find(".b-blocs__fade_left").hide();
+                    }
+                    if (blocsItemsLeft - 10 - 3 > blocsWidth - blocsItemsWidth) {
+                        return blocsEl.find(".b-blocs__fade_right").show();
+                    } else {
+                        return blocsEl.find(".b-blocs__fade_right").hide();
+                    }
+                } else {
+                    return blocsEl.find(".b-blocs__fade").hide();
+                }
+            }
+        },
+        initSubmenuSwipe: function() {
+            var blocsEl;
+            blocsEl = $("#blocs");
+            if (blocsEl.length) {
+                blocsEl.css({
+                    "overflow-x": "hidden"
+                });
+                return blocsEl.swipe({
+                    swipe: function(event, direction, distance, duration, fingerCount) {
+                        return App.onSubmenuSwipe(distance, direction);
+                    },
+                    fingers: 1,
+                    threshold: 10,
+                    excludedElements: "a"
+                });
+            }
+        },
+        onSubmenuSwipe: function(distance, direction) {
+            var blocsEl, blocsItemsEl, blocsItemsLeft, blocsItemsWidth, blocsWidth, left;
+            blocsEl = $("#blocs");
+            blocsWidth = blocsEl.width();
+            blocsItemsEl = $("#blocs_items");
+            blocsItemsWidth = blocsItemsEl.width();
+            blocsItemsLeft = blocsItemsEl.position().left;
+            left = 0;
+            if (blocsItemsWidth > blocsWidth) {
+                if (distance > blocsWidth / 2) {
+                    if (direction === "left") {
+                        left = blocsWidth - blocsItemsWidth;
+                    } else {
+                        left = 0;
+                    }
+                } else {
+                    if (direction === "left") {
+                        left = blocsItemsLeft - blocsWidth / 2;
+                        if (left < blocsWidth - blocsItemsWidth) {
+                            left = blocsWidth - blocsItemsWidth;
+                        }
+                    } else if (direction === "right") {
+                        left = blocsItemsLeft + blocsWidth / 2;
+                        if (left > 0) {
+                            left = 0;
+                        }
+                    }
+                }
+                if (App.has3d) {
+                    return blocsItemsEl.transition({
+                        "transform": "translate3d(" + left + "px,0px,0px)"
+                    }, function() {
+                        return App.fadeSubmenu(left);
+                    });
+                } else {
+                    return blocsItemsEl.transition({
+                        "left": left + "px"
+                    }, function() {
+                        return App.fadeSubmenu(left);
+                    });
+                }
+            }
+        },
+        addDateTime: function() {
+            return this.months = 'января февраля марта апреля мая июня июля августа сентября октября ноября декабря'.split(' ');
+        },
+        addTopSearch: function() {
+            $("#search-form.b-search_top .b-search__btn").click(function(e) {
+                if (!$(this).parent().hasClass("b-search_top_active")) {
+                    e.preventDefault();
+                    $(this).parent().addClass("b-search_top_active");
+                    return $('#search-field').focus();
+                }
+            });
+            return $("#search-form .b-search__close").click(function(e) {
+                return $(this).parent().removeClass("b-search_top_active");
+            });
+        },
+        versionSwitcher: function() {
+            var is_mobile, versionSwitcher, versionSwitcherLink, was_redirect;
+            versionSwitcher = $('#version-switcher');
+            versionSwitcherLink = versionSwitcher.attr('data-link');
+            was_redirect = $.cookie('rdct');
+            is_mobile = $.cookie('is_mobile') === '1';
+            if (!$.cookie('view_version') && was_redirect) {
+                versionSwitcher.html('<div class="b-version-switcher__text">Вы были автоматически перенаправлены на мобильную версию.<br><a class="js-set-www-version" href="' + versionSwitcherLink + '">Перейти на полную версию.</a></div><div class="b-version-switcher__close"><div class="close_button"></div></div>').show();
+                versionSwitcher.find('.b-version-switcher__close, .close').click(function(e) {
+                    e.preventDefault();
+                    versionSwitcher.slideUp();
+                    $.cookie('view_version', 'm', {
+                        expires: 14,
+                        domain: 'qrz.ru',
+                        path: '/'
+                    });
+                    return $.removeCookie('rdct', {
+                        path: '/',
+                        domain: 'qrz.ru'
+                    });
+                });
+            }
+            return $('.js-set-www-version').click(function(e) {
+                var new_window;
+                e.preventDefault();
+                new_window = $(e.target).attr('target') === '_blank' || e.ctrlKey || e.metaKey || e.which === 2;
+                if (new_window) {
+                    window.open(versionSwitcherLink, '_blank');
+                } else {
+                    $.cookie("view_version", "www", {
+                        expires: 14,
+                        domain: 'qrz.ru',
+                        path: '/'
+                    });
+                    document.location.href = versionSwitcherLink;
+                }
+                return $.removeCookie('rdct', {
+                    path: '/',
+                    domain: 'qrz.ru'
+                });
+            });
+        }
+    };
+
+    $(function() {
+        return App.initialize();
+    });
+
+}).call(this);
+(function() {
+
+
+}).call(this);
+
+
+var isIos = false;
+var isLateIos = false;
+if(/(iPhone|iPod|iPad)/i.test(navigator.userAgent)) {
+    isIos = true;
+    if(/OS [1-4](.*) like Mac OS X/i.test(navigator.userAgent)) {
+        var isLateIos = false;
+    } else if(/CPU like Mac OS X/i.test(navigator.userAgent)) {
+        var isLateIos = false;
+    } else {
+        isLateIos = true;
+    }
+}
+
+function has3d() {
+    var el = document.createElement('p'),
+        has3d,
+        transforms = {
+            'webkitTransform':'-webkit-transform',
+            'OTransform':'-o-transform',
+            'msTransform':'-ms-transform',
+            'MozTransform':'-moz-transform',
+            'transform':'transform'
+        };
+
+    // Add it to the body to get the computed style.
+    document.body.insertBefore(el, null);
+
+    for (var t in transforms) {
+        if (el.style[t] !== undefined) {
+            el.style[t] = "translate3d(1px,1px,1px)";
+            has3d = window.getComputedStyle(el).getPropertyValue(transforms[t]);
+        }
+    }
+    document.body.removeChild(el);
+    return (has3d !== undefined && has3d.length > 0 && has3d !== "none");
+}
+
+function supportsHistoryApi() {
+    return !!(window.history && history.pushState);
+}
+
+// Find all YouTube videos
+var $allVideos = $("iframe[src^='https://player.vimeo.com'], iframe[src^='https://www.youtube.com']"),
+
+// The element that is fluid width
+$fluidEl = $("body");
+
+// Figure out and save aspect ratio for each video
+$allVideos.each(function() {
+
+    $(this)
+        .data('aspectRatio', this.height / this.width)
+
+        // and remove the hard coded width/height
+        .removeAttr('height')
+        .removeAttr('width');
+
+});
+
+// When the window is resized
+$(window).resize(function() {
+
+    var newWidth = $fluidEl.width();
+
+    // Resize all videos according to their own aspect ratio
+    $allVideos.each(function() {
+
+        var $el = $(this);
+        $el
+            .width(newWidth)
+            .height(newWidth * $el.data('aspectRatio'));
+
+    });
+
+// Kick off one resize to fix all videos on page load
+}).resize();

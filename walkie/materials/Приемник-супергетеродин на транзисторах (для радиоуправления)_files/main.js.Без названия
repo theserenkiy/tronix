@@ -1,0 +1,100 @@
+/**
+ * QRZ.RU common functions
+ */
+
+var autoScroller = function(){
+    if ($(window).scrollTop()>0)
+        $('.icon_sprite.icon-up').addClass('active');
+    else $('.icon_sprite.icon-up').removeClass('active');
+    var left = ($(window).width()-$('.content').outerWidth())/4;
+    left = (left<17)? 17:left
+    $('.icon_sprite.icon-up').css('right',left+'px');
+}
+
+var fireEvent = function(element,event){
+    if (document.createEventObject){
+        // dispatch for IE
+        var evt = document.createEventObject();
+        return element.fireEvent('on'+event,evt)
+    }
+    else{
+        // dispatch for firefox + others
+        var evt = document.createEvent("HTMLEvents");
+        evt.initEvent(event, true, true ); // event type,bubbling,cancelable
+        return !element.dispatchEvent(evt);
+    }
+}
+
+$(function(){
+    if (!('ab' in window))
+        window.ab = true;  // AdBlock  включен
+
+    autoScroller();
+
+    $('input[type="radio"] + label,input[type="checkbox"] + label').each(function(){
+        if (!$(this).find('i').length){
+            $(this).prepend('<i></i>');
+        }
+    })
+
+    $(document).on('scroll',function(){
+        autoScroller();
+    });
+    $(window).resize(function(){
+        autoScroller();
+    });
+
+    $(document).on('click','.icon_sprite.icon-up',function(){
+        var body = $("html, body");
+        body.animate({scrollTop:0}, '500', 'swing');
+    });
+
+    $(document).on('click','.lang .lang_link',function(e){
+        var lang = $(this).data('lang');
+        var jObj = $('.goog-te-combo');
+        var db = jObj.get(0);
+        jObj.val(lang);
+        fireEvent(db, 'change');
+        return false;
+    });
+
+    $('.reg_date').each(function(){
+        var self = $(this);
+        self.select2({
+            minimumResultsForSearch: -1
+        });
+    });
+
+    var hovered = true;
+
+    $('.item_actions').on('mouseenter',function(){
+        hovered = true;
+    });
+    $('.item_actions').on('mouseleave',function(){
+        hovered = false;
+    })
+    $('body').on('mousemove',function(){
+        if (hovered)
+            $('.item_actions').stop()
+        else {
+            $('.item_actions').delay(3000).addClass('hidden');
+        }
+    })
+    $('.show-more').click(function(){
+        $('.item_actions').addClass('hidden')
+        var item = $(this);
+        hovered = true;
+        $(this).parents('.activeRowBody').find('.item_actions').css({
+            'left': item.offset().left-item.parents('.activeRowBody').offset().left,
+            'top' : item.offset().top-item.parents('.activeRowBody').offset().top + 20
+        }).removeClass('hidden');
+        return false;
+    })
+
+    if (window.ab)
+        $('.addBlockContent').removeClass('hidden')
+    else
+        $('.addBlockContent').addClass('hidden')
+
+});
+window.mail = true;
