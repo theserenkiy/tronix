@@ -51,7 +51,7 @@ RESET:
 	rcall LCD_INIT
 	rcall DS18_INIT
 
-	print "Preved!\"
+	print "Preved!"
 
 	rjmp MAIN_LOOP
 
