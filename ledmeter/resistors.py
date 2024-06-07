@@ -20,11 +20,11 @@ resistors = []
 rest_res = upper_resistance
 prev_val = 0
 for i in range(leds):
-    v = pow(10,-(pow_step*i))
-    values.append(v)
-    if prev_val:
-        resistors.append((prev_val-v)*upper_resistance)
-    prev_val = v
+	v = pow(10,-(pow_step*i))
+	values.append(v)
+	if prev_val:
+		resistors.append((prev_val-v)*upper_resistance)
+	prev_val = v
 print(values)
 print(resistors)
 
