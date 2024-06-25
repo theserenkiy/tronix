@@ -1,0 +1,14 @@
+// Place your key bindings in this file to override the defaults
+[
+	{
+		"key": "F11",
+		"command": "workbench.action.tasks.runTask",
+		"args": "avr_compile"
+	},
+
+	{
+		"key": "F12",
+		"command": "workbench.action.tasks.runTask",
+		"args": "avr_prog"
+	}
+]

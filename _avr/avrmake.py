@@ -7,7 +7,7 @@ includepaths = ['C:/avr/avrasm/includes','C:/avr/lib']
 
 #fuses = ''
 #fuses = '-U lfuse:w:0xde:m -U hfuse:w:0xdf:m -U efuse:w:0xff:m'	#t2313
-#fuses = ' -U lfuse:w:0xDF:m -U hfuse:w:0xDF:m -U efuse:w:0xFF:m -U lock:w:0xFF:m '
+#fuses = '-U lfuse:w:0xDF:m -U hfuse:w:0xDF:m -U efuse:w:0xFF:m -U lock:w:0xFF:m '
 
 asm_name = sys.argv[1]
 dirname = path.dirname(asm_name)
@@ -20,8 +20,8 @@ if dirname:
 	asm_name = path.basename(asm_name)
 
 name = path.splitext(asm_name)[0]
-hexname = name+'.hex'
-cntname = name+'.cnt'
+hexname = name + '.hex'
+cntname = name + '.cnt'
 
 if path.isfile(hexname):
 	os.remove(hexname)
@@ -33,10 +33,10 @@ if chipinfo[:6] != ';chip ':
 
 chip = chipinfo[5:].strip()
 
-print("CHIP: "+chip);
-print("############################################");
+print("CHIP: "+chip)
+print("############################################")
 print("#               COMPILATION                #")
-print("############################################");
+print("############################################")
 
 incpaths = ' -I '.join(includepaths).replace('/','\\')
 
@@ -45,7 +45,7 @@ cmd = f'c:/avr/tavrasm/Tavrasmw.exe -i -v -x {name}.asm -o {hexname}'
 
 #cmd = _dir+'/avrasm2 -fI -1 -I '+incpaths+' '+asm_name
 
-print('Command: '+cmd);
+print('Command: '+cmd)
 
 result = call(cmd)
 
@@ -59,17 +59,17 @@ else:
 
 
 if len(sys.argv) > 2 and sys.argv[2]=='prog':
-	print("############################################");
+	print("############################################")
 	print("#               PROGRAMMING                #")
-	print("############################################");
-	cmd = _dir+'/avrdude/avrdude -p '+chip+' -c usbasp -B 50 -i 50 -U flash:w:"'+name+'.hex"';
-	print('Command: '+cmd);
+	print("############################################")
+	cmd = _dir+'/avrdude/avrdude -p '+chip+' -c usbasp -B 50 -i 50 -U flash:w:"'+name+'.hex"'
+	print('Command: '+cmd)
 
 	result = call(cmd)
 	print(f'Result {result}')
 
 	if result != 0:
-		print('\nProgramming failed :(\n');
+		print('\nProgramming failed :(\n')
 	else:
 		cnt = 1
 		if not path.isfile(name+'.cnt'):
@@ -84,4 +84,4 @@ if len(sys.argv) > 2 and sys.argv[2]=='prog':
 		fp.write(str(cnt))
 		fp.close()
 		flash_bytes = round((34/43/2)*(os.stat(name+'.hex').st_size-15))
-		print('\nProgrammed successfully [bytes written: ',flash_bytes,'; prog count: ',cnt,']\n');
+		print('\nProgrammed successfully [bytes written: ',flash_bytes,'; prog count: ',cnt,']\n')
