@@ -7,132 +7,121 @@
 .equ RS = 5
 .equ E = 4
 ;PB3...PB0 => D7...D4 of LCD
+;RW pin of LCD connected to GND
 
+.macro wait_us
+	ldi r16, @0
+	rcall DELAY_US
+.endmacro
+
+.macro wait_ms
+	ldi r16, @0
+	rcall DELAY_MS
+.endmacro
+
+.macro lcd_cmd
+	ldi r16, @0
+	rcall LCD_CMD_8B
+	ldi r16, 100
+	rcall DELAY_US
+.endmacro
+
+.macro lcd_cmd_4
+	ldi r16, @0
+	rcall LCD_CMD_4B
+.endmacro
+
+.macro lcd_data
+	ldi r16, @0
+	rcall LCD_WRITE
+	ldi r16, 100
+	rcall DELAY_US
+.endmacro
 
 RESET:
-	; sbi DDRD, LED0
-	; sbi DDRD, LED1
-	; cbi PORTD, LED0
-	; cbi PORTD, LED1
 	ldi r16,0xff
 	out DDRB, r16
-	ldi r16,(1 << E) | (1 << RS)
-	out PORTB,r16
 
 MAIN:
 	rcall LCD_INIT
 
-	;ldi r16,0b10000001
-	;rcall LCD_CMD
-
-	; ldi r16, 2
-	; rcall DELAY_MS
-
-	ldi r20,4
-_loop:
-	ldi r16,0b01101000
-	rcall LCD_WRITE
-	ldi r16,100
-	rcall DELAY_US
-	dec r20
-	brne _loop
-
-
-	; ldi r16, 2
-	; rcall DELAY_MS
-
+	lcd_cmd 0xC1	;set display address to 2nd char at 2nd line
+	
+	;writing "hui"
+	lcd_data 0b01101000
+	lcd_data 0b01110101
+	lcd_data 0b01101001
 	rjmp PC
-	rjmp MAIN
 
 
-;#########################################
+;##################################################################################
 LCD_INIT:
-	ldi r16,100
-	rcall DELAY_MS
 
-	ldi r16,0b00000011
-	rcall LCD_CMD_4B
+	wait_ms 100				;wait after power on
 
-	ldi r16, 1
-	rcall DELAY_MS
+	lcd_cmd_4 0b00000011	;do some magic...
+	wait_ms 10
+	lcd_cmd_4 0b00000011
+	wait_ms 1
+	lcd_cmd_4 0b00000011
+	wait_ms 1
+	lcd_cmd_4 0b00000010	;set 4-bit mode
+	wait_ms 1
 
-	ldi r16,0b00100100
-	rcall LCD_CMD
-	ldi r16,0b00100100
-	rcall LCD_CMD
-	ldi r16,0b00001111
-	rcall LCD_CMD
-	ldi r16,0b00000001
-	rcall LCD_CMD
+	lcd_cmd 0b00101100		;4 bit mode, 2 lines, 5x8
+	lcd_cmd 0b00001111		;displ on, cursor on, cursor blinking
+	lcd_cmd 0b00000001		;clear display
+	wait_ms 10
 
-	ldi r16, 4
-	rcall DELAY_MS
-
-	ldi r16,0b00000111
-	rcall LCD_CMD
+	lcd_cmd 0b00000111
 
 	ret
 
 
 ;#########################################
+;writes 4-bits to LCD, generating clock on E pin
+;r16 - data (only lower 4 bits used)
+LCD_WRITE_NIBBLE:
+	in r17,PORTB
+	andi r17, 0xF0
+	andi r16, 0x0F
+	or r16,r17
+	out PORTB, r16
+	sbi PORTB, E
+	wait_ms 1
+	cbi PORTB, E
+	wait_ms 1
+	ret
+
+;#########################################
+;writes only 4 lower bits of r16 to LCD
 ;r16 - cmd
 LCD_CMD_4B:
 	cbi PORTB, RS
-	sbi PORTB, E
-	ori r16, (1 << E)
-	out PORTB, r16
-	nop
-	nop
-	cbi PORTB, E
-	nop 
-	nop
+	rcall LCD_WRITE_NIBBLE	
 	sbi PORTB, RS
-	sbi PORTB, E
 	ret
 
 ;#########################################
+;writes command (r16) to LCD in 4-bit mode
 ;r16 - cmd
-LCD_CMD:
+LCD_CMD_8B:
 	cbi PORTB, RS
 	rcall LCD_WRITE
 	sbi PORTB, RS
-	ldi r16, 50
-	rcall DELAY_US
 	ret
 
 ;#########################################
+;writes data (r16) to LCD in 4-bit mode
+;higher 4 bits first, then lower 4 bits
 ;r16 - data
 LCD_WRITE:
-	nop
-	nop
-	sbi PORTB, E  
-	mov r17,r16
-	lsr r17
-	lsr r17
-	lsr r17
-	lsr r17
-	ori r17, (1 << E)
-	out PORTB, r17
-	nop
-	nop
-	nop
-	cbi PORTB, E
-	nop
-	nop
-	nop 
-	sbi PORTB, E
-	andi r16,0x0f
-	ori r16, (1 << E)
-	out PORTB, r16
-	nop
-	nop
-	nop
-	cbi PORTB, E
-	nop
-	nop
-	nop
-	;sbi PORTB, E
-	ret
+	mov r20,r16
+	swap r16
+	rcall LCD_WRITE_NIBBLE
+	mov r16, r20
+	rcall LCD_WRITE_NIBBLE
+	ret 
 
 
 ;#########################################
