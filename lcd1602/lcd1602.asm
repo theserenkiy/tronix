@@ -22,8 +22,6 @@
 .macro lcd_cmd
 	ldi r16, @0
 	rcall LCD_CMD_8B
-	ldi r16, 100
-	rcall DELAY_US
 .endmacro
 
 .macro lcd_cmd_4
@@ -34,27 +32,45 @@
 .macro lcd_data
 	ldi r16, @0
 	rcall LCD_WRITE
-	ldi r16, 100
-	rcall DELAY_US
 .endmacro
 
+.macro print; @0 - label to string .db
+	ldi ZH, high(@0 *2)
+	ldi ZL, low(@0 *2)
+	rcall LCD_PRINT_STR
+.endmacro
+
+.macro setpos; @0 - x (0..15), @1 - y (0,1)
+	ldi r16, @0 | (@1 << 6) | (1 << 7)
+	rcall LCD_CMD_8B
+.endmacro
+
+
+
 RESET:
-	ldi r16,0xff
+	ldi r16, 0xff
 	out DDRB, r16
 
 MAIN:
 	rcall LCD_INIT
 
-	lcd_cmd 0xC1	;set display address to 2nd char at 2nd line
-	
-	;writing "hui"
-	lcd_data 0b01101000
-	lcd_data 0b01110101
-	lcd_data 0b01101001
+	setpos 0, 0
+	print STR1
+
+	setpos 4, 1
+	print STR2
+
 	rjmp PC
 
 
-;##################################################################################
+STR1:
+.db "Vse deti -\0"
+
+STR2:
+.db "porosyata!\0"
+
+
+;#########################################
 LCD_INIT:
 
 	wait_ms 100				;wait after power on
@@ -77,6 +93,19 @@ LCD_INIT:
 
 	ret
 
+;#########################################
+;prints string to LCD
+;Z - address of string
+LCD_PRINT_STR:
+_loop:
+	lpm r16,Z+
+	tst r16
+	breq _end
+	rcall LCD_WRITE
+	rjmp _loop
+
+_end:
+	ret
 
 ;#########################################
 ;writes 4-bits to LCD, generating clock on E pin
@@ -121,6 +150,8 @@ LCD_WRITE:
 	rcall LCD_WRITE_NIBBLE
 	mov r16, r20
 	rcall LCD_WRITE_NIBBLE
+	ldi r16,1
+	rcall DELAY_MS
 	ret 
 
 
@@ -153,17 +184,3 @@ _loop:
 	dec r16
 	brne _loop
 	ret	
-
-;#########################################
-DELAY_1S:
-	ldi r18,0
-	ldi r17,0
-	ldi r16,61
-_loop:
-	dec r18
-	brne _loop
-	dec r17
-	brne _loop
-	dec r16
-	brne _loop
-	ret
