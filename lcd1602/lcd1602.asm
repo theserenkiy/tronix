@@ -54,7 +54,7 @@ RESET:
 MAIN:
 	rcall LCD_INIT
 
-	setpos 0, 0
+	setpos 1, 0
 	print STR1
 
 	setpos 4, 1
@@ -70,7 +70,7 @@ STR2:
 .db "porosyata!\0"
 
 
-;#########################################
+;########################################
 LCD_INIT:
 
 	wait_ms 100				;wait after power on
@@ -89,11 +89,13 @@ LCD_INIT:
 	lcd_cmd 0b00000001		;clear display
 	wait_ms 10
 
-	lcd_cmd 0b00000111
+	lcd_cmd 0b00000110
+
+	wait_ms 10
 
 	ret
 
-;#########################################
+;########################################
 ;prints string to LCD
 ;Z - address of string
 LCD_PRINT_STR:
@@ -103,7 +105,6 @@ _loop:
 	breq _end
 	rcall LCD_WRITE
 	rjmp _loop
-
 _end:
 	ret
 
@@ -120,6 +121,7 @@ LCD_WRITE_NIBBLE:
 	wait_ms 1
 	cbi PORTB, E
 	wait_ms 1
+	sbi PORTB, E
 	ret
 
 ;#########################################
@@ -127,7 +129,7 @@ LCD_WRITE_NIBBLE:
 ;r16 - cmd
 LCD_CMD_4B:
 	cbi PORTB, RS
-	rcall LCD_WRITE_NIBBLE	
+	rcall LCD_WRITE_NIBBLE
 	sbi PORTB, RS
 	ret
 
@@ -138,6 +140,7 @@ LCD_CMD_8B:
 	cbi PORTB, RS
 	rcall LCD_WRITE
 	sbi PORTB, RS
+	wait_ms 1
 	ret
 
 ;#########################################
@@ -150,10 +153,8 @@ LCD_WRITE:
 	rcall LCD_WRITE_NIBBLE
 	mov r16, r20
 	rcall LCD_WRITE_NIBBLE
-	ldi r16,1
-	rcall DELAY_MS
+	wait_ms 1
 	ret 
-
 
 ;#########################################
 ;r16 - us to wait
@@ -172,15 +173,20 @@ _loop:
 	brne _loop
 	ret	
 
-
 ;#########################################
 ;r16 - ms to wait
 DELAY_MS:
 	ldi r17,0
+_init:
+	ldi r18,10
 _loop:
 	nop
 	dec r17
 	brne _loop
-	dec r16
+	dec r18
 	brne _loop
+	dec r16
+	brne _init
 	ret	
+
+;#########################################
