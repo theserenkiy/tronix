@@ -67,52 +67,121 @@ RESET:
 
 	sei
 
+	ldi r22,0	;temperature pointer
+	ldil r3,0	;last avg temp
 
-
-	ldil r11,0
+	cbi PORTB, LEDEN_PIN
+	cbi DDRB, LED_PIN
+	
 MAIN:
+
+	rcall MEASURE
+	tst r16
+	brne _start
+	sleep
+	rjmp MAIN
+
+_start:
 	sbi PORTB, LEDEN_PIN
 	sbi DDRB, LED_PIN
+	
 	; ldi r16,HUESTEP*4
 	; rcall HUE2COLOR
-	; rcall FILL
-	; rcall WRITE_LEDS
+	; ;rcall FILL
+	; ;rcall WRITE_LEDS
+	; rcall HEARTBEAT
 	; ldi r16,250
 	; rcall DELAY
-	rcall MEASURE
-	ldi r16,250
-	rcall DELAY
+
+	rcall HEARTBEAT_TASK
 
 	cbi PORTB, LEDEN_PIN
 	cbi DDRB, LED_PIN
 
+	rcall INIT_MEASURE
 
-	ldi r16,250
-	rcall DELAY
+	;ldi r16,250
+	;rcall DELAY
 	sleep
 
 	rjmp MAIN
 
-	
+;#########################################
+INIT_MEASURE:
+	ldi XH, high(image+27)
+	ldi XL, low(image+27)
+	ldi r20, 8
+_loop:
+	st X+, r3
+	dec r20
+	brne _loop
+	ldi r22,0
+	ret
 
-_decr:
+;#########################################
+HEARTBEAT_TASK:
+	;ldi r16,HUESTEP*4
+	;rcall HUE2COLOR
+	rcall HBT_CYCLE
+	rcall HBT_CYCLE
+	;rcall HBT_CYCLE
+	ret
+
+
+HBT_CYCLE:
+	ldil r9,0
+_loop:
+	ldi ZL, low(HBT_STEPS*2)
+	ldi ZH, high(HBT_STEPS*2)
+	add ZL, r9
+	ldi r16, 0
+	adc ZH, r16
+	inc r9
+	lpm r16,Z
+	tst r16
+	brne _show
+	ret 
+_show:
+	rcall HUE2COLOR
+	rcall HEARTBEAT
+	rjmp _loop
+	
+HBT_INCR:
 	mov r9,r16
 	;ldi r16,HUESTEP*4
 	rcall HUE2COLOR
 	rcall HEARTBEAT
 	mov r16,r9
-	subi r16,1
-	cpi r16,(HUESTEP*35)/10
-	brcc _decr
-_incr:
+	subi r16,-7
+	cpi r16,(HUESTEP*50)/10
+	brcs HBT_INCR
+	ret
+
+HBT_DECR:
 	mov r9,r16
 	;ldi r16,HUESTEP*4
 	rcall HUE2COLOR
 	rcall HEARTBEAT
 	mov r16,r9
-	subi r16,-1
-	cpi r16,(HUESTEP*42)/10
-	brcs _incr
+	subi r16,7
+	cpi r16,(HUESTEP*30)/10
+	brcc HBT_DECR
+	ret 
+
+HBT_STEPS:
+.db (HUESTEP*40)/10, (HUESTEP*39)/10
+.db (HUESTEP*38)/10, (HUESTEP*37)/10, (HUESTEP*35)/ 10, (HUESTEP*33)/10
+.db (HUESTEP*30)/10, (HUESTEP*27)/10, (HUESTEP*24)/10, (HUESTEP*20)/10, (HUESTEP*22)/10, (HUESTEP*24)/10  
+.db (HUESTEP*30)/10, (HUESTEP*35)/10
+;.db (HUESTEP*36)/10, (HUESTEP*38)/10
+.db (HUESTEP*39)/10, (HUESTEP*40)/10
+.db (HUESTEP*40)/10, (HUESTEP*41)/10, (HUESTEP*42)/10, (HUESTEP*41)/10;, (HUESTEP*47)/10, (HUESTEP*50)/10
+;.db (HUESTEP*43)/10, (HUESTEP*42)/10 
+.db (HUESTEP*41)/10, (HUESTEP*40)/10, 0, 0
+
+;#########################################
+
+	;brcs _incr
 
 	rjmp MAIN
 
@@ -121,29 +190,61 @@ _incr:
 
 
 
-
+;###########################################
+;out: r16 (1 = heated, 0 = passive)
 MEASURE:
+	;rjmp _turn_on
 	sbi PORTB, MEASEN_PIN
 	sbi ADCSRA, ADCSRA
 _wait:
 	sbic ADCSRA, 6
 	rjmp _wait
 	in r16, ADCL
-	in r16,ADCH
-	;cpi r16,0;TEMP_THRESHOLD
-	;brcs _turn_on
-	rcall SHOW_NUMBER
-	rcall WRITE_LEDS
-	rjmp _end
+	in r16, ADCH
+
+	ldi XH, high(image+27)
+	ldi XL, low(image+27)
+	add XL, r22
+	st X, r16
+	inc r22
+	andi r22,0b00000011
+	ldi r18, 0
+	ldi r19, 0
+	
+	ldi XL, low(image+27)
+	ldi XH, high(image+27)
+
+	ldi r20, 4
+_sum:
+	ld r21, X+
+	add r18,r21
+	ldi r21,0
+	adc r19, r21
+	dec r20
+	brne _sum
+
+	ror r19
+	ror r18
+	ror r19
+	ror r18
+
+	mov r3, r18		;save last avg temp
+	sub r18, r16
+	;mov r16,r18
+	cpi r18, 10
+	brcc _turn_off
+	cpi r18,4
+	brcs _turn_off
+
+	
 _turn_on:
-	ldi r16,HUESTEP*4
-	rcall HUE2COLOR
-	rcall FILL
-	rcall WRITE_LEDS
+	ldi r16,1
+	rjmp _end
+	
+_turn_off:
+	ldi r16,0
 _end:
-	ldi r16,250
-	rcall DELAY
-	;cbi PORTB, MEASEN_PIN
+	cbi PORTB, MEASEN_PIN
 	ret
 
 
@@ -207,7 +308,7 @@ _end:
 
 
 ;######################################################
-;RGB - color, r16 - speed, r17 - brightness to stop at
+;RGB - color, r16 - speed (delay), r17 - brightness to stop at
 FADEOUT:
 	mov Ro,R
 	mov Go,G
