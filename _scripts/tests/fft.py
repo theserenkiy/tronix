@@ -6,21 +6,25 @@ ch = 300
 cw = 1000
 cwm = int(cw/2)
 chm = int(ch/2)
+fs = 1000
 
-def genSin(period:int,amp:float,leng:int=100):
+ts = 1/fs
+
+def genSin(freq:int,amp:float=1,leng:int=1000,phase:float=0):
 	sig = []
+	phase *= math.pi
 	amp = amp if amp >= 0 and amp <= 1 else 1
-	for i in range(leng):
-		sig.append(math.sin(i*2*math.pi/period)*amp)
+	for n in range(leng):
+		sig.append(amp * math.sin(phase+2*math.pi*freq*ts*n))
 	return sig
 
-def plotSig(sig,canvW,canvH,color="black"):
-	chm = int(canvH/2)
+def plotSig(sig,scale=1,color="black"):
+	chm = int(ch/2)
 	last = [0,sig[0]]
 	for idx, v in enumerate(sig):
 		if idx == 0:
 			continue
-		cn.create_line(last[0],chm-last[1]*chm,idx,chm-v*chm, fill=color)
+		cn.create_line(last[0],chm-last[1]*chm,idx,chm-v*scale*chm, fill=color)
 		last = [idx,v]
 
 def plotRound(sig,color="red",angstep=0):
@@ -43,11 +47,26 @@ def sumSig(siglist):
 			sig[i] += v
 	return sig
 
-def fft(sig,ran=[5,7]):
+def multSig(sig1,sig2):
+	sig = []
+	for i,v in enumerate(sig1):
+		sig.append(v*sig2[i])
+	return sig
+
+def avgSig(sig):
+	return sum(sig)/len(sig)
+
+def fft(sig,ran=[5,50]):
 	out = []
-	for win in range(ran[0],ran[1]):
-		# print(win)
-		out.append(getWinWeights(sig,win))
+	for freq in range(ran[0],ran[1]):
+		sigt1 = genSin(freq)
+		sigt2 = genSin(freq,phase=0.5)
+		sigm1 = multSig(sig,sigt1)
+		sigm2 = multSig(sig,sigt2)
+		res = []
+		for i,v in enumerate(sigm1):
+			res.append(math.sqrt(v**2+sigm2[i]**2))
+		out.append(avgSig(res))
 	return out
 
 def getWinWeights(sig,win):
@@ -115,26 +134,15 @@ root.geometry(str(cw)+"x"+str(ch))
 
 cn = Canvas(bg="white", width=cw, height=ch)
 cn.pack(anchor=CENTER, expand=1)
-cn.create_line(0,chm,cw,chm)
-cn.create_line(cwm,0,cwm,ch)
+cn.create_line(0,chm,cw,chm,fill="green")
+cn.create_line(cwm,0,cwm,ch,fill="green")
 
-sig1 = genSin(500,0.6,10000)
-sig2 = genSin(777,0.2,10000)
-sig3 = genSin(1150,0.4,10000)
-sig = sumSig([sig1,sig2,sig3])
-# print(sig)
-# plotSig(sig,cw,ch)
-# plotSig(sig2,cw,ch)
+sig1 = genSin(10,0.4,1000,float(sys.argv[1]))
+# sig2 = genSin(10,0.2,1000)
+# sig2 = genSin(20,0.1,1000)
+# sig3 = genSin(40,0.5,1000)
+# sig = sumSig([sig1,sig2,sig3])
 
-wts = getWinWeights(sig,int(sys.argv[1]))
-
-
-
-# plotSig(wts,cw,ch)
-
-#sig = fft(sig,[5,int(sys.argv[1])])
-# print(sig)
-
-# plotSig(sig,cw,ch,"red")
+plotSig(fft(sig))
 
 root.mainloop()

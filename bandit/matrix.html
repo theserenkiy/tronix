@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Matrix</title>
+<style>
+	#boxes{line-height: 0;}
+	input[type="checkbox"]{margin:0; padding:0; width:20px; height: 20px}
+	textarea{width: 400px}
+</style>
+<script>
+const cl = console.log;
+let data = new Array(64)
+data = data.fill(0,0,64)
+cl(data)
+
+let ta;
+
+function mkel(html)
+{
+	let div = document.createElement('div');
+	div.innerHTML = html;
+	return div.childNodes[0];
+}
+function updBoxes()
+{
+	let n = 0;
+	for(let box of data)
+	{
+		document.getElementById('box_'+n).checked = box ? 1 : 0;
+		n++;
+	}
+	updText()
+}
+function updBox(cb,i)
+{
+	cl(cb)
+	data[i] = cb.checked ? 1 : 0;
+	updData()
+	updText()
+	cl(data)	
+}
+function updData()
+{
+	localStorage.matrix = JSON.stringify(data)
+}
+function updText()
+{
+	let txt = []
+	for(let i=0; i < 8; i++)
+	{
+		txt.push('0x'+parseInt(data.slice(i*8,(i+1)*8).join(''),2).toString(16).padStart(2,'0'));
+	}
+	let s = txt.join(', ')
+	ta.value = s;
+	cl(s)
+}
+function parseText(s)
+{
+	let dat = [];
+	dat = [...dat, ...s.replace(/0x/g,'').split(',').map(v => parseInt(v.trim(),16).toString(2).padStart(8,'0').split('').map(d => +d))].flat()
+	cl(dat)
+}
+function reset()
+{
+	data = data.fill(0,0,64)
+	updData()
+	updText()
+	updBoxes()
+
+}
+window.onload = () => {
+	ta = document.getElementsByTagName('textarea')[0];
+	ta.oninput = function(){
+		parseText(this.value)
+	}
+	let boxes = document.getElementById('boxes')
+	let h = ''
+	for(let i=0; i < 64; i++)
+	{
+		h += '<input type="checkbox" id="box_'+i+'" onclick="updBox(this,'+i+')" />'+(!((i+1)%8) ? '<br>' : '')
+	}
+	boxes.innerHTML = h;
+
+	if(localStorage.matrix)
+	{
+		data = JSON.parse(localStorage.matrix)
+		updBoxes()
+	}
+
+	parseText('0x80, 0x00, 0x10, 0x10, 0x00, 0x00, 0x00, 0x00')
+}
+</script>
+</head>
+<body>
+	<div id="boxes"></div>
+	<textarea></textarea>
+	<button onclick="reset()">Reset</button>
+</body>
+</html>
