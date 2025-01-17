@@ -7,6 +7,8 @@
 .equ SPIPORT = PORTC
 .equ SPIDDR = DDRC
 
+.equ IMAGES_LEN = 8*5
+
 .macro disp_cmd
 	ldi r16, @0
 	ldi r17, @1
@@ -42,31 +44,58 @@ RESET:
 
 	rcall DISP_INIT
 
+
 MAIN:
 	ldi r24,0
+
 _loop:
-	ldi r16,1
+
 	ldi XH, high(display)
 	ldi XL, low(display)
 	ldi r16,0
 	mov r17,r24
-	rcall WRITE_SYM_TO_MEM_LSHIFT
-	ldi XH, high(display)
-	ldi XL, low(display)
-	ldi r16,1
-	ldi r17,8
-	sub r17,r24
-	inc r17
-	rcall WRITE_SYM_TO_MEM_RSHIFT
-
+	rcall WRITE_SYMS_SHIFTED
+	
 	rcall SEND_MEMORY
+
 	rcall DELAY
 	
 	inc r24
-	cpi r24,9
+	cpi r24,10
 	brne _loop
+	
 
 	rjmp MAIN
+
+
+;in: X - ram pointer
+;r16 - sym num
+;r17 - offset
+WRITE_SYMS_SHIFTED:
+	lsl r16
+	lsl r16
+	lsl r16
+	add r16, r17
+	; cpi r17, 8
+	; brcs _initflash
+	; dec r16
+_initflash:
+	setptr Z, IMAGES*2, r16
+
+	ldi r18,8
+_loop:
+	cpi r17,8
+	breq _empty
+	lpm r16, Z+
+	rjmp _wrram
+_empty:
+	ldi r16,0
+_wrram:
+	st X+, r16
+	inc r17
+	dec r18
+	brne _loop
+	ret
 
 
 ;in = r16
@@ -147,45 +176,32 @@ _loop4:
 	ret
 
 
-
-;in: X - start mem addr to write, r16 - sim num, r17 - lshift
-WRITE_SYM_TO_MEM_LSHIFT:
+;in: X - start mem addr to write
+;r16 - sim num
+;r17 - start byte of symbol
+;r18 - bytes to read
+WRITE_SYM_PART_TO_MEM:
+	tst r18
+	breq _end
+	cpi r18,8
+	brcc _end
+	lsl r16		;r16 *= 8
 	lsl r16
 	lsl r16
-	lsl r16
-	add r16,r17
+	add r16, r17
 	setptr Z, IMAGES*2, r16
-	ldi r18, 8
-	sub r18,r17
 _loop:
-	lpm r16, Z+
+	lpm r16,Z+
 	st X+, r16
 	dec r18
 	brne _loop
-
+_end:
 	ret
 
-
-
-;in: X - start mem addr to write, r16 - sim num, r17 - lshift
-WRITE_SYM_TO_MEM_RSHIFT:
-	lsl r16
-	lsl r16
-	lsl r16
-	setptr Z, IMAGES*2, r16
-	ldi r18, 8
-	sub r18,r17
-	add XL, r17
-	ldi r17,0
-	adc XH, r17
-_loop:
-	lpm r16, Z+
+WRITE_EMPTY_ROW:
+	ldi r16,0
 	st X+, r16
-	dec r18
-	brne _loop
-
 	ret
-
 
 
 
@@ -220,7 +236,7 @@ _loop:
 DELAY:
 	ldi r16,0
 	ldi r17,0
-	ldi r18,5
+	ldi r18,2
 _loop:
 	dec r16
 	brne _loop
@@ -234,10 +250,11 @@ _loop:
 
 IMAGES:
 ;berry
-.db 0x08, 0x10, 0x7c, 0xd6, 0xea, 0x7c, 0x38, 0x10
+.db 0x08, 0x10, 0x10, 0x7c, 0xfe, 0xfe, 0x7c, 0x38
 ;seven
-.db 0x7f, 0x63, 0x46, 0x0c, 0x18, 0x38, 0x38, 0x38		;no transp
-;.db 0x00, 0xe0, 0xc7, 0x8f, 0x9f, 0xb0, 0xe0, 0xc0
+.db 0x7f, 0x63, 0x46, 0x0c, 0x18, 0x38, 0x38, 0x38
+;devil
+.db 0x42, 0x66, 0xff, 0xdb, 0xff, 0x42, 0x3c, 0x18
 ;smiley
 .db 0x3c, 0x7e, 0xdb, 0xff, 0xbd, 0xdb, 0x66, 0x3c
 ;heart

@@ -62,7 +62,7 @@ if len(sys.argv) > 2 and sys.argv[2]=='prog':
 	print("############################################")
 	print("#               PROGRAMMING                #")
 	print("############################################")
-	cmd = _dir+'/avrdude/avrdude -p '+chip+' -c usbasp -B 50 -i 50 -U flash:w:"'+name+'.hex"'
+	cmd = _dir+'/avrdude/avrdude -p '+chip+' -c usbasp -B 50 -i 50 -F -U flash:w:"'+name+'.hex"'
 	print('Command: '+cmd)
 
 	result = call(cmd)
