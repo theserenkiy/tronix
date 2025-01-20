@@ -46,23 +46,28 @@ RESET:
 
 
 MAIN:
+	ldi r23,0
+_symloop:
 	ldi r24,0
-
 _loop:
 
 	ldi XH, high(display)
 	ldi XL, low(display)
-	ldi r16,0
+	mov r16,r23
 	mov r17,r24
 	rcall WRITE_SYMS_SHIFTED
-	
+
 	rcall SEND_MEMORY
 
 	rcall DELAY
 	
 	inc r24
-	cpi r24,10
+	cpi r24,9
 	brne _loop
+
+	inc r23
+	cpi r23,5
+	brne _symloop
 	
 
 	rjmp MAIN
@@ -70,18 +75,17 @@ _loop:
 
 ;in: X - ram pointer
 ;r16 - sym num
-;r17 - offset
+;r17 - offset 0..9
 WRITE_SYMS_SHIFTED:
 	lsl r16
 	lsl r16
 	lsl r16
 	add r16, r17
-	; cpi r17, 8
-	; brcs _initflash
-	; dec r16
+	cpi r17, 9
+	brcs _initflash
+	dec r16
 _initflash:
 	setptr Z, IMAGES*2, r16
-
 	ldi r18,8
 _loop:
 	cpi r17,8
@@ -226,7 +230,7 @@ DISP_INIT:
 
 
 DELAY1:
-	ldi r16,20
+	ldi r16,1
 _loop:
 	dec r16
 	brne _loop
@@ -236,14 +240,14 @@ _loop:
 DELAY:
 	ldi r16,0
 	ldi r17,0
-	ldi r18,2
+	;ldi r18,2
 _loop:
 	dec r16
 	brne _loop
 	dec r17
 	brne _loop
-	dec r18
-	brne _loop
+	;dec r18
+	;brne _loop
 	ret
 
 
@@ -259,5 +263,7 @@ IMAGES:
 .db 0x3c, 0x7e, 0xdb, 0xff, 0xbd, 0xdb, 0x66, 0x3c
 ;heart
 .db 0x00, 0x36, 0x49, 0x41, 0x22, 0x14, 0x08, 0x00
+;berry
+.db 0x08, 0x10, 0x10, 0x7c, 0xfe, 0xfe, 0x7c, 0x38
 
 
