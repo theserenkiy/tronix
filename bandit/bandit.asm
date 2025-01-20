@@ -7,7 +7,7 @@
 .equ SPIPORT = PORTC
 .equ SPIDDR = DDRC
 
-.equ IMAGES_LEN = 8*5
+.equ IMAGES_COUNT = 5
 
 .macro disp_cmd
 	ldi r16, @0
@@ -26,7 +26,7 @@
 .dseg
 .org 0x100
 display:	.byte 32
-positions:	.byte 12	;6 pairs (sym_num, left_shift)
+positions:	.byte 12	;6 pairs [sym_num (0 .. IMAGES_COUNT-1), shift (0 .. 9)]
 
 .cseg
 .org 0
@@ -44,33 +44,72 @@ RESET:
 
 	rcall DISP_INIT
 
-
-MAIN:
-	ldi r23,0
-_symloop:
-	ldi r24,0
+	;clear positions memory
+	ldi XH, high(positions)
+	ldi XL, low(positions)
+	ldi r18,IMAGES_COUNT
+	ldi r16,0
 _loop:
-
-	ldi XH, high(display)
-	ldi XL, low(display)
-	mov r16,r23
-	mov r17,r24
-	rcall WRITE_SYMS_SHIFTED
-
-	rcall SEND_MEMORY
-
-	rcall DELAY
-	
-	inc r24
-	cpi r24,9
+	st X+,r18
+	st X+,r16
+	dec r17
 	brne _loop
 
-	inc r23
-	cpi r23,5
-	brne _symloop
+
+MAIN:
+	ldi r24,0
 	
+_loop:
+	mov r16,r24
+	rcall UPDATE_DRUM
+
+	inc r24
+	cpi r24,4
+	brne _loop
+
+	rcall SEND_MEMORY
+	rcall DELAY
+
+	ldi r16,1
+	rcall INC_POSITION
 
 	rjmp MAIN
+
+
+;in: r16 - n drum
+INC_POSITION:
+	lsl r16
+	setptr X, positions, r16
+	ld r16,X+
+	ld r17,X+
+
+	cpi r17,0
+	brne _decshift
+	ldi r17,9
+	cpi r16,0
+	brne _decshift
+	ldi r16, IMAGES_COUNT-1
+_decshift:
+	dec r17
+	st -X,r17
+	st -X,r16
+	ret
+
+
+;in: r16 - n drum
+UPDATE_DRUM:
+	mov r20, r16
+	lsl r16		;r16 *= 2
+	setptr X, positions, r16
+	ld r16, X+
+	ld r17, X
+
+	lsl r20
+	lsl r20
+	lsl r20		;r20 *= 8
+	setptr X, display, r20
+	rcall WRITE_SYMS_SHIFTED
+	ret
 
 
 ;in: X - ram pointer
@@ -262,8 +301,9 @@ IMAGES:
 ;smiley
 .db 0x3c, 0x7e, 0xdb, 0xff, 0xbd, 0xdb, 0x66, 0x3c
 ;heart
-.db 0x00, 0x36, 0x49, 0x41, 0x22, 0x14, 0x08, 0x00
-;berry
+;.db 0x00, 0x36, 0x49, 0x41, 0x22, 0x14, 0x08, 0x00
+.db 0x00, 0x36, 0x7f, 0x7f, 0x3e, 0x1c, 0x08, 0x00
+;berry: the first should be copied to last
 .db 0x08, 0x10, 0x10, 0x7c, 0xfe, 0xfe, 0x7c, 0x38
 
 
