@@ -7,7 +7,9 @@
 .equ SPIPORT = PORTC
 .equ SPIDDR = DDRC
 
-.equ IMAGES_COUNT = 5
+.equ DRUMS_COUNT = 4
+.equ IMAGES_COUNT = 10
+.equ EMPTY_LINES = 2
 
 .macro disp_cmd
 	ldi r16, @0
@@ -25,8 +27,12 @@
 
 .dseg
 .org 0x100
-display:	.byte 32
-positions:	.byte 12	;6 pairs [sym_num (0 .. IMAGES_COUNT-1), shift (0 .. 9)]
+display:	.byte DRUMS_COUNT * 8
+positions:	.byte DRUMS_COUNT * 4	;0: sym_num (0 .. IMAGES_COUNT-1)
+									;1: shift (0 .. 9)]
+									;2: increment
+									;3: value
+tick_count: .byte 1
 
 .cseg
 .org 0
@@ -47,14 +53,19 @@ RESET:
 	;clear positions memory
 	ldi XH, high(positions)
 	ldi XL, low(positions)
-	ldi r18,IMAGES_COUNT
 	ldi r16,0
+	ldi r17,4
+	ldi r18,0
 _loop:
 	st X+,r18
+	st X+,r17
 	st X+,r16
-	dec r17
+	st X+,r16
+	inc r18
+	cpi r18,DRUMS_COUNT
 	brne _loop
 
+	;rcall START_DRUMS
 
 MAIN:
 	ldi r24,0
@@ -64,20 +75,92 @@ _loop:
 	rcall UPDATE_DRUM
 
 	inc r24
-	cpi r24,4
+	cpi r24,DRUMS_COUNT
 	brne _loop
 
 	rcall SEND_MEMORY
 	rcall DELAY
 
 	ldi r16,1
-	rcall INC_POSITION
+	;rcall INC_POSITION
+
+	rcall MK_TICK
 
 	rjmp MAIN
 
 
+START_DRUMS:
+	ldi XH, high(positions)
+	ldi XL, low(positions)
+	ldi r18,DRUMS_COUNT
+	ldi r17,57				;RANDOMABLE
+_loop:
+	ld r16,X+
+	ld r16,X+
+	subi r17,13				;RANDOMABLE
+	st X+, r17
+	st X+, r17
+	dec r18
+	brne _loop
+	ret
+
+
+MK_TICK:
+	ldi XH, high(positions)
+	ldi XL, low(positions)
+	ldi r20,0
+	ldi r21,0
+_loop:
+	ld r16, X+
+	ld r17, X+
+	ld r18, X+
+	ld r19, X+
+	tst r18			;if "increment" == 0 => do nothing
+	breq _skip_inc
+	add r19,r18		;if there was no overflow => do nothing
+	brcc _skip_inc	
+	
+	cpi r17,0
+	brne _decshift
+	ldi r17,8+EMPTY_LINES
+	cpi r16,0
+	brne _decdrum
+	ldi r16, IMAGES_COUNT-1
+	rjmp _decshift
+_decdrum:
+	dec r16
+_decshift:
+	dec r17
+
+_skip_inc:
+	lds r22,tick_count
+	inc r22
+	sts tick_count,r22
+	andi r22,0x07		;if !(tick % 8)
+	brne _save
+	cpi r18,20			;if increment < 20 => do not add
+	brcs _less20
+	subi r18,1				;RANDOMABLE
+	rjmp _save
+_less20:
+	tst r17
+	brne _save
+	;ldi r18,0
+_save:
+	st -X,r19
+	st -X,r18
+	st -X,r17
+	st -X,r16
+	inc r20
+	cpi r20,DRUMS_COUNT
+	brne _loop
+	ret
+
+
+
 ;in: r16 - n drum
 INC_POSITION:
+	lsl r16
 	lsl r16
 	setptr X, positions, r16
 	ld r16,X+
@@ -85,10 +168,13 @@ INC_POSITION:
 
 	cpi r17,0
 	brne _decshift
-	ldi r17,9
+	ldi r17,8+EMPTY_LINES
 	cpi r16,0
-	brne _decshift
+	brne _decdrum
 	ldi r16, IMAGES_COUNT-1
+	rjmp _decshift
+_decdrum:
+	dec r16
 _decshift:
 	dec r17
 	st -X,r17
@@ -99,7 +185,8 @@ _decshift:
 ;in: r16 - n drum
 UPDATE_DRUM:
 	mov r20, r16
-	lsl r16		;r16 *= 2
+	lsl r16		;r16 *= 4
+	lsl r16
 	setptr X, positions, r16
 	ld r16, X+
 	ld r17, X
@@ -108,37 +195,53 @@ UPDATE_DRUM:
 	lsl r20
 	lsl r20		;r20 *= 8
 	setptr X, display, r20
-	rcall WRITE_SYMS_SHIFTED
+	rcall WRITE_SYMS_SHIFTED_
 	ret
-
 
 ;in: X - ram pointer
 ;r16 - sym num
 ;r17 - offset 0..9
-WRITE_SYMS_SHIFTED:
+WRITE_SYMS_SHIFTED_:
+	ldi r18,0	;row counter 0..7
 	lsl r16
 	lsl r16
 	lsl r16
-	add r16, r17
-	cpi r17, 9
-	brcs _initflash
-	dec r16
-_initflash:
-	setptr Z, IMAGES*2, r16
-	ldi r18,8
-_loop:
+
+	mov r19,r16
 	cpi r17,8
-	breq _empty
+	brcc _empty
+	add r16,r17
+	setptr Z, IMAGES*2, r16
+_loop0:
 	lpm r16, Z+
-	rjmp _wrram
+	st X+,r16
+	inc r18
+	inc r17
+	cpi r17,8
+	brne _loop0
 _empty:
 	ldi r16,0
-_wrram:
-	st X+, r16
+_loop1:
+	cpi r18,8
+	breq _end
+	cpi r17,8+EMPTY_LINES
+	breq _lowsym
+	st X+,r16
 	inc r17
-	dec r18
-	brne _loop
+	inc r18
+	rjmp _loop1
+_lowsym:
+	subi r19,-8
+	setptr Z, IMAGES*2, r19
+_loop2:
+	lpm r16, Z+
+	st X+, r16
+	inc r18
+	cpi r18,8
+	brne _loop2
+_end:
 	ret
+
 
 
 ;in = r16
@@ -278,7 +381,7 @@ _loop:
 
 DELAY:
 	ldi r16,0
-	ldi r17,0
+	ldi r17,10
 	;ldi r18,2
 _loop:
 	dec r16
@@ -290,8 +393,21 @@ _loop:
 	ret
 
 
-
 IMAGES:
+.db 0x3c, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x3c	;0
+.db 0x18, 0x38, 0x18, 0x18, 0x18, 0x18, 0x18, 0x3c	;1
+.db 0x3c, 0x66, 0x06, 0x0c, 0x18, 0x30, 0x60, 0x7e	;2
+.db 0x3c, 0x66, 0x06, 0x1c, 0x06, 0x06, 0x66, 0x3c	;3
+.db 0x06, 0x0e, 0x16, 0x26, 0x66, 0x7f, 0x06, 0x06	;4
+.db 0x7e, 0x60, 0x60, 0x7c, 0x06, 0x06, 0x66, 0x3c	;5
+.db 0x3c, 0x62, 0x60, 0x7c, 0x66, 0x66, 0x66, 0x3c	;6
+.db 0x7e, 0x06, 0x0c, 0x18, 0x30, 0x30, 0x30, 0x30	;7
+.db 0x3c, 0x66, 0x66, 0x3c, 0x66, 0x66, 0x66, 0x3c	;8
+.db 0x3c, 0x66, 0x66, 0x66, 0x3e, 0x06, 0x66, 0x3c	;9
+.db 0x3c, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x3c	;0
+
+
+IMAGES_:
 ;berry
 .db 0x08, 0x10, 0x10, 0x7c, 0xfe, 0xfe, 0x7c, 0x38
 ;seven
@@ -305,5 +421,4 @@ IMAGES:
 .db 0x00, 0x36, 0x7f, 0x7f, 0x3e, 0x1c, 0x08, 0x00
 ;berry: the first should be copied to last
 .db 0x08, 0x10, 0x10, 0x7c, 0xfe, 0xfe, 0x7c, 0x38
-
 
