@@ -27,12 +27,12 @@
 
 .dseg
 .org 0x100
-display:	.byte 32
-positions:	.byte DRUMS_COUNT * 4	;0: sym_num (0 .. IMAGES_COUNT-1)
+display:	.byte DRUMS_COUNT * 8
+drum_states:	.byte DRUMS_COUNT * 4	;0: sym_num (0 .. IMAGES_COUNT-1)
 									;1: shift (0 .. 9)]
 									;2: increment
 									;3: value
-
+tick_count: .byte 1
 
 .cseg
 .org 0
@@ -50,9 +50,9 @@ RESET:
 
 	rcall DISP_INIT
 
-	;clear positions memory
-	ldi XH, high(positions)
-	ldi XL, low(positions)
+	;clear drum_states memory
+	ldi XH, high(drum_states)
+	ldi XL, low(drum_states)
 	ldi r16,0
 	ldi r17,4
 	ldi r18,0
@@ -72,7 +72,7 @@ MAIN:
 	
 _loop:
 	mov r16,r24
-	rcall UPDATE_DRUM
+	rcall DRUM_UPDATE
 
 	inc r24
 	cpi r24,DRUMS_COUNT
@@ -82,44 +82,44 @@ _loop:
 	rcall DELAY
 
 	ldi r16,1
-	rcall INC_POSITION
+	;rcall INC_POSITION
 
-	;rcall MK_TICK
+	rcall MK_TICK
 
 	rjmp MAIN
 
 
 START_DRUMS:
-	ldi XH, high(positions)
-	ldi XL, low(positions)
+	ldi XH, high(drum_states)
+	ldi XL, low(drum_states)
 	ldi r18,DRUMS_COUNT
-	ldi r17,130				;RANDOMABLE
+	ldi r17,77				;RANDOMABLE
 _loop:
 	ld r16,X+
 	ld r16,X+
+	st X+, r17
+	st X+, r17
 	subi r17,13				;RANDOMABLE
-	st X+, r17
-	st X+, r17
 	dec r18
 	brne _loop
 	ret
 
 
-
 MK_TICK:
-	ldi XH, high(positions)
-	ldi XL, low(positions)
 	ldi r20,0
 	ldi r21,0
 _loop:
+	mov r16,r20
+	setptr X, drum_states, r16
+	
 	ld r16, X+
 	ld r17, X+
 	ld r18, X+
 	ld r19, X+
-	tst r18
-	breq _skip_inc
-	add r19,r18
-	brcc _skip_inc
+	; tst r18			;if "increment" == 0 => do nothing
+	; breq _endloop
+	add r19,r18			;if there was no overflow => do nothing
+	brcc _end_inc_drum
 	
 	cpi r17,0
 	brne _decshift
@@ -133,45 +133,42 @@ _decdrum:
 _decshift:
 	dec r17
 
-_skip_inc:
-	subi r18,7				;RANDOMABLE
+_end_inc_drum:
+	rjmp _save
+	lds r22,tick_count
+	inc r22
+	sts tick_count,r22
+	andi r22,0x07		;if tick % 8 => skip speed decrement
+	brne _save
+	subi r18,1			;RANDOMABLE
+
+ 	cpi r18,20			;if increment < 20 => do not add
+ 	brcs _less20
+ 	subi r18,1			;RANDOMABLE
+ 	rjmp _save
+_less20:
+; 	tst r17
+; 	brne _save
+	ldi r18,0
+_save:
 	st -X,r19
 	st -X,r18
-
-	inc r20
-	cpi r20,DRUMS_COUNT
+	st -X,r17
+	st -X,r16
+	
+_endloop:
+	subi r20,-4
+	cpi r20,DRUMS_COUNT * 4
 	brne _loop
 	ret
 
-;in: r16 - n drum
-INC_POSITION:
-	lsl r16
-	lsl r16
-	setptr X, positions, r16
-	ld r16,X+
-	ld r17,X+
-
-	cpi r17,0
-	brne _decshift
-	ldi r17,8+EMPTY_LINES
-	cpi r16,0
-	brne _decdrum
-	ldi r16, IMAGES_COUNT-1
-	rjmp _decshift
-_decdrum:
-	dec r16
-_decshift:
-	dec r17
-	st -X,r17
-	st -X,r16
-	ret
-
 
 ;in: r16 - n drum
-UPDATE_DRUM:
+DRUM_UPDATE:
 	mov r20, r16
-	lsl r16		;r16 *= 2
-	setptr X, positions, r16
+	lsl r16		;r16 *= 4
+	lsl r16
+	setptr X, drum_states, r16
 	ld r16, X+
 	ld r17, X
 
@@ -179,13 +176,13 @@ UPDATE_DRUM:
 	lsl r20
 	lsl r20		;r20 *= 8
 	setptr X, display, r20
-	rcall WRITE_SYMS_SHIFTED_
+	rcall DRUM_SHIFT
 	ret
 
 ;in: X - ram pointer
 ;r16 - sym num
 ;r17 - offset 0..9
-WRITE_SYMS_SHIFTED_:
+DRUM_SHIFT:
 	ldi r18,0	;row counter 0..7
 	lsl r16
 	lsl r16
@@ -250,6 +247,7 @@ _data_ok:
 	ret
 
 
+
 ;in: r16 - high, r17 - low
 SEND_CMD:
 	mov r0,r16
@@ -306,44 +304,6 @@ _loop4:
 	ret
 
 
-;in: X - start mem addr to write
-;r16 - sim num
-;r17 - start byte of symbol
-;r18 - bytes to read
-WRITE_SYM_PART_TO_MEM:
-	tst r18
-	breq _end
-	cpi r18,8
-	brcc _end
-	lsl r16		;r16 *= 8
-	lsl r16
-	lsl r16
-	add r16, r17
-	setptr Z, IMAGES*2, r16
-_loop:
-	lpm r16,Z+
-	st X+, r16
-	dec r18
-	brne _loop
-_end:
-	ret
-
-WRITE_EMPTY_ROW:
-	ldi r16,0
-	st X+, r16
-	ret
-
-
-
-;in: r16 - position 0 to 3
-WRITE_POSITION:
-	lsl r16
-	setptr X, positions, r16
-	ld r16, X+
-	ld r17, X+
-	ret
-
-
 
 DISP_INIT:
 	disp_cmd 0x0C, 0x01		;turn on
@@ -365,7 +325,7 @@ _loop:
 
 DELAY:
 	ldi r16,0
-	ldi r17,100
+	ldi r17,10
 	;ldi r18,2
 _loop:
 	dec r16
@@ -405,5 +365,4 @@ IMAGES_:
 .db 0x00, 0x36, 0x7f, 0x7f, 0x3e, 0x1c, 0x08, 0x00
 ;berry: the first should be copied to last
 .db 0x08, 0x10, 0x10, 0x7c, 0xfe, 0xfe, 0x7c, 0x38
-
 
