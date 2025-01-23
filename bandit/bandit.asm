@@ -29,13 +29,18 @@
 .org 0x100
 display:	.byte DRUMS_COUNT * 8
 drum_states:	.byte DRUMS_COUNT * 4	;0: sym_num (0 .. IMAGES_COUNT-1)
-									;1: shift (0 .. 9)]
-									;2: increment
-									;3: value
+										;1: shift (0 .. 9)]
+										;2: increment
+										;3: value
 tick_count: .byte 1
+
+
 
 .cseg
 .org 0
+
+
+
 
 RESET:
 	sbi SPIDDR, DATA		
@@ -65,49 +70,47 @@ _loop:
 	cpi r18,DRUMS_COUNT
 	brne _loop
 
-	;rcall START_DRUMS
+	rcall UPDATE_ALL_DRUMS
+	rcall DELAY3
+	rcall START_DRUMS
+
+
+
 
 MAIN:
-	ldi r24,0
-	
-_loop:
-	mov r16,r24
-	rcall DRUM_UPDATE
-
-	inc r24
-	cpi r24,DRUMS_COUNT
-	brne _loop
-
-	rcall SEND_MEMORY
-	rcall DELAY
+	rcall UPDATE_ALL_DRUMS
+	rcall DELAY2
 
 	ldi r16,1
 	;rcall INC_POSITION
 
 	rcall MK_TICK
-
 	rjmp MAIN
+
+
 
 
 START_DRUMS:
 	ldi XH, high(drum_states)
 	ldi XL, low(drum_states)
 	ldi r18,DRUMS_COUNT
-	ldi r17,77				;RANDOMABLE
+	ldi r17,123				;RANDOMABLE
 _loop:
 	ld r16,X+
 	ld r16,X+
 	st X+, r17
 	st X+, r17
-	subi r17,13				;RANDOMABLE
+	subi r17,10				;RANDOMABLE
 	dec r18
 	brne _loop
 	ret
 
 
+
+;used: r16 ... r20, X
 MK_TICK:
-	ldi r20,0
-	ldi r21,0
+	ldi r20,0	;offset in drum_stats (increment = 4)
+	ldi r21,0	
 _loop:
 	mov r16,r20
 	setptr X, drum_states, r16
@@ -132,18 +135,15 @@ _decdrum:
 	dec r16
 _decshift:
 	dec r17
-
 _end_inc_drum:
-	rjmp _save
+	;rjmp _save
 	lds r22,tick_count
-	inc r22
-	sts tick_count,r22
-	andi r22,0x07		;if tick % 8 => skip speed decrement
+	andi r22,0x07		;if tick % 8 => skip speed decrement 
 	brne _save
-	subi r18,1			;RANDOMABLE
+	subi r18,3			;RANDOMABLE
 
- 	cpi r18,20			;if increment < 20 => do not add
- 	brcs _less20
+ 	;cpi r18,20			;if increment < 20 => do not add
+ 	;brcs _less20
  	subi r18,1			;RANDOMABLE
  	rjmp _save
 _less20:
@@ -160,10 +160,29 @@ _endloop:
 	subi r20,-4
 	cpi r20,DRUMS_COUNT * 4
 	brne _loop
+
+	lds r22,tick_count
+	inc r22
+	sts tick_count,r22
+
 	ret
 
 
+UPDATE_ALL_DRUMS:
+	ldi r24,0
+_loop:
+	mov r16,r24
+	rcall DRUM_UPDATE
+
+	inc r24
+	cpi r24, DRUMS_COUNT
+	brne _loop
+
+	rcall SEND_MEMORY
+	ret
+
 ;in: r16 - n drum
+;used: r16 - r20, X, Z
 DRUM_UPDATE:
 	mov r20, r16
 	lsl r16		;r16 *= 4
@@ -179,9 +198,14 @@ DRUM_UPDATE:
 	rcall DRUM_SHIFT
 	ret
 
+
+
+
 ;in: X - ram pointer
 ;r16 - sym num
 ;r17 - offset 0..9
+
+;used: r16 - r19, X, Z
 DRUM_SHIFT:
 	ldi r18,0	;row counter 0..7
 	lsl r16
@@ -225,6 +249,8 @@ _end:
 
 
 
+
+
 ;in = r16
 SEND_BYTE:
 	ldi r17,8
@@ -248,6 +274,8 @@ _data_ok:
 
 
 
+
+
 ;in: r16 - high, r17 - low
 SEND_CMD:
 	mov r0,r16
@@ -267,6 +295,8 @@ _loop:
 	sbi SPIPORT, CS
 	rcall DELAY1
 	ret
+
+
 
 
 ;void
@@ -323,9 +353,11 @@ _loop:
 	ret
 
 
-DELAY:
+
+
+DELAY2:
 	ldi r16,0
-	ldi r17,10
+	ldi r17,1
 	;ldi r18,2
 _loop:
 	dec r16
@@ -335,6 +367,21 @@ _loop:
 	;dec r18
 	;brne _loop
 	ret
+
+DELAY3:
+	ldi r16,0
+	ldi r17,0
+	ldi r18,10
+_loop:
+	dec r16
+	brne _loop
+	dec r17
+	brne _loop
+	dec r18
+	brne _loop
+	ret
+
+
 
 
 IMAGES:
@@ -351,6 +398,7 @@ IMAGES:
 .db 0x3c, 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x3c	;0
 
 
+
 IMAGES_:
 ;berry
 .db 0x08, 0x10, 0x10, 0x7c, 0xfe, 0xfe, 0x7c, 0x38
@@ -365,4 +413,3 @@ IMAGES_:
 .db 0x00, 0x36, 0x7f, 0x7f, 0x3e, 0x1c, 0x08, 0x00
 ;berry: the first should be copied to last
 .db 0x08, 0x10, 0x10, 0x7c, 0xfe, 0xfe, 0x7c, 0x38
-
