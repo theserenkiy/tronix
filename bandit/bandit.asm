@@ -35,10 +35,8 @@ drum_states:	.byte DRUMS_COUNT * 4	;0: sym_num (0 .. IMAGES_COUNT-1)
 tick_count: .byte 1
 
 
-
 .cseg
 .org 0
-
 
 
 
@@ -59,7 +57,7 @@ RESET:
 	ldi XH, high(drum_states)
 	ldi XL, low(drum_states)
 	ldi r16,0
-	ldi r17,4
+	ldi r17,0
 	ldi r18,0
 _loop:
 	st X+,r18
@@ -71,20 +69,19 @@ _loop:
 	brne _loop
 
 	rcall UPDATE_ALL_DRUMS
-	rcall DELAY3
+	;rcall DELAY3
 	rcall START_DRUMS
 
 
-
-
 MAIN:
-	rcall UPDATE_ALL_DRUMS
-	rcall DELAY2
-
-	ldi r16,1
-	;rcall INC_POSITION
-
 	rcall MK_TICK
+	lds r16, tick_count
+	andi r16,0x03
+	brne _updated
+	rcall UPDATE_ALL_DRUMS
+	;rcall SEND_MEMORY
+_updated:
+	rcall DELAY2
 	rjmp MAIN
 
 
@@ -93,15 +90,16 @@ MAIN:
 START_DRUMS:
 	ldi XH, high(drum_states)
 	ldi XL, low(drum_states)
-	ldi r18,DRUMS_COUNT
-	ldi r17,123				;RANDOMABLE
+	ldi r19,DRUMS_COUNT
+	ldi r17,170			;increment		RANDOMABLE
+	ldi r18,255			;start value	RANDOMABLE
 _loop:
 	ld r16,X+
 	ld r16,X+
 	st X+, r17
-	st X+, r17
-	subi r17,10				;RANDOMABLE
-	dec r18
+	st X+, r18
+	subi r17,-15		;RANDOMABLE
+	dec r19
 	brne _loop
 	ret
 
@@ -119,46 +117,44 @@ _loop:
 	ld r17, X+
 	ld r18, X+
 	ld r19, X+
-	; tst r18			;if "increment" == 0 => do nothing
-	; breq _endloop
+	tst r18				;if "increment" == 0 => do nothing
+	breq _endloop
 	add r19,r18			;if there was no overflow => do nothing
-	brcc _end_inc_drum
+	brcc _end_shift_drum
 	
 	cpi r17,0
 	brne _decshift
 	ldi r17,8+EMPTY_LINES
 	cpi r16,0
-	brne _decdrum
+	brne _decsym
 	ldi r16, IMAGES_COUNT-1
 	rjmp _decshift
-_decdrum:
+_decsym:
 	dec r16
 _decshift:
 	dec r17
-_end_inc_drum:
-	;rjmp _save
-	lds r22,tick_count
-	andi r22,0x07		;if tick % 8 => skip speed decrement 
-	brne _save
-	subi r18,3			;RANDOMABLE
 
- 	;cpi r18,20			;if increment < 20 => do not add
- 	;brcs _less20
- 	subi r18,1			;RANDOMABLE
+_end_shift_drum:
+	lds r22,tick_count
+	andi r22,0x07		;if tick % 4 => skip speed decrement 
+	brne _save
+	cpi r18,30			;if increment < 20 => do not add
+	brcs _less20
+
+	subi r18,1			;speed decrement RANDOMABLE
  	rjmp _save
 _less20:
-; 	tst r17
-; 	brne _save
+ 	tst r17
+ 	brne _save
 	ldi r18,0
 _save:
 	st -X,r19
 	st -X,r18
 	st -X,r17
 	st -X,r16
-	
 _endloop:
 	subi r20,-4
-	cpi r20,DRUMS_COUNT * 4
+	cpi r20, DRUMS_COUNT * 4
 	brne _loop
 
 	lds r22,tick_count
@@ -166,6 +162,7 @@ _endloop:
 	sts tick_count,r22
 
 	ret
+
 
 
 UPDATE_ALL_DRUMS:
@@ -181,6 +178,8 @@ _loop:
 	rcall SEND_MEMORY
 	ret
 
+
+
 ;in: r16 - n drum
 ;used: r16 - r20, X, Z
 DRUM_UPDATE:
@@ -195,18 +194,40 @@ DRUM_UPDATE:
 	lsl r20
 	lsl r20		;r20 *= 8
 	setptr X, display, r20
-	rcall DRUM_SHIFT
+	rcall SYM_SHIFT
 	ret
 
 
+;r16 - n drum
+DRUM_SHIFT:
+	lsl r16
+	lsl r16
+	setptr X, drum_states, r16
+	ld r16, X+
+	ld r17, X+
+
+	cpi r17,0
+	brne _decshift
+	ldi r17,8+EMPTY_LINES
+	cpi r16,0
+	brne _decsym
+	ldi r16, IMAGES_COUNT-1
+	rjmp _decshift
+_decsym:
+	dec r16
+_decshift:
+	dec r17
+
+	st -X, r17
+	st -X, r16
+	ret
 
 
 ;in: X - ram pointer
 ;r16 - sym num
 ;r17 - offset 0..9
-
 ;used: r16 - r19, X, Z
-DRUM_SHIFT:
+SYM_SHIFT:
 	ldi r18,0	;row counter 0..7
 	lsl r16
 	lsl r16
@@ -297,8 +318,6 @@ _loop:
 	ret
 
 
-
-
 ;void
 SEND_MEMORY:
 	ldi r16,0
@@ -346,6 +365,7 @@ DISP_INIT:
 
 
 DELAY1:
+	ret
 	ldi r16,1
 _loop:
 	dec r16
