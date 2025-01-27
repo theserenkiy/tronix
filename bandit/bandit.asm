@@ -1,11 +1,18 @@
 ;chip m48
 .include "m48def.inc"
 
-.equ DATA = 0
-.equ CLK = 2
-.equ CS = 1
-.equ SPIPORT = PORTC
-.equ SPIDDR = DDRC
+.equ DATA = 5
+.equ CLK = 7
+.equ CS = 6
+.equ SPIPORT = PORTD
+.equ SPIDDR = DDRD
+
+.equ POT_VCC = 5
+.equ POT_GND = 3
+.equ POT_SIG = 4
+.equ POT_PORT = PORTC
+.equ POT_PIN = PINC
+.equ POT_DDR = DDRC
 
 .equ DRUMS_COUNT = 4
 .equ IMAGES_COUNT = 10
@@ -21,8 +28,10 @@
 	ldi @0H, high(@1)
 	ldi @0L, low(@1)
 	add @0L,@2
+	push @2
 	ldi @2,0
 	adc @0H,@2
+	pop @2
 .endmacro
 
 .dseg
@@ -33,6 +42,7 @@ drum_states:	.byte DRUMS_COUNT * 4	;0: sym_num (0 .. IMAGES_COUNT-1)
 										;2: increment
 										;3: value
 tick_count: .byte 1
+rand:		.byte 1
 
 
 .cseg
@@ -47,11 +57,26 @@ RESET:
 	cbi SPIPORT,CLK 
 	cbi SPIPORT,DATA 
 	sbi SPIPORT,CS
+
+	sbi POT_DDR, POT_VCC
+	sbi POT_DDR, POT_GND
+	cbi POT_DDR, POT_SIG
+
+	sbi POT_PORT, POT_VCC
+	cbi POT_PORT, POT_GND
+
+	sbi DDRB,0
+	sbi PORTB,0
 	
 	sbi DDRB,0
 	sbi DDRB,1
 
 	rcall DISP_INIT
+
+	;init ADC
+	ldi r16, 0b01100000 | POT_SIG
+	sts ADMUX, r16
+
 
 	;clear drum_states memory
 	ldi XH, high(drum_states)
@@ -69,12 +94,37 @@ _loop:
 	brne _loop
 
 	rcall UPDATE_ALL_DRUMS
+	;rcall START_DRUMS
+	rjmp MAIN
+
+_measure_loop:
+	rcall ADC_MEASURE
+	ldi r17,0
+	rcall DISPLAY_NUMBER
+	rcall DELAY3
+	;
+	rjmp _measure_loop
+
+
 	;rcall DELAY3
-	rcall START_DRUMS
+	
 
 
 MAIN:
 	rcall MK_TICK
+
+	ldi r17,0xff
+	eor r16,r17
+	out PORTB,r16	
+
+	sbrs r16,0
+	rjmp _skip_restart
+	rcall ADC_MEASURE
+	cpi r16, 128
+	brcs _skip_restart
+	rcall START_DRUMS
+
+_skip_restart:
 	lds r16, tick_count
 	andi r16,0x03
 	brne _updated
@@ -85,20 +135,47 @@ _updated:
 	rjmp MAIN
 
 
+ADC_MEASURE:
+	ldi r18,4
+	ldi r19,0
+_loop:
+	ldi r16, 0b11000111
+	sts ADCSRA, r16
+_wait:
+	lds r16,ADCSRA
+	sbrc r16, ADSC
+	rjmp _wait
+	lds r16, ADCH
+	lds r17,rand
+	add r17,r16
+	sts rand,r17
+	lsr r16
+	lsr r16
+	add r19,r16
+	dec r18
+	brne _loop
+	mov r16,r19
+	ret
 
 
 START_DRUMS:
 	ldi XH, high(drum_states)
 	ldi XL, low(drum_states)
 	ldi r19,DRUMS_COUNT
-	ldi r17,170			;increment		RANDOMABLE
+	ldi r17,163			;increment		RANDOMABLE
+	lds r16,rand
+	andi r16,0x0f
+	add r17,r16
 	ldi r18,255			;start value	RANDOMABLE
 _loop:
 	ld r16,X+
 	ld r16,X+
 	st X+, r17
 	st X+, r18
+	lds r16,rand
+	andi r16,0x03
 	subi r17,-15		;RANDOMABLE
+	add r17,r16
 	dec r19
 	brne _loop
 	ret
@@ -109,6 +186,7 @@ _loop:
 MK_TICK:
 	ldi r20,0	;offset in drum_stats (increment = 4)
 	ldi r21,0	
+	ldi r23,0	;flag: is running
 _loop:
 	mov r16,r20
 	setptr X, drum_states, r16
@@ -153,6 +231,14 @@ _save:
 	st -X,r17
 	st -X,r16
 _endloop:
+
+	tst r23
+	brne _endrunningtest
+	tst r18
+	breq _endrunningtest
+	ldi r23,1
+	
+_endrunningtest:
 	subi r20,-4
 	cpi r20, DRUMS_COUNT * 4
 	brne _loop
@@ -161,6 +247,7 @@ _endloop:
 	inc r22
 	sts tick_count,r22
 
+	mov r16,r23
 	ret
 
 
@@ -268,6 +355,52 @@ _loop2:
 _end:
 	ret
 
+
+
+
+;in: r16 - LOW, r17 - HIGH
+DISPLAY_NUMBER:
+	ldi r18,DRUMS_COUNT
+	ldi r22,-1
+_loop_drums:
+	dec r18
+	inc r22
+	mov r19,r22
+	lsl r19
+	lsl r19
+	setptr X, drum_states, r19
+	tst r18
+	breq _ones
+	mov r19,r18
+	lsl r19
+	setptr Z, TEN_POWERS*2, r19
+	lpm r19,Z+
+	lpm r20,Z
+	ldi r21,0
+_loop_conv:
+	sub r16,r19
+	sbc r17,r20
+	brcc _notlower
+	add r16,r19
+	adc r17,r20
+	rjmp _digit_rdy
+_notlower:
+	inc r21
+	rjmp _loop_conv
+_ones:
+	mov r21,r16
+_digit_rdy:
+	st X+,r21
+	ldi r21,0
+	st X,r21
+	tst r18
+	brne _loop_drums
+
+	rcall UPDATE_ALL_DRUMS
+	ret
+
+TEN_POWERS:
+.dw	1,10,100,1000,10000
 
 
 
@@ -390,15 +523,15 @@ _loop:
 
 DELAY3:
 	ldi r16,0
-	ldi r17,0
-	ldi r18,10
+	ldi r17,100
+	;ldi r18,10
 _loop:
 	dec r16
 	brne _loop
 	dec r17
 	brne _loop
-	dec r18
-	brne _loop
+	;dec r18
+	;brne _loop
 	ret
 
 

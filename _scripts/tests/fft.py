@@ -3,14 +3,16 @@ import math
 import sys
 
 ch = 300
-cw = 1000
+cw = 2000
 cwm = int(cw/2)
 chm = int(ch/2)
 fs = 1000
 
 ts = 1/fs
 
-def genSin(freq:int,amp:float=1,leng:int=1000,phase:float=0):
+colors = "red", "chocolate3", "green", "blue", "blue violet"
+
+def genSin(freq:int,amp:float=1,leng:int=2000,phase:float=0):
 	sig = []
 	phase *= math.pi
 	amp = amp if amp >= 0 and amp <= 1 else 1
@@ -40,12 +42,21 @@ def plotRound(sig,color="red",angstep=0):
 			cn.create_line(cwm+last[0], chm+last[1], cwm+pt[0], chm+pt[1], fill=color)
 		last = pt
 
-def sumSig(siglist):
+def sumSig(siglist,minus=0):
 	sig = siglist[0].copy()
 	for signum in range(len(siglist)-1):
 		for i,v in enumerate(siglist[signum+1]):
 			sig[i] += v
 	return sig
+
+def subSig(sig1,sig2):
+	out = []
+	s2len = len(sig2)
+	for i,v in enumerate(sig1):
+		if i >= s2len:
+			break
+		out.append(v-sig2[i])
+	return out
 
 def multSig(sig1,sig2):
 	sig = []
@@ -69,67 +80,38 @@ def fft(sig,ran=[5,50]):
 		out.append(avgSig(res))
 	return out
 
-def getWinWeights(sig,win):
-	hwin = int(win/2)
-	wts = [0]*win
-	points = []
-	absmax = 0
-	angstep = 2*math.pi/win
-	for j,v in enumerate(sig):
-		ind0 = j%win
-		ind1 = (ind0+hwin)%win
-		ind = ind0 if v >= 0 else ind1
-		a = abs(v)
-		points.append(a)#[int(math.cos(ind*angstep)*a*100),-int(math.sin(ind*angstep)*a*100)])
-		if wts[ind] < a:
-			wts[ind] = a
+def lowpass(sig,freq):
+	winsize = round(fs/freq/2)
+	hwin = winsize/2
+	print("winsize",winsize)
+	win = [0] * winsize
+	out = []
+	i = 0
+	for v in sig:
+		win[i%winsize] = v
+		if i >= hwin:
+			out.append(sum(win)*1.4/winsize)
+		i += 1
+	return out
 
-		if a > absmax:
-			absmax = a
-
-		# p0 = wts[ind0] + v
-		# p1 = wts[ind1] - v
-		# a0 = abs(wts[ind0])
-		# a1 = abs(wts[ind1])
+def analyze(sig,freqs):
+	subsig = sig[:]
+	plotSig(sig,color="gray")
+	filtered = None
+	out = {}
+	i = 0
+	for f in freqs:
+		filtered = lowpass(subsig,f)
+		plotSig(filtered,color=colors[i%5])
+		out[f] = sum([abs(x) for x in filtered])/len(filtered)
+		subsig = subSig(subsig,filtered)
+		# plotSig(subsig,color=colors[i%5])
+		i+=1
 		
-		# if a1 > absmax:
-		# 	absmax = a1
-		# wts[ind0] = p0
-		# wts[ind1] = p1
-
-	# print(points)
-		
-	# print(wts)
-	wts = [x/absmax for i,x in enumerate(wts)]
-	meds = []
-	for i,x in enumerate(wts):
-		meds.append(x - wts[(i+hwin)%win])
-
-	# last = None
-	# for pt in points:
-	# 	if last:
-	# 		cn.create_line(cwm+last[0], chm+last[1], cwm+pt[0], chm+pt[1], fill="blue")
-	# 	last = pt
-
-	# plotRound(points,"blue",angstep)
-	plotRound(wts,"red")
-	plotRound(meds,"green")
-
-	
-	avgw = sum(wts)/win
-	print(f'Win = {win}; Avg wt = {avgw}')
-	comp = []
-	for i in range(hwin):
-		comp.append((wts[i]+wts[i+hwin])/2)
-	# plotSig(comp,cw,ch,color="red")
-	# plotSig(wts,cw,ch,color="green")
-
-	return avgw
-	
-
+	return out
 
 root = Tk()
-root.title("FFT")
+root.title("Test")
 root.geometry(str(cw)+"x"+str(ch))
 
 cn = Canvas(bg="white", width=cw, height=ch)
@@ -137,12 +119,15 @@ cn.pack(anchor=CENTER, expand=1)
 cn.create_line(0,chm,cw,chm,fill="green")
 cn.create_line(cwm,0,cwm,ch,fill="green")
 
-sig1 = genSin(10,0.4,1000,float(sys.argv[1]))
-# sig2 = genSin(10,0.2,1000)
-# sig2 = genSin(20,0.1,1000)
-# sig3 = genSin(40,0.5,1000)
-# sig = sumSig([sig1,sig2,sig3])
+#sig = genSin(10,0.4,1000,float(sys.argv[1]))
+sig1 = genSin(10,0.3)
+sig2 = genSin(44,0.5)
+sig3 = genSin(60,0.3)
 
-plotSig(fft(sig))
+# sig3 = genSin(40,0.5,1000)
+sig = sumSig([sig1,sig2,sig3])
+
+an = analyze(sig,[10,20,30,40,50,60,70])
+print(an)
 
 root.mainloop()
