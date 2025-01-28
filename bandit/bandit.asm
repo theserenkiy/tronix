@@ -36,18 +36,17 @@
 
 .dseg
 .org 0x100
-display:	.byte DRUMS_COUNT * 8
+tick_count: 	.byte 1
+rand:			.byte 1
+can_restart: 	.byte 1					;set when handler was returned to 0 position (or on init)
+display:		.byte DRUMS_COUNT * 8
 drum_states:	.byte DRUMS_COUNT * 4	;0: sym_num (0 .. IMAGES_COUNT-1)
 										;1: shift (0 .. 9)]
 										;2: increment
 										;3: value
-tick_count: .byte 1
-rand:		.byte 1
-
 
 .cseg
 .org 0
-
 
 
 RESET:
@@ -93,6 +92,9 @@ _loop:
 	cpi r18,DRUMS_COUNT
 	brne _loop
 
+	ldi r16,0
+	sts can_restart, r16
+
 	rcall UPDATE_ALL_DRUMS
 	;rcall START_DRUMS
 	rjmp MAIN
@@ -100,9 +102,9 @@ _loop:
 _measure_loop:
 	rcall ADC_MEASURE
 	ldi r17,0
+	lds r16,rand
 	rcall DISPLAY_NUMBER
 	rcall DELAY3
-	;
 	rjmp _measure_loop
 
 
@@ -112,16 +114,25 @@ _measure_loop:
 
 MAIN:
 	rcall MK_TICK
+	;out PORTB,r16	
 
-	ldi r17,0xff
-	eor r16,r17
-	out PORTB,r16	
-
-	sbrs r16,0
+	sbrc r16,0
 	rjmp _skip_restart
 	rcall ADC_MEASURE
-	cpi r16, 128
+	cpi r16, 20
+	brcc _high_test
+	ldi r17, 1
+	sts can_restart, r17
+	rjmp _skip_restart
+
+_high_test:
+	lds r17, can_restart
+	tst r17
+	breq _skip_restart
+	cpi r16, 92
 	brcs _skip_restart
+	ldi r17, 0
+	sts can_restart, r17
 	rcall START_DRUMS
 
 _skip_restart:
@@ -135,16 +146,19 @@ _updated:
 	rjmp MAIN
 
 
+;measures 4 times, rounding result
+;out: r16
 ADC_MEASURE:
-	ldi r18,4
-	ldi r19,0
+	ldi r18,4		;loop counter
+	ldi r19,0		;result (sum)
 _loop:
 	ldi r16, 0b11000111
 	sts ADCSRA, r16
-_wait:
+_wait:				;waiting conversion done
 	lds r16,ADCSRA
 	sbrc r16, ADSC
 	rjmp _wait
+	
 	lds r16, ADCH
 	lds r17,rand
 	add r17,r16
@@ -154,6 +168,7 @@ _wait:
 	add r19,r16
 	dec r18
 	brne _loop
+
 	mov r16,r19
 	ret
 
@@ -183,6 +198,7 @@ _loop:
 
 
 ;used: r16 ... r20, X
+;return: r16 - "is running" flag
 MK_TICK:
 	ldi r20,0	;offset in drum_stats (increment = 4)
 	ldi r21,0	
@@ -251,7 +267,7 @@ _endrunningtest:
 	ret
 
 
-
+;updates all drums positions corresponding to its states
 UPDATE_ALL_DRUMS:
 	ldi r24,0
 _loop:
@@ -266,7 +282,7 @@ _loop:
 	ret
 
 
-
+;updates drum position corresponding to its state
 ;in: r16 - n drum
 ;used: r16 - r20, X, Z
 DRUM_UPDATE:
@@ -285,6 +301,7 @@ DRUM_UPDATE:
 	ret
 
 
+;rotates drum for 1 pixel
 ;r16 - n drum
 DRUM_SHIFT:
 	lsl r16
