@@ -127,11 +127,11 @@ MAIN:
 
 _high_test:
 	lds r17, can_restart
-	tst r17
+	tst r17 
 	breq _skip_restart
-	cpi r16, 92
+	cpi r16, 92 
 	brcs _skip_restart
-	ldi r17, 0
+	ldi r17, 0 
 	sts can_restart, r17
 	rcall START_DRUMS
 
@@ -216,10 +216,10 @@ _loop:
 	add r19,r18			;if there was no overflow => do nothing
 	brcc _end_shift_drum
 	
-	cpi r17,0
+	cpi r17,0 
 	brne _decshift
 	ldi r17,8+EMPTY_LINES
-	cpi r16,0
+	cpi r16,0 
 	brne _decsym
 	ldi r16, IMAGES_COUNT-1
 	rjmp _decshift
@@ -508,7 +508,7 @@ DISP_INIT:
 	disp_cmd 0x0C, 0x01		;turn on
 	disp_cmd 0x09, 0x00		;no decode
 	disp_cmd 0x0A, 0x00		;brightness = 1/2
-	disp_cmd 0x0B, 0x07		;scan limit = 8
+	disp_cmd 0x0B, 0x07		;scan limit = 7
 	disp_cmd 0x0F, 0x00		;display test mode
 	ret
 
