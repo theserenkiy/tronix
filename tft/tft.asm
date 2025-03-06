@@ -10,8 +10,7 @@
 .equ TFT_SCK = 4
 
 .equ TFT_SPIPORT = PORTB
-.equ TFT_SPIDDR = DDRB
-
+.equ TFT_SPIDDR = DDRB=
 .macro setptr;  regpair_letter, label_address, reg_offset
 	ldi @0H, high(@1)
 	ldi @0L, low(@1)
@@ -28,7 +27,6 @@
 .cseg
 .org 0
 
-
 RESET:
 	rcall TFT_INIT
 
@@ -44,7 +42,6 @@ MAIN:
 	ldi r16, 2
 	rcall TFT_DELAY
 	rjmp MAIN
-
 
 
 TFT_INIT:
