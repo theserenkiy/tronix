@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+	<script src="/lib.js"></script>
+	<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+	<link rel="stylesheet" href="/style.css">
+<style>
+
+</style>
+<script>
+	const matrix_size = [8,8]
+	const pix_dim = 48
+	const matrix_dim = matrix_size.map(v => v*pix_dim)
+	const npix = matrix_size[0]*matrix_size[1]
+
+	
+
+	let color = [0,0,0]
+	let pixels = []
+	let values = []
+
+function resize()
+{
+	cl("resize: ",0window.offsetWidth)
+	let css = `
+	.field{
+		width: ${matrix_dim[0]}px;
+		height: ${matrix_dim[1]}px;
+	}
+	.field>div{
+		width: ${pix_dim}px;
+		height: ${pix_dim}px;
+	}
+	`
+	qs("style").innerHTML = css
+}
+
+on(window,"load",() => {
+	resize()
+	
+
+	let h = ""
+	for(let i=0; i < npix; i++)
+	{
+		h+= `<div data-num="${i}"><div></div></div>`
+	}
+	qs(".field").innerHTML = h
+		
+	values = []
+	let n = 0
+	for(let el of qsa(".field>div"))
+	{
+		let num = n
+		el.onmouseenter = ev => {
+			cl(ev)
+			if(ev.buttons)
+				setPix(num,ev.buttons==2 ? [0,0,0] : color)
+		}
+		el.onmousedown = ev => setPix(num,ev.buttons==2 ? [0,0,0] : color)
+		el.oncontextmenu = ev => ev.preventDefault() 
+		pixels.push(qs("div",el))
+		values.push([0,0,0])
+		n++
+	}
+
+	h = ""
+	for(let hue=0; hue < 360; hue+=20)
+	{
+		h += genColorLine(hue)
+	}
+	h += genColorLine(0,0,[0,100])
+	qs(".colors .list").innerHTML = h
+	for(let el of qsa(".colors .list>div"))
+	{
+		el.onclick = ev => {
+			let sel = qs(".colors .sel")
+			color = ev.target.dataset.rgb.split(",")
+			sel.style.backgroundColor = `rgb(${color.join(" ")})`
+
+		}
+	}
+
+	qs(".clear").onclick = () => {
+		
+		for(let n=0; n < npix; n++)
+		{
+			setPix(n,[0,0,0])
+		}
+	}
+})
+
+function genColorLine(hue,sat=100,luma_range=null)
+{
+	if(!luma_range)
+		luma_range = [10,90]
+	let luma_step = Math.round((luma_range[1]-luma_range[0])/4)
+	let h="<div>"
+	for(let luma=luma_range[0];luma<=luma_range[1];luma+=luma_step)
+	{
+		h += `<div style="background-color: hsl(${hue} ${sat}% ${luma}%)" data-rgb="${hslToRgb(hue/360,sat/100,luma/100).join(",")}"></div>`
+	}
+	h+="</div>"
+	return h
+}
+
+const send = debounce(async () => {
+	cl("SENDING...")
+	await api("/api/set",{values})
+},200)
+
+async function setPix(n,c)
+{
+	if(!c)c = color
+	cl("set pix "+n)
+	pixels[n].style.backgroundColor = `rgb(${c.join(" ")})`
+	values[n] = c.map(v => +v)
+	send()
+}
+
+
+</script>
+</head>
+<body ondragstart="return false;" ondrop="return false;">
+	<div class="top">
+		<div class="field" draggable="false"></div>
+	</div>
+	<div class="colors">
+		<div class="list"></div>
+		<div class="sel"></div>
+	</div>
+	<div class="controls">
+		<button class="clear">Clear</button>
+	</div>
+
+</body>
+</html>
