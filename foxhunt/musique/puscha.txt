@@ -1,0 +1,91 @@
+do 1
+do 1
+do 1
+
+mi 1
+sol 1
+do 4
+
+mi 1
+sol 1
+do2 3
+si 2
+sol 1
+mi 6
+p 1
+do2 1
+si 1
+re2 1
+do2 1
+si 1
+do2 4
+
+si 1
+la 1
+la 3 
+sol# 2
+si 1
+fa 3
+mi 4
+
+la0 1
+si0 1
+do 1
+mi 1
+la 1
+re2 4
+
+mi 1
+la 1
+re2 3
+mi 2
+re2 1
+do2 4
+p 2
+
+do2 1
+do2 1
+do2 1
+si 1
+la 1
+la 3
+sol 1
+sol 1
+sol 1
+la 3
+sol 2 
+fa 1
+fa 3
+mi 4
+
+
+
+la0 1
+si0 1
+do 1
+mi 1
+la 1
+sol2 4
+
+fa2 1
+sol2 1
+fa2 3
+mi2 2
+re2 1
+do2 4
+p 2
+
+do2 1
+do2 1
+do2 1
+si 1
+la 1
+la 3
+sol 1
+sol 1
+sol 1
+la 3
+si 2 
+re2 1
+re2 3
+do2 4

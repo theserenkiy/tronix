@@ -13,19 +13,21 @@ BASE_LEN = 0.2
 
 p = pyaudio.PyAudio()
 
-start = 440/(math.pow(2,9/12))
+start = 440/(math.pow(2,23/12))
 note_freq = {}
 num = 0
-for oct in range(3):
+for oct in range(4):
 	for note in ["do","do#","re","re#","mi","fa","fa#","sol","sol#","la","la#","si"]:
-		note_freq[note+("" if not oct else str(oct+1))] = start*math.pow(2,num/12)
+		note_freq[note+("" if oct==1 else str(oct))] = start*math.pow(2,num/12)
 		num += 1
+
+print(note_freq)
 
 stream = None
 
 def mkWave(freq: float, leng: float):
 	# Генерация синусоидальной волны
-	return (np.sign(np.sin(2 * np.pi * np.arange(BITRATE * leng) * freq / BITRATE))).astype(np.float32)
+	return (np.sign(np.sin(2 * np.pi * np.arange(BITRATE * leng) * freq / BITRATE))).astype(np.float32)*0.1
 
 def playWave(wave):
 	global stream
@@ -41,6 +43,7 @@ def playTone(freq: float, leng: float):
 
 
 def playNote(note: str, leng: float):
+	print(f"Play note: {note} {leng}")
 	freq = note_freq[note]
 	playTone(freq, leng)
 
@@ -63,13 +66,14 @@ def readFile(filename):
 			continue
 		try: 
 			pp = re.split(r"\s+", l)
-			leng = int(pp[1])*BASE_LEN
+			leng = float(pp[1]) * BASE_LEN
 			duty = 0.7
+			silence = BASE_LEN*0.2
 			if pp[0] != "p":
-				playNote(pp[0],leng*duty)
-				time.sleep(leng*(1-duty))
+				playNote(pp[0],leng-silence)
+				time.sleep(silence)
 			else:
-				time.sleep(leng*duty)
+				time.sleep(leng)
 			
 		except Exception as e:
 			print(f"ERROR on line {lnum} ({l}, {pp}): {e}")
@@ -77,8 +81,9 @@ def readFile(filename):
 	
 
 
-readFile("poplanu.txt")
+# readFile("poplanu.txt")
 # readFile("malchik.txt")
+readFile("puscha.txt")
 
 
 stream.stop_stream()
