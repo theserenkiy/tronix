@@ -1,0 +1,170 @@
+{
+  "card": {
+    "card_type": "Mifare Classic 1k",
+    "format_version": 1
+  },
+  "control_points": [
+    {
+      "cp_num": 0,
+      "lat": 60.429804,
+      "lon": 29.287105,
+      "mandatory": true,
+      "name": "Старт",
+      "score": 0,
+      "type": "start"
+    },
+    {
+      "cp_num": 31,
+      "has_extra_task": false,
+      "lat": 60.421648,
+      "lon": 29.294701,
+      "mandatory": true,
+      "name": "Hill",
+      "score": 10,
+      "type": "normal"
+    },
+    {
+      "cp_num": 32,
+      "has_extra_task": false,
+      "lat": 60.419507,
+      "lon": 29.285774,
+      "mandatory": false,
+      "name": "River crossing",
+      "score": 15,
+      "type": "fox"
+    },
+    {
+      "cp_num": 33,
+      "has_extra_task": false,
+      "lat": 60.420165,
+      "lon": 29.273715,
+      "mandatory": false,
+      "name": "Forest edge",
+      "score": 8,
+      "type": "normal"
+    },
+    {
+      "cp_num": 34,
+      "extra_task": {
+        "bonus": 5,
+        "name": "alco_test",
+        "reserve_pass": 1,
+        "type": "pass_fail"
+      },
+      "has_extra_task": true,
+      "lat": 60.426965,
+      "lon": 29.269509,
+      "mandatory": true,
+      "name": "Swamp",
+      "score": 12,
+      "type": "normal"
+    },
+    {
+      "cp_num": 254,
+      "lat": 60.430503,
+      "lon": 29.284873,
+      "mandatory": true,
+      "name": "Финиш",
+      "score": 0,
+      "type": "finish"
+    },
+    {
+      "cp_num": 35,
+      "type": "normal",
+      "name": "КП35",
+      "lat": 60.430717,
+      "lon": 29.277406,
+      "mandatory": false,
+      "score": 10,
+      "has_extra_task": false,
+      "description": ""
+    }
+  ],
+  "crypto": {
+    "mac_truncate_bytes": 4,
+    "station_key_derivation": "HMAC-SHA256(master_secret, cp_num)[0:16]",
+    "uid_in_mac": true
+  },
+  "event": {
+    "event_id": 1,
+    "name": "FoxAss 1",
+    "location": "Zakhodskoe",
+    "description": "Тестовое мероприятие",
+    "event_start_time": 1713171600,
+    "time_limit": 7200,
+    "format_version": 1
+  },
+  "groups": [
+    {
+      "group_id": 1,
+      "name": "Men"
+    },
+    {
+      "group_id": 2,
+      "name": "Women"
+    }
+  ],
+  "participants": [
+    {
+      "age": 20,
+      "group_id": 1,
+      "id": 1,
+      "name": "Kirill"
+    },
+    {
+      "age": 40,
+      "group_id": 1,
+      "id": 2,
+      "name": "Serega"
+    }
+  ],
+  "scoring": {
+    "cp_logic": {
+      "duplicate": {
+        "action": "ignore",
+        "flag": "0x01"
+      },
+      "error": {
+        "action": "invalidate_cp",
+        "flag": "0x02"
+      },
+      "extra_task": {
+        "flag_mapping": {
+          "0x00": "completed",
+          "0x03": "incomplete"
+        },
+        "types": {
+          "numeric_score": {
+            "description": "Числовой результат в reserve",
+            "scoring": "reserve_value * multiplier"
+          },
+          "pass_fail": {
+            "description": "Пройти/не пройти доп. задание",
+            "reserve_pass": 1,
+            "scoring": {
+              "fail": "base_only",
+              "pass": "base + bonus"
+            }
+          },
+          "time_based": {
+            "description": "Время выполнения задания в reserve (секунды)",
+            "scoring": "time_bonus_table"
+          }
+        }
+      },
+      "normal": {
+        "on_valid_mark": "add_score"
+      }
+    },
+    "rules": {
+      "missing_mandatory_cp": "disqualify",
+      "start_required": true,
+      "finish_required": true
+    },
+    "system": "points",
+    "time_penalties": {
+      "apply_after": "time_limit",
+      "overtime_per_sec": 0.01
+    }
+  }
+}
