@@ -1,0 +1,54 @@
+
+
+re2 2
+la# 3
+re2 1
+re#2 1
+re2 2
+do2 1
+la# 3
+
+re2 1
+do2 1
+la# 1
+do2 1 
+re2 1
+la# 3
+
+la# 1
+la# 1
+sol 1
+la# 1
+do2 1
+re2 1
+do2 2
+la# 1
+do2 2
+
+
+
+re2 2
+la# 3
+re2 1
+re#2 1
+re2 2
+do2 1
+la# 3
+
+re2 1
+do2 1
+la# 1
+do2 1 
+re2 1
+la# 3
+
+la# 1
+la# 1
+sol 1
+la# 1
+do2 1
+re2 2
+re2 2
+do2 2
+la 2
+la# 3

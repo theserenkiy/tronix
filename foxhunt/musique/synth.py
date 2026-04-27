@@ -3,13 +3,14 @@ import numpy as np
 import math
 import re
 import time
+import sys
 
 # Параметры звука
 BITRATE = 16000  # Частота дискретизации (Гц)
 FREQUENCY = 440  # Частота ноты Ля (Гц)
 LENGTH = 2       # Длительность (секунды)
 
-BASE_LEN = 0.2
+BASE_LEN = 0.3
 
 p = pyaudio.PyAudio()
 
@@ -66,7 +67,8 @@ def readFile(filename):
 			continue
 		try: 
 			pp = re.split(r"\s+", l)
-			leng = float(pp[1]) * BASE_LEN
+			rlen = float(pp[1]) if len(pp) > 1 else 1
+			leng =  rlen * BASE_LEN 
 			duty = 0.7
 			silence = BASE_LEN*0.2
 			if pp[0] != "p":
@@ -83,7 +85,10 @@ def readFile(filename):
 
 # readFile("poplanu.txt")
 # readFile("malchik.txt")
-readFile("puscha.txt")
+# readFile("puscha.txt")
+# readFile("albina.txt")
+
+readFile(sys.argv[1])
 
 
 stream.stop_stream()

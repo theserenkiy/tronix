@@ -1,0 +1,76 @@
+
+
+do
+la0 
+mi
+do
+re 2
+la0
+si0 
+
+do
+la0
+mi
+do
+re 2
+
+p 2
+
+fa
+fa 
+fa
+re
+sol 2
+la
+la
+
+mi 
+mi
+re 
+re
+la0 2
+
+p 2
+
+do
+la0 
+mi
+do
+re 2
+la0
+si0 
+
+do
+la0
+mi
+do
+re 2
+
+p 2
+
+fa
+fa 
+fa
+re
+sol 2
+la
+la
+
+mi 
+mi
+mi
+mi
+la0 2
+
+p 2
+
+la 4
+sol 2
+fa 2
+
+mi 
+mi
+mi
+mi
+la0 2
+

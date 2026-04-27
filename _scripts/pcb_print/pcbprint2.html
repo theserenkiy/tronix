@@ -6,11 +6,12 @@
 <link rel="stylesheet" href="style.css">
 <script type="text/javascript" src="jquery.js"></script>
 <script src="vue.js"></script>
-<!-- <script src="exif.js"></script> -->
+<script src="exif.js"></script>
 <script>
 const cl = console.log;
 Vue.component('app',{
 	data(){return{
+		grid_step: 10,
 		imblocks: [],
 		images: [],
 		active_block: 0
@@ -53,6 +54,9 @@ Vue.component('app',{
 						dpi: 600
 					});
 					this.save(file);
+					EXIF.getData(im, (d) => {
+						cl(`EXIF DATA: ${d}`)
+					})
 				}
 				im.onerror = ()=>{
 					alert('Could not load file '+file.name+' as image');
@@ -120,16 +124,20 @@ Vue.component('app',{
 			}
 			this.dragOffset = [ev.layerX,ev.layerY];
 		},
+		griddify(x)
+		{
+			return Math.floor(x/this.grid_step)*this.grid_step
+		},
 		mouseMove(ev)
 		{
-			cl(ev)
+			// cl(ev)
 			//cl(this.active_block)
 			let b = this.getActiveBlock();
 			if(!b)return;
 			let rect = this.$refs.sheet.getBoundingClientRect();
-			cl(rect)
-			b.left = ev.clientX-rect.left-this.dragOffset[0];
-			b.top = ev.clientY-rect.top-this.dragOffset[1];
+			// cl(rect)
+			b.left = this.griddify(ev.clientX-rect.left-this.dragOffset[0]);
+			b.top = this.griddify(ev.clientY-rect.top-this.dragOffset[1]);
 		},
 		getActiveBlock()
 		{
