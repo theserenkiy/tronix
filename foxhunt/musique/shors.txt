@@ -14,7 +14,7 @@ mi
 do
 re 2
 
-p 2
+p 1.5
 
 fa
 fa 
@@ -30,7 +30,7 @@ re
 re
 la0 2
 
-p 2
+p 1.5
 
 do
 la0 
@@ -46,7 +46,7 @@ mi
 do
 re 2
 
-p 2
+p 1.5
 
 fa
 fa 
@@ -62,7 +62,7 @@ mi
 mi
 la0 2
 
-p 2
+p 1.5
 
 la 4
 sol 2
@@ -70,7 +70,7 @@ fa 2
 
 mi 
 mi
-mi
+re 
 mi
 la0 2
 

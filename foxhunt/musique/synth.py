@@ -26,9 +26,11 @@ print(note_freq)
 
 stream = None
 
+
 def mkWave(freq: float, leng: float):
 	# Генерация синусоидальной волны
 	return (np.sign(np.sin(2 * np.pi * np.arange(BITRATE * leng) * freq / BITRATE))).astype(np.float32)*0.1
+
 
 def playWave(wave):
 	global stream
@@ -38,6 +40,7 @@ def playWave(wave):
                 rate=BITRATE,
                 output=True)
 	stream.write(wave.tobytes())
+
 
 def playTone(freq: float, leng: float):
 	playWave(mkWave(freq, leng))
@@ -52,6 +55,7 @@ def playNote(note: str, leng: float):
 # for note in note_freq.keys():
 # 	playNote(note, 0.5)
 
+
 def readFile(filename):
 	f = open(filename,"r",encoding="utf-8")
 	s = f.read()
@@ -59,7 +63,7 @@ def readFile(filename):
 
 	subs = s.split(">")
 	s = subs[len(subs)-1]
-
+  
 	lnum = 1
 	for l in s.split("\n"):
 		l = l.strip()
@@ -69,6 +73,7 @@ def readFile(filename):
 			pp = re.split(r"\s+", l)
 			rlen = float(pp[1]) if len(pp) > 1 else 1
 			leng =  rlen * BASE_LEN 
+
 			duty = 0.7
 			silence = BASE_LEN*0.2
 			if pp[0] != "p":
@@ -88,10 +93,11 @@ def readFile(filename):
 # readFile("puscha.txt")
 # readFile("albina.txt")
 
+
 readFile(sys.argv[1])
+
 
 
 stream.stop_stream()
 stream.close()
 p.terminate()
-
