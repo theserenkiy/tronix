@@ -25,7 +25,7 @@
 #define LEDC_FREQUENCY        1000 // 1 kHz
 
 // Частота работы
-#define RF_FREQUENCY_HZ    433000000LLU
+#define RF_FREQUENCY_HZ    433920000LLU
 
 // Регистры SX1278
 #define REG_FIFO                0x00
@@ -60,6 +60,8 @@
 #define MODE_TX                 0x03
 #define MODE_STDBY              0x01
 #define MODE_SLEEP              0x00
+
+uint8_t powsteps[] = {2,6,10,14,17,20};
 
 static const char *TAG = "SX1278_MIN";
 static spi_device_handle_t spi;
@@ -132,7 +134,7 @@ void morse_init()
     
 }
 
-void morse_beep(int freq, int len)
+void morse_beep(int freq, int len, int pause)
 {
 	ledc_set_freq(LEDC_MODE, LEDC_TIMER, freq);
 	ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, 512);
@@ -142,15 +144,26 @@ void morse_beep(int freq, int len)
 
 	ledc_set_duty(LEDC_MODE, LEDC_CHANNEL, 0);
     ledc_update_duty(LEDC_MODE, LEDC_CHANNEL);
+
+	vTaskDelay(pdMS_TO_TICKS(pause));
 }
 
 
-void morse_on_power(int dbm)
+void morse_on_power_step(int step)
 {
-	lora_set_power(dbm);
+	int dbm = powsteps[step];
+	// lora_set_power(dbm);
 	ESP_LOGI(TAG, "SET POWER: %d", dbm);
 
-	morse_beep(800,1000);
+	for(int i=0; i < 3; i++)
+	{
+		morse_beep(800,500,100);
+	}
+	
+	for(int i=0; i <= step; i++)
+	{
+		morse_beep(800,150,150);
+	}
 }
 
 void app_main(void) {
@@ -189,6 +202,7 @@ void app_main(void) {
 	
 	ESP_LOGI(TAG, "SPI initialized");
 	
+	vTaskDelay(pdMS_TO_TICKS(100));
 
 	morse_init();
 
@@ -207,8 +221,9 @@ void app_main(void) {
 	ESP_LOGI(TAG, "SX1278 detected!");
 	
 	// 4. Настройка FSK режима
-	lora_write(REG_OP_MODE, MODE_FSK);
-	vTaskDelay(pdMS_TO_TICKS(10));
+	// lora_write(REG_OP_MODE, MODE_FSK);	//fsk
+	
+	vTaskDelay(pdMS_TO_TICKS(1000));
 
 	//мапаем DIO2
 	lora_write(REG_DIO_MAPPING_1, 0b11 << 2);
@@ -226,8 +241,8 @@ void app_main(void) {
 
 	
 	// 6. Настройка девиации частоты (20 kHz для более широкого сигнала)
-	lora_write(REG_FDEV_MSB, 0x00);
-	lora_write(REG_FDEV_LSB, 0x20); // 20 kHz девиации
+	// lora_write(REG_FDEV_MSB, 0x00);
+	// lora_write(REG_FDEV_LSB, 0x39); // 20 kHz девиации
 	
 	// 5. Настройка битрейта (2.4 kbps для медленного сигнала)
 	// lora_write(REG_BITRATE_MSB, 0x68); // 1200 bps (minimum)
@@ -236,26 +251,27 @@ void app_main(void) {
 	lora_write(REG_BITRATE_MSB, 0x00); // 1200 bps (minimum)
 	lora_write(REG_BITRATE_LSB, 0x01);
 
+	lora_write(REG_OP_MODE, 0b00100011);		//ook
 	
 	// 6. Настройка мощности 20 dBm
-	lora_set_power(20);
+	lora_set_power(2);
 
 	// sx1278_write_reg(REG_OCP, 0x1A);        // 50 mA
 	
 	// 7. Включение передатчика
-	lora_write(REG_OP_MODE, MODE_TX);
+	// lora_write(REG_OP_MODE, MODE_TX);
 	
 	ESP_LOGI(TAG, "Transmitter ON at %.3f MHz, power 10 dBm", (double)RF_FREQUENCY_HZ / 1e6);
 	ESP_LOGI(TAG, "SDR should see CW carrier");
 
-	uint8_t powsteps[] = {2,6,10,14,17,20};
+	
 
 	// 8. Бесконечный цикл
 	while (1) {
 		for(uint8_t step=0; step < 6; step++)
 		{
-			morse_on_power(powsteps[step]);
-			vTaskDelay(pdMS_TO_TICKS(2000));
+			morse_on_power_step(step);
+			vTaskDelay(pdMS_TO_TICKS(1000));
 		}
 		// Периодически читаем статус
 		// uint8_t mode = lora_read(REG_OP_MODE);
