@@ -8,5 +8,5 @@ include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 
 project(esp_webserver)
 
-set(PARTITION_TABLE "partitions.csv")
-littlefs_create_partition_image(storage filesystem)  # FLASH_IN_PROJECT)
+# set(PARTITION_TABLE "partitions.csv")
+# littlefs_create_partition_image(storage filesystem)  # FLASH_IN_PROJECT)

@@ -1,4 +1,4 @@
-idf_component_register(SRCS "main.c" "webserver.c"
+idf_component_register(SRCS "main.c"
                     INCLUDE_DIRS "."
-                    REQUIRES esp_wifi mdns nvs_flash esp_http_server littlefs)
+                    REQUIRES esp_wifi mdns nvs_flash esp_http_server)# littlefs)
 
