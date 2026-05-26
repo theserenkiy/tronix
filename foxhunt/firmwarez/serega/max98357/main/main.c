@@ -101,7 +101,8 @@ void record_audio(void) {
         }
 
 		if (i % 1000 == 0) {
-            esp_task_reset_wdt();
+            esp_task_wdt_reset();
+			printf("WDT RST");
         }
     }
     
@@ -193,6 +194,8 @@ void app_main(void) {
     ESP_LOGI(TAG, "=== СИСТЕМА ЗАПИСИ И ВОСПРОИЗВЕДЕНИЯ (АЦП + MAX98357) ===");
     ESP_LOGI(TAG, "Параметры: %d Гц, 16 бит, %d секунд", SAMPLE_RATE, RECORD_SECONDS);
     
+	esp_task_wdt_add(NULL);
+
     // 1. Инициализация АЦП для микрофона
     init_adc_mic();
     vTaskDelay(pdMS_TO_TICKS(100));
