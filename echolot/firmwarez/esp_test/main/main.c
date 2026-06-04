@@ -1,99 +1,147 @@
 #include <stdio.h>
+#include "driver/mcpwm_prelude.h"
+#include "driver/gpio.h"
+#include "esp_rom_sys.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "driver/ledc.h"
-#include "driver/gptimer.h"
 #include "esp_log.h"
 
-#define TX_GPIO_NUM          13
-#define CARRIER_FREQ_HZ      175000   // Частота несущей 175 кГц
-#define BURST_DURATION_US    100      // Длительность пачки 100 мкс
-#define TOTAL_PERIOD_US      50000    // Период повторения 50 мс (50000 мкс)
+#define TX_GPIO_1      13
+#define TX_GPIO_2      14
+#define TX_FREQ_HZ   175000
 
-// Расчет заполнения ШИМ для 10-битного разрешения (2^10 = 1024)
-// 50% заполнение = 512. 0% (выключено) = 0.
-#define LEDC_DUTY_50_PERCENT 128
-#define LEDC_DUTY_OFF        0
+static mcpwm_timer_handle_t timer_1 = NULL;
+static mcpwm_oper_handle_t oper = NULL;
+static mcpwm_cmpr_handle_t comparator = NULL;
+static mcpwm_gen_handle_t generator_1 = NULL;
+static mcpwm_gen_handle_t generator_2 = NULL;
 
-static const char *TAG = "PWM_BURST";
-static gptimer_handle_t gptimer = NULL;
-
-// Прерывание таймера: вызывается строго каждые 50 мс
-static bool IRAM_ATTR timer_on_alarm_cb(gptimer_handle_t timer, const gptimer_alarm_event_data_t *edata, void *user_ctx)
+void sonar_tx_init(void)
 {
-    // 1. Мгновенно включаем генерацию 175 кГц (скважность 50%)
-    ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, LEDC_DUTY_50_PERCENT);
-    ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0);
+	mcpwm_timer_config_t timer_config = {
+		.group_id = 0,
+		.clk_src = MCPWM_TIMER_CLK_SRC_DEFAULT,
+		.resolution_hz = 40000000,     // 40 МГц
+		.period_ticks = 40000000 / TX_FREQ_HZ,
+		.count_mode = MCPWM_TIMER_COUNT_MODE_UP,
+	};
 
-    // 2. Аппаратная задержка внутри прерывания ровно на 100 мкс
-    // Для ультра-коротких пачек в 100 мкс esp_rom_delay_us идеален — он точен до наносекунд
-    esp_rom_delay_us(BURST_DURATION_US);
+	ESP_ERROR_CHECK(mcpwm_new_timer(&timer_config, &timer_1));
 
-    // 3. Выключаем генерацию (переводим пин в стабильный 0)
-    ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, LEDC_DUTY_OFF);
-    ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0);
+	mcpwm_operator_config_t oper_config = {
+		.group_id = 0,
+	};
 
-    return true; // Контекст FreeRTOS не меняется
+	ESP_ERROR_CHECK(mcpwm_new_operator(&oper_config, &oper));
+	ESP_ERROR_CHECK(mcpwm_operator_connect_timer(oper, timer_1));
+
+	mcpwm_comparator_config_t cmp_config = {
+		.flags.update_cmp_on_tez = true,
+	};
+
+	ESP_ERROR_CHECK(mcpwm_new_comparator(oper, &cmp_config, &comparator));
+
+	mcpwm_generator_config_t gen_config_1 = {
+		.gen_gpio_num = TX_GPIO_1,
+	};
+
+	ESP_ERROR_CHECK(mcpwm_new_generator(oper, &gen_config_1, &generator_1));
+
+	mcpwm_generator_config_t gen_config_2 = {
+		.gen_gpio_num = TX_GPIO_2,
+	};
+
+	ESP_ERROR_CHECK(mcpwm_new_generator(oper, &gen_config_2, &generator_2));
+
+	uint32_t period = 40000000 / TX_FREQ_HZ;
+
+	ESP_ERROR_CHECK(
+		mcpwm_comparator_set_compare_value(
+			comparator,
+			period / 2
+		)
+	);
+
+	ESP_ERROR_CHECK(
+		mcpwm_generator_set_action_on_timer_event(
+			generator_1,
+			MCPWM_GEN_TIMER_EVENT_ACTION(
+				MCPWM_TIMER_DIRECTION_UP,
+				MCPWM_TIMER_EVENT_EMPTY,
+				MCPWM_GEN_ACTION_HIGH
+			)
+		)
+	);
+
+	ESP_ERROR_CHECK(
+		mcpwm_generator_set_action_on_compare_event(
+			generator_1,
+			MCPWM_GEN_COMPARE_EVENT_ACTION(
+				MCPWM_TIMER_DIRECTION_UP,
+				comparator,
+				MCPWM_GEN_ACTION_LOW
+			)
+		)
+	);
+
+	ESP_ERROR_CHECK(
+		mcpwm_generator_set_action_on_timer_event(
+			generator_2,
+			MCPWM_GEN_TIMER_EVENT_ACTION(
+				MCPWM_TIMER_DIRECTION_UP,
+				MCPWM_TIMER_EVENT_EMPTY,
+				MCPWM_GEN_ACTION_LOW
+			)
+		)
+	);
+
+	ESP_ERROR_CHECK(
+		mcpwm_generator_set_action_on_compare_event(
+			generator_2,
+			MCPWM_GEN_COMPARE_EVENT_ACTION(
+				MCPWM_TIMER_DIRECTION_UP,
+				comparator,
+				MCPWM_GEN_ACTION_HIGH
+			)
+		)
+	);
+
+	ESP_ERROR_CHECK(mcpwm_timer_enable(timer_1));
 }
 
-void app_main(void)
+void sonar_tx_burst(uint32_t cycles)
 {
-    ESP_LOGI(TAG, "Configuring LEDC (PWM) at 175 kHz...");
+    uint32_t burst_us =
+        (cycles * 1000000ULL) / TX_FREQ_HZ;
 
-    // 1. Настройка таймера ШИМ на 175 кГц
-    ledc_timer_config_t ledc_timer = {
-        .speed_mode       = LEDC_LOW_SPEED_MODE,
-        .timer_num        = LEDC_TIMER_0,
-        .duty_resolution  = LEDC_TIMER_8_BIT, // 10 бит разрешения дает высокую точность на 175 кГц
-        .freq_hz          = CARRIER_FREQ_HZ,  // Жестко 175000 Гц
-        .clk_cfg          = LEDC_AUTO_CLK
-    };
-    ESP_ERROR_CHECK(ledc_timer_config(&ledc_timer));
+	mcpwm_generator_set_force_level(generator_1, -1, true);
+	mcpwm_generator_set_force_level(generator_2, -1, true);
 
-    // 2. Настройка канала ШИМ на GPIO 13
-    ledc_channel_config_t ledc_channel = {
-        .speed_mode     = LEDC_LOW_SPEED_MODE,
-        .channel        = LEDC_CHANNEL_0,
-        .timer_sel      = LEDC_TIMER_0,
-        .intr_type      = LEDC_INTR_DISABLE,
-        .gpio_num       = TX_GPIO_NUM,
-        .duty           = LEDC_DUTY_OFF, // Изначально генерация выключена
-        .hpoint         = 0
-    };
-    ESP_ERROR_CHECK(ledc_channel_config(&ledc_channel));
+	mcpwm_timer_start_stop(
+		timer_1,
+		MCPWM_TIMER_START_NO_STOP
+	);
+	// ESP_LOGI("TX", "start=%s", esp_err_to_name(err));
 
-    ESP_LOGI(TAG, "Configuring Hardware GPTimer for 50ms period...");
+    esp_rom_delay_us(burst_us);
 
-    // 3. Инициализация аппаратного таймера
-    gptimer_config_t timer_config = {
-        .clk_src = GPTIMER_CLK_SRC_DEFAULT,
-        .direction = GPTIMER_COUNT_UP,
-        .resolution_hz = 1000000, // 1 МГц = 1 тик равен 1 мкс
-    };
-    ESP_ERROR_CHECK(gptimer_new_timer(&timer_config, &gptimer));
+    mcpwm_timer_start_stop(
+        timer_1,
+        MCPWM_TIMER_STOP_EMPTY
+    );
 
-    // Настройка периода в 50 мс (50 000 мкс)
-    gptimer_alarm_config_t alarm_config = {
-        .reload_count = 0,
-        .alarm_count = TOTAL_PERIOD_US, 
-        .flags.auto_reload_on_alarm = true
-    };
-    ESP_ERROR_CHECK(gptimer_set_alarm_action(gptimer, &alarm_config));
 
-    // Подключаем функцию прерывания
-    gptimer_event_callbacks_t cbs = {
-        .on_alarm = timer_on_alarm_cb,
-    };
-    ESP_ERROR_CHECK(gptimer_register_event_callbacks(gptimer, &cbs, NULL));
+    mcpwm_generator_set_force_level(generator_1, 0, true);
+	mcpwm_generator_set_force_level(generator_2, 0, true);
+}
 
-    // Включаем и запускаем таймер
-    ESP_ERROR_CHECK(gptimer_enable(gptimer));
-    ESP_ERROR_CHECK(gptimer_start(gptimer));
-
-    ESP_LOGI(TAG, "System stable. Burst generation running in background via Hardware Interrupts.");
-
-    while (1) {
-        // Процессор полностью свободен, Watchdog молчит, память стабильна
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
+void app_main()
+{
+	sonar_tx_init();
+	while(1)
+	{
+		sonar_tx_burst(32);
+		vTaskDelay(pdMS_TO_TICKS(50));
+	}
+	
 }
