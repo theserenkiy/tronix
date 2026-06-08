@@ -8,7 +8,8 @@
 
 #define TX_GPIO_1      13
 #define TX_GPIO_2      14
-#define TX_FREQ_HZ   175000
+#define TX_FREQ_HZ   187000
+#define BURST_TO_BURST_DELAY_MS 25
 
 static mcpwm_timer_handle_t timer_1 = NULL;
 static mcpwm_oper_handle_t oper = NULL;
@@ -141,7 +142,7 @@ void app_main()
 	while(1)
 	{
 		sonar_tx_burst(32);
-		vTaskDelay(pdMS_TO_TICKS(50));
+		vTaskDelay(pdMS_TO_TICKS(BURST_TO_BURST_DELAY_MS));
 	}
 	
 }
