@@ -6,11 +6,10 @@
 #include "freertos/task.h"
 #include "esp_log.h"
 
-#define TX_GPIO_1		13
-#define TX_GPIO_2		14
-#define IR_DSBL_PIN		26
+#define TX_GPIO_1      13
+#define TX_GPIO_2      14
 #define TX_FREQ_HZ   187000
-#define BURST_TO_BURST_DELAY_MS 40
+#define BURST_TO_BURST_DELAY_MS 25
 
 static mcpwm_timer_handle_t timer_1 = NULL;
 static mcpwm_oper_handle_t oper = NULL;
@@ -132,23 +131,17 @@ void sonar_tx_burst(uint32_t cycles)
         MCPWM_TIMER_STOP_EMPTY
     );
 
+
     mcpwm_generator_set_force_level(generator_1, 0, true);
 	mcpwm_generator_set_force_level(generator_2, 0, true);
 }
 
 void app_main()
 {
-	gpio_reset_pin(IR_DSBL_PIN);
-	gpio_set_direction(IR_DSBL_PIN, GPIO_MODE_OUTPUT);
-	gpio_set_level(IR_DSBL_PIN, 0);
-
 	sonar_tx_init();
 	while(1)
 	{
-		gpio_set_level(IR_DSBL_PIN, 1);
 		sonar_tx_burst(32);
-		esp_rom_delay_us(500);
-		gpio_set_level(IR_DSBL_PIN, 0);
 		vTaskDelay(pdMS_TO_TICKS(BURST_TO_BURST_DELAY_MS));
 	}
 	
