@@ -1,4 +1,5 @@
 #pragma once
+
 #include "driver/gpio.h"
 #include "esp_rom_sys.h"
 #include "freertos/FreeRTOS.h"
@@ -19,9 +20,9 @@
 
 #define ADC_UNIT_USED           ADC_UNIT_1
 #define ADC_CHANNEL_USED        ADC_CHANNEL_6     // GPIO34
-#define ADC_SAMPLE_FREQ_HZ      500000
+#define ADC_SAMPLE_FREQ_HZ      20000
 
-#define ADC_RECORD_TIME_MS		40
+#define ADC_RECORD_TIME_MS		1000
 
 #define ADC_RECORD_SAMPLES		(int)(ADC_RECORD_TIME_MS*ADC_SAMPLE_FREQ_HZ/1000)
 
