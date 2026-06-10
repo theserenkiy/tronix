@@ -1,2 +1,2 @@
-py display.py
+py display.py COM3
 pause

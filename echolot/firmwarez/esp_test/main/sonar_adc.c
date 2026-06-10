@@ -39,7 +39,7 @@ esp_err_t sonar_adc_init(void)
 	);
 
 	adc_digi_pattern_config_t pattern = {
-		.atten     = ADC_ATTEN_DB_0,
+		.atten     = ADC_ATTEN_DB_12,
 		.channel   = ADC_CHANNEL_USED,
 		.unit      = ADC_UNIT_USED,
 		.bit_width = ADC_BITWIDTH_12,
@@ -117,11 +117,15 @@ esp_err_t sonar_uart_send_buffer(uint16_t *buffer,
 	size_t bytes =
 		samples * sizeof(uint16_t);
 
-	int sent = //uart_write_bytes(UART_NUM_0, "HELLO\r\n", 7);
+	uart_write_bytes(UART_NUM_0, ">>DATA", 6);
+
+	int sent = //
 		uart_write_bytes(
 			UART_PORT,
 			(const char *)buffer,
 			bytes);
+
+	uart_write_bytes(UART_NUM_0, ">>DATAEND", 9);
 
 	//printf("BUF SENT QQ: %d\n", sent);
 
