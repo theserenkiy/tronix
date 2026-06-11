@@ -1,4 +1,5 @@
 import sys
+import time
 import serial
 import serial.tools.list_ports
 import numpy as np
@@ -7,6 +8,8 @@ import pyqtgraph as pg
 from pyqtgraph.Qt import QtWidgets
 
 
+BAUDRATE = 115200
+BAUDRATE = 921600
 
 def serialGet(bytes, file=None):
 	ports = [port for port, desc, hwid in sorted(serial.tools.list_ports.comports(), reverse=True)]
@@ -23,11 +26,31 @@ def serialGet(bytes, file=None):
 
 	print(f"Connecting to {port}....")
 
-	ser = serial.Serial(port, 115200)
+	ser = serial.Serial(port, BAUDRATE, timeout=0)
 
 	print("Connected! Reading")
 
-	raw = ser.read(bytes)
+	# buffer = bytearray()
+
+	# raw = ser.read(bytes, timeout=0)
+
+	# print("The tail is:",len(raw))
+
+	# print("Reset the device")
+
+	raw = bytearray()
+	is_first = 1
+	while 1:
+		chunk = ser.read(bytes)
+		print("	chunk: ",len(chunk))
+		if not len(chunk) and not is_first:
+			break
+		is_first = 0
+		raw += chunk
+		time.sleep(1)
+
+	print(f"Bytes received: ",len(raw))
+	
 	if file:
 		with open(file,"wb") as f:
 			f.write(raw)
@@ -56,7 +79,10 @@ def displayRawData(raw=None, file=None):
 
 	if stop < 0:
 		print("Конец данных куда-то проебали. Да и хуй с ним!")
-		stop = len(raw)
+		# stop = (len(raw) >> 1) << 1
+
+	if (stop-start)%2:
+		stop -= 1
 
 	data = np.frombuffer(full_view[start+6:stop], dtype=np.uint16)
 

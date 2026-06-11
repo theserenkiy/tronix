@@ -12,13 +12,22 @@ void app_main()
 	sonar_tx_init();
 	sonar_adc_init();
 
+	vTaskDelay(pdMS_TO_TICKS(1000));
+
+	int is_first = 1;
+	int n = 0;
 	while(1)
 	{
-		// sonar_tx_burst(32);
+		sonar_tx_burst(32, n%2);
 		
-		sonar_adc_capture(buffer, ADC_RECORD_SAMPLES);
-		sonar_uart_send_buffer(buffer, ADC_RECORD_SAMPLES);
-		break;
+		if(is_first)
+		{
+			sonar_adc_capture(buffer, ADC_RECORD_SAMPLES);
+			sonar_uart_send_buffer(buffer, ADC_RECORD_SAMPLES);
+			// break;
+		}
+		is_first = 0;
+		n++;
 
 		vTaskDelay(pdMS_TO_TICKS(BURST_TO_BURST_DELAY_MS));
 	}

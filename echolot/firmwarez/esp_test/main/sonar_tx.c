@@ -107,7 +107,7 @@ void sonar_tx_init(void)
 	ESP_ERROR_CHECK(mcpwm_timer_enable(timer_1));
 }
 
-void sonar_tx_burst(uint32_t cycles)
+void sonar_tx_burst(uint32_t cycles, int need_osc_suppression)
 {
 	gpio_set_level(IR_DSBL_PIN, 1);
 
@@ -133,6 +133,8 @@ void sonar_tx_burst(uint32_t cycles)
     mcpwm_generator_set_force_level(generator_1, 0, true);
 	mcpwm_generator_set_force_level(generator_2, 0, true);
 
-	esp_rom_delay_us(IR_DSBL_DELAY_US);
+	if(need_osc_suppression)
+		esp_rom_delay_us(IR_DSBL_DELAY_US);
+		
 	gpio_set_level(IR_DSBL_PIN, 0);
 }

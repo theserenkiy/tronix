@@ -27,7 +27,7 @@ esp_err_t sonar_adc_init(void)
 
 	esp_log_level_set("*", ESP_LOG_NONE);
 
-	// uart_set_baudrate(UART_PORT, UART_BAUDRATE);
+	uart_set_baudrate(UART_PORT, UART_BAUDRATE);
 
 	adc_continuous_handle_cfg_t adc_config = {
 		.max_store_buf_size = 32768,
@@ -39,7 +39,7 @@ esp_err_t sonar_adc_init(void)
 	);
 
 	adc_digi_pattern_config_t pattern = {
-		.atten     = ADC_ATTEN_DB_12,
+		.atten     = ADC_ATTEN_DB_0,
 		.channel   = ADC_CHANNEL_USED,
 		.unit      = ADC_UNIT_USED,
 		.bit_width = ADC_BITWIDTH_12,
@@ -63,7 +63,7 @@ esp_err_t sonar_adc_init(void)
 
 esp_err_t sonar_adc_capture(uint16_t *buffer, size_t samples)
 {
-	printf("ADC record started...\n");
+	// printf("ADC record started...\n");
 
 	uint8_t dma_buf[1024];
 
@@ -106,7 +106,7 @@ esp_err_t sonar_adc_capture(uint16_t *buffer, size_t samples)
 		adc_continuous_stop(adc_handle)
 	);
 
-	printf("ADC record done\n");
+	// printf("ADC record done\n");
 
 	return ESP_OK;
 }
