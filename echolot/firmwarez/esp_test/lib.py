@@ -170,7 +170,20 @@ def spectr(data, fs):
 def dsp(files):
 	data = readFiles([files[0]])[0]
 	dc = np.mean(data[int(len(data)/2):])
-	data = np.clip(data - dc, -1000, 1000)
+
+	data = data - dc
+
+	adata = np.abs(data)
+
+	env2 = np.zeros_like(adata)
+	alpha = 0.005
+	for i in range(1, len(adata)):
+		env2[i] = env2[i-1] + alpha * (abs(adata[i]) - env2[i-1])
+
+	
+
+	
+
 
 	fs = 500000
 
@@ -193,8 +206,8 @@ def dsp(files):
 	I_f = filtfilt(b, a, I)
 	Q_f = filtfilt(b, a, Q)
 
-	I_f2 = winfilt(I,50)
-	Q_f2 = winfilt(Q,50)
+	I_f2 = winfilt(I,100)
+	Q_f2 = winfilt(Q,100)
 
 	complex1 = I_f + 1j * Q_f
 	complex2 = I_f2 + 1j * Q_f2
@@ -203,5 +216,5 @@ def dsp(files):
 
 	c_mag1 = np.clip(mag1, 0, 100)
 	c_mag2 = np.clip(mag2, 0, 100)
-	displayData([data, mag1, c_mag1, mag2, c_mag2])
+	displayData([data, adata, env2, mag2, c_mag2])
 	# spectr(magnitude, fs)

@@ -18,7 +18,7 @@ void app_main()
 	int n = 0;
 	while(1)
 	{
-		sonar_tx_burst(32, n%2);
+		sonar_tx_burst(32, 1);
 		
 		if(is_first)
 		{

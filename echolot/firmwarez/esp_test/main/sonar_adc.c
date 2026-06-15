@@ -39,10 +39,10 @@ esp_err_t sonar_adc_init(void)
 	);
 
 	adc_digi_pattern_config_t pattern = {
-		.atten     = ADC_ATTEN_DB_0,
+		.atten     = ADC_ATTEN_DB_12,
 		.channel   = ADC_CHANNEL_USED,
 		.unit      = ADC_UNIT_USED,
-		.bit_width = ADC_BITWIDTH_12,
+		.bit_width = ADC_BITWIDTH_10,
 	};
 
 	adc_continuous_config_t dig_cfg = {

@@ -20,7 +20,7 @@
 
 #define ADC_UNIT_USED           ADC_UNIT_1
 #define ADC_CHANNEL_USED        ADC_CHANNEL_6     // GPIO34
-#define ADC_SAMPLE_FREQ_HZ      1000000
+#define ADC_SAMPLE_FREQ_HZ      500000
 
 #define ADC_RECORD_TIME_MS		40
 
