@@ -8,18 +8,30 @@
 #include <inttypes.h>
 
 
-
 #define TX_GPIO_1		13
-#define TX_GPIO_2		14
-#define MOSDRV_ENA_PIN		26
-#define DCDC_ENA_PIN		27
+#define TX_GPIO_2		14	//this used for IR2104
+#define MOSDRV_ENA_PIN	26
+#define DCDC_ENA_PIN	27
 
+// LCD params
+#define LCD_ROWS		160
+#define LCD_COLS		80
+#define LCD_SPI_SPEED		100000
+#define LCD_LED_PIN		5
+#define LCD_MOSI_PIN	18
+#define LCD_SCLK_PIN	19
+#define LCD_CS_PIN		23
+#define LCD_DC_PIN		21
+#define LCD_RST_PIN		22
+
+
+// TX params
 #define TX_FREQ_HZ   187000
 #define BURST_TO_BURST_DELAY_MS 40
 #define IR_DSBL_DELAY_US 1000
 #define MT_PRECHARGE_DELAY_MS	10
 
-
+// ADC params
 #define ADC_UNIT_USED           ADC_UNIT_1
 #define ADC_CHANNEL_USED        ADC_CHANNEL_6     // GPIO34
 #define ADC_SAMPLE_FREQ_HZ      500000
