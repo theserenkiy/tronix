@@ -92,5 +92,18 @@ def dsp(files):
 
 	c_mag1 = np.clip(mag1, 0, 100)
 	c_mag2 = np.clip(mag2, 0, 100)
-	displayData([data, adata, env2, mag2, c_mag2])
+
+	Ncycles = 32
+
+	Ns = int(round(Ncycles * fs / fhet))
+
+	t = np.arange(Ns) / fs
+
+	ref = np.sin(2*np.pi*fhet*t)
+
+	corr = np.correlate(data, ref[::-1], mode='same')
+	corr = np.abs(corr)
+	# corr = np.clip(corr,0,2000)
+
+	displayData([data, adata, env2, mag2, c_mag2, corr])
 	# spectr(magnitude, fs)

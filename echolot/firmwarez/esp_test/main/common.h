@@ -11,11 +11,13 @@
 
 #define TX_GPIO_1		13
 #define TX_GPIO_2		14
-#define IR_DSBL_PIN		26
+#define MOSDRV_ENA_PIN		26
+#define DCDC_ENA_PIN		27
 
 #define TX_FREQ_HZ   187000
 #define BURST_TO_BURST_DELAY_MS 40
 #define IR_DSBL_DELAY_US 1000
+#define MT_PRECHARGE_DELAY_MS	10
 
 
 #define ADC_UNIT_USED           ADC_UNIT_1

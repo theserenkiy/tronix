@@ -4,13 +4,29 @@
 #include "sonar_adc.h"
 #include "sonar_tx.h"
 
+#define NO_TX	0
 
 uint16_t buffer[ADC_RECORD_SAMPLES];
 
 void app_main()
 {
-	sonar_tx_init();
+	if(!NO_TX)
+	{
+		sonar_tx_init();
+	}
+	else
+	{
+		gpio_reset_pin(MOSDRV_ENA_PIN);
+		gpio_set_direction(MOSDRV_ENA_PIN, GPIO_MODE_OUTPUT);
+		gpio_set_level(MOSDRV_ENA_PIN, 1);
+
+		gpio_reset_pin(TX_GPIO_2);
+		gpio_set_direction(TX_GPIO_2, GPIO_MODE_OUTPUT);
+		gpio_set_level(TX_GPIO_2, 0);
+	}
+	
 	sonar_adc_init();
+
 
 	vTaskDelay(pdMS_TO_TICKS(1000));
 
@@ -18,7 +34,9 @@ void app_main()
 	int n = 0;
 	while(1)
 	{
-		sonar_tx_burst(32, 1);
+		if(!NO_TX)
+			sonar_tx_burst(32, 1);
+		
 		
 		if(is_first)
 		{
