@@ -16,7 +16,7 @@ void lcd_init(void)
 
 	gpio_reset_pin(LCD_LED_PIN);
 	gpio_set_direction(LCD_LED_PIN, GPIO_MODE_OUTPUT);
-	gpio_set_drive_capability(LCD_LED_PIN, GPIO_DRIVE_CAP_0);
+	gpio_set_drive_capability(LCD_LED_PIN, GPIO_DRIVE_CAP_1);
 	gpio_set_level(LCD_LED_PIN, 1);
 
 	gpio_reset_pin(LCD_RST_PIN);
@@ -28,7 +28,7 @@ void lcd_init(void)
 	// gpio_set_level(LCD_CS_PIN, 1);
 
 	gpio_reset_pin(LCD_DC_PIN);
-	gpio_set_direction(LCD_RST_PIN, GPIO_MODE_OUTPUT);
+	gpio_set_direction(LCD_DC_PIN, GPIO_MODE_OUTPUT);
 
 	// 1. Инициализация SPI шины с DMA
 	spi_bus_config_t bus_cfg = {
@@ -165,7 +165,7 @@ void lcd_init_registers() {
 
 	spi_write_cmd(0x36); // MADCTL - Настройка осей и порядка цвета
 	// !!!! or C8
-	spi_write_byte(0x78); // MY=1, MX=1, MV=0, BGR=1 (типичное значение)
+	spi_write_byte(0xC8); // MY=1, MX=1, MV=0, BGR=1 (типичное значение)
 
 	spi_write_cmd(0x3A); // COLMOD - Установка цветового режима
 	spi_write_byte(0x05); // 16 бит на пиксель (RGB565) [citation:6]
@@ -214,6 +214,7 @@ void lcd_set_window(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
     uint8_t data_y[] = { y1 >> 8, y1 & 0xFF, y2 >> 8, y2 & 0xFF };
     spi_write_data(data_y, 4);
 
+	spi_write_cmd(0x2C); // RAMWR - команда начала записи в RAM
 }
 
 // Заполнение экрана цветом
@@ -235,7 +236,7 @@ void lcd_fill_screen(uint8_t R, uint8_t G, uint8_t B) {
 	}
 
 	lcd_set_window(0,79,0,159);
-	spi_write_cmd(0x2C); // RAMWR - команда начала записи в RAM
+	
 	spi_write_data((uint8_t*)framebuf, 2*LCD_PIXELS);
 	printf("Screen fill completed!\n");
 

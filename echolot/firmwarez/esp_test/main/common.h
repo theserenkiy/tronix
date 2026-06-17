@@ -16,7 +16,7 @@
 // LCD params
 #define LCD_ROWS		160
 #define LCD_COLS		80
-#define LCD_SPI_SPEED		100000
+#define LCD_SPI_SPEED		1000000
 #define LCD_LED_PIN		5
 #define LCD_MOSI_PIN	18
 #define LCD_SCLK_PIN	19
