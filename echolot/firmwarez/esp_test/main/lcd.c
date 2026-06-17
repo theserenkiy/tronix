@@ -8,7 +8,8 @@
 
 static spi_device_handle_t spi_handle = NULL;
 
-static uint16_t framebuf[LCD_PIXELS];
+
+static uint8_t framebuf[LCD_PIXELS][2];
 
 void lcd_init(void)
 {
@@ -165,21 +166,10 @@ void lcd_init_registers() {
 
 	spi_write_cmd(0x36); // MADCTL - Настройка осей и порядка цвета
 	// !!!! or C8
-	spi_write_byte(0xC8); // MY=1, MX=1, MV=0, BGR=1 (типичное значение)
+	spi_write_byte(0xC0); // MY=1, MX=1, MV=0, BGR=1 (типичное значение)
 
 	spi_write_cmd(0x3A); // COLMOD - Установка цветового режима
 	spi_write_byte(0x05); // 16 бит на пиксель (RGB565) [citation:6]
-
-	// --- НАСТРОЙКА АДРЕСНОЙ ОБЛАСТИ ДЛЯ 80x160 ---
-	// Установка колонок (x): от 26 до 26+80-1 = 105
-	// spi_write_cmd(0x2A); // CASET
-	// uint8_t col_data[] = {0x00, 26, 0x00, 105};
-	// spi_write_data(col_data, 4);
-
-	// // Установка строк (y): от 1 до 1+160-1 = 160
-	// spi_write_cmd(0x2B); // RASET
-	// uint8_t row_data[] = {0x00, 1, 0x00, 160};
-	// spi_write_data(row_data, 4);
 
 	{ 
 		uint8_t d[] = {0x02,0x1C,0x07,0x12,0x37,0x32,0x29,0x2D,0x29,0x25,0x2B,0x39,0x00,0x01,0x03,0x10}; 
@@ -204,17 +194,30 @@ void lcd_set_window(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
     x1 += 26; x2 += 26;
     y1 += 1;  y2 += 1;
 
+
     // Столбцы (Column Address Set)
     spi_write_cmd(0x2A);
-    uint8_t data_x[] = { x1 >> 8, x1 & 0xFF, x2 >> 8, x2 & 0xFF };
+    uint8_t data_x[] = {0, x1, 0, x2};
     spi_write_data(data_x, 4);
 
     // Строки (Row Address Set)
     spi_write_cmd(0x2B);
-    uint8_t data_y[] = { y1 >> 8, y1 & 0xFF, y2 >> 8, y2 & 0xFF };
+    uint8_t data_y[] = {0, y1, 0, y2};
     spi_write_data(data_y, 4);
 
 	spi_write_cmd(0x2C); // RAMWR - команда начала записи в RAM
+}
+
+inline void packColor(uint8_t R, uint8_t G, uint8_t B, uint8_t* color)
+{
+	color[0] = (R & 0b11111000) | (G >> 5);
+	color[1] = ((G & 0b11111100) << 3) | (B >> 3);
+}
+
+inline void putPix(uint8_t* color, uint8_t* buf)
+{
+	*buf = color[0];
+	*(buf+1) = color[1];
 }
 
 // Заполнение экрана цветом
@@ -231,11 +234,15 @@ void lcd_fill_screen(uint8_t R, uint8_t G, uint8_t B) {
 	// 	((G & 0b11111100) << 3) | (B >> 3)
 	// };
 
+	uint8_t* col1, col2;
+	packColor(255,0,0,col1);
+	packColor(0,255,0,col2);
+
 	for (uint32_t i = 0; i < LCD_PIXELS; i++) {
 		framebuf[i] = (i & 8) ? 0xFFFF : 0x0000;
 	}
 
-	lcd_set_window(0,79,0,159);
+	lcd_set_window(0,0,79,159);
 	
 	spi_write_data((uint8_t*)framebuf, 2*LCD_PIXELS);
 	printf("Screen fill completed!\n");

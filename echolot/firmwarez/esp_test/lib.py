@@ -75,7 +75,7 @@ def displayFiles(files):
 	displayData(readFiles(files))
 
 
-def prepareRawData(raw):
+def extractRawData(raw):
 	full_view = memoryview(raw)
 
 	start = raw.find(bytes(">>DATA", encoding="utf-8"))
@@ -91,8 +91,15 @@ def prepareRawData(raw):
 
 	if (stop-start)%2:
 		stop -= 1
+	
+	return full_view[start+6:stop]
 
-	return np.frombuffer(full_view[start+6:stop], dtype=np.uint16)
+
+
+def prepareRawData(raw):
+	data = extractRawData(raw)
+
+	return np.frombuffer(data, dtype=np.uint16)
 
 
 def displayData(datas):

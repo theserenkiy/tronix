@@ -29,6 +29,30 @@ def winfilt(data, window=100):
 		mode='same'
 	)
 
+def winfilt2(data, alpha=0.005, imba=10):
+	env2 = np.zeros_like(data)
+	alpha2 = alpha*imba
+
+	for i in range(1, len(data)):
+		delta = abs(data[i]) - env2[i-1]
+		env2[i] = env2[i-1] + (alpha if delta < 0 else alpha2) * delta
+	
+	return env2
+
+
+def mancorr(sig, pattern):
+	pattern = pattern[::2]
+	sig = sig[::2]
+	res = np.zeros_like(sig, dtype=np.float64)
+	# win = np.zeros_like(pattern, dtype=np.float64)
+
+	plen = len(pattern)
+	for start in range(len(sig)-plen):
+		res[start] = np.mean(sig[start:start+plen] * pattern)
+
+	return np.abs(res)
+
+
 def spectr(data, fs):
 	N = len(data)
 	spectrum = np.fft.rfft(data)
@@ -43,25 +67,24 @@ def spectr(data, fs):
 	app.exec()
 
 
+def norm(data, meanalpha, filtalpha):
+	flt = winfilt2(data,filtalpha)
+	mean = winfilt2(flt,meanalpha)
+	return flt-mean
+
+
 def dsp(files):
 	data = readFiles([files[0]])[0]
+	data = data[]
 	dc = np.mean(data[int(len(data)/2):])
 
 	data = data - dc
 
 	adata = np.abs(data)
 
-	env2 = np.zeros_like(adata)
-	alpha = 0.005
-	for i in range(1, len(adata)):
-		env2[i] = env2[i-1] + alpha * (abs(adata[i]) - env2[i-1])
+	env2 = winfilt2(data,0.01)
 
-	
-
-	
-
-
-	fs = 500000
+	fs = 250000
 
 	# spectr(data, fs)
 	# return
@@ -105,5 +128,28 @@ def dsp(files):
 	corr = np.abs(corr)
 	# corr = np.clip(corr,0,2000)
 
-	displayData([data, adata, env2, mag2, c_mag2, corr])
+	mcorr = mancorr(data,ref)
+	mcenv = winfilt(mcorr,4000)
+	fmcorr = winfilt(mcorr,20)
+	
+	fmag = winfilt2(c_mag2,0.005)
+	mmag = winfilt2(fmag,0.0005)
+
+	displayData([
+		data, 
+		adata, 
+		env2, 
+		# mag2, 
+		c_mag2, 
+		fmag,
+		mmag,
+		fmag-mmag
+		# norm(c_mag2,0.00001,0.005)
+		
+		# corr,
+		# mcorr,
+		# mcenv,
+		# fmcorr,
+		# fmcorr-mcenv
+	])
 	# spectr(magnitude, fs)
