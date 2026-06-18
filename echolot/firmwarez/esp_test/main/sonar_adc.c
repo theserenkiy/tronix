@@ -1,33 +1,14 @@
 #include "sonar_adc.h"
-
 #include <string.h>
-
-#include "driver/uart.h"
 #include "esp_log.h"
-
 #include "esp_adc/adc_continuous.h"
 #include "hal/adc_types.h"
-
-
 
 static adc_continuous_handle_t adc_handle = NULL;
 
 esp_err_t sonar_adc_init(void)
 {
-	ESP_ERROR_CHECK(
-		uart_driver_install(
-			UART_NUM_0,
-			4096,   // RX buffer
-			0,      // TX buffer
-			0,
-			NULL,
-			0
-		)
-	);
-
-	esp_log_level_set("*", ESP_LOG_NONE);
-
-	uart_set_baudrate(UART_PORT, UART_BAUDRATE);
+	
 
 	adc_continuous_handle_cfg_t adc_config = {
 		.max_store_buf_size = 32768,
@@ -63,7 +44,7 @@ esp_err_t sonar_adc_init(void)
 
 esp_err_t sonar_adc_capture(uint16_t *buffer, size_t samples)
 {
-	// printf("ADC record started...\n");
+	//printf("ADC record started...\n");
 
 	uint8_t dma_buf[1024];
 
@@ -106,32 +87,11 @@ esp_err_t sonar_adc_capture(uint16_t *buffer, size_t samples)
 		adc_continuous_stop(adc_handle)
 	);
 
-	// printf("ADC record done\n");
+	printf("ADC record done\n");
 
 	return ESP_OK;
 }
 
-esp_err_t sonar_uart_send_buffer(uint16_t *buffer,
-								 size_t samples)
-{
-	size_t bytes =
-		samples * sizeof(uint16_t);
 
-	uart_write_bytes(UART_NUM_0, ">>DATA", 6);
-
-	int sent = //
-		uart_write_bytes(
-			UART_PORT,
-			(const char *)buffer,
-			bytes);
-
-	uart_write_bytes(UART_NUM_0, ">>DATAEND", 9);
-
-	//printf("BUF SENT QQ: %d\n", sent);
-
-	return (sent == bytes)
-		   ? ESP_OK
-		   : ESP_FAIL;
-}
 
 

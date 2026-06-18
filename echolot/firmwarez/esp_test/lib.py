@@ -82,12 +82,14 @@ def extractRawData(raw):
 	stop  = raw.find(bytes(">>DATAEND", encoding="utf-8"))
 
 	if start < 0:
-		print("Начало данных куда-то проебали. Это очень хуёво...")
-		exit()
+		# print("Начало данных куда-то проебали. Это очень хуёво...")
+		print("Начало данных куда-то проебали. Берем весь кусок!")
+		start = 0
+		# exit()
 
 	if stop < 0:
 		print("Конец данных куда-то проебали. Да и хуй с ним!")
-		# stop = (len(raw) >> 1) << 1
+		stop = len(raw)
 
 	if (stop-start)%2:
 		stop -= 1

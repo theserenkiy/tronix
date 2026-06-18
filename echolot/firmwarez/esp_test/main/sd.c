@@ -9,12 +9,17 @@
 #include "driver/gpio.h"
 #include "cons.h"
 #include "gps.h"
+#include "wav.h"
 
+int sd_mounted;
 
-static int sd_mounted = 0;
+sdmmc_card_t *card;
 
 void sd_init()
 {
+	printf("Initing SD card...\n");
+	sd_mounted = 0;
+
 	sdmmc_host_t host = SDSPI_HOST_DEFAULT();
 	host.slot = SPI2_HOST;
 
@@ -30,8 +35,6 @@ void sd_init()
 	};
 
 
-	sdmmc_card_t *card;
-
 	esp_err_t ret = esp_vfs_fat_sdspi_mount(
 		"/sdcard",
 		&host,
@@ -42,72 +45,108 @@ void sd_init()
 
 	if (ret != ESP_OK)
 	{
-		printf("SD mount failed: %s\n",
-			esp_err_to_name(ret)
-		);
+		con_err("SDcard mount failed");
 		sd_mounted = 0;
 		return;
 	}
 
-	sd_mounted = 1;
-	FILE *fp = fopen("check.tmp", "w");
-	fclose(fp);
-
+	printf("SD mount OK\n");
 	sdmmc_card_print_info(stdout, card);
+	sd_mounted = 1;
 
-	fp = fopen("/sdcard/test.txt","r");
-	char s[256];
-	fread(s,1,256,fp);
-	fclose(fp);
-	printf("FILE CONTENTS: %s\n",s);
+	delay_ms(100);
+
+
+	// if(!sd_check())
+	// {
+	// 	printf("Trying to write check.tmp...\n");
+	// 	FILE *fp = fopen("/sdcard/check.tmp", "w");
+	// 	char c = '1';
+	// 	fwrite(&c,1,1,fp);
+	// 	fclose(fp);
+	// 	printf("check.tmp written!\n");
+	// }
+
+	
+
+	// FILE *fp = fopen("/sdcard/test.txt","r");
+	// char s[256];
+	// fread(s,1,256,fp);
+	// fclose(fp);
+	// printf("FILE CONTENTS: %s\n",s);
 
 }
 
-static int sd_check()
+int sd_check()
 {
+	printf("Checking SD...\n");
 	if(!sd_mounted)
 		return 0;
 	
-	FILE *fp = fopen("check.tmp", "r");
-	if(!fp)
-		return 0;
-	fclose(fp);
+	// FILE *fp = fopen("/sdcard/check.tmp", "r");
+	// if(!fp)
+	// {
+	// 	printf("SD check failed...\n");
+	// 	return 0;
+	// }
+	// fclose(fp);
+	// printf("SD check OK!\n");
+
+	int ret = sdmmc_get_status(card);
+	printf("SD STATUS: %d\n",ret);
+	if (ret) {
+        printf("Карта не отвечает! Демонтаж файловой системы...\n");
+		if(sd_mounted)
+		{
+        	esp_vfs_fat_sdcard_unmount("/sdcard",card);
+			sd_mounted = 0;
+		}
+        return 0;
+    }
+
 	return 1;
 }
 
-void getCurBaseFileName(char *strnum)
+void getCurBaseFileName(char *bname)
 {
+	uint16_t num = 1;
 	FILE *fp = fopen("/sdcard/_num","r");
-	int num;
-	int len = fscanf(fp, "%d", &num);
-	fclose(fp);
-	if(!len)
-		num = 1;
+	if(fp)
+	{
+		int len = fscanf(fp, "%hd", &num);
+		fclose(fp);
+		if(!len)
+			num = 1;
+	}
 
 	fp = fopen("/sdcard/_num","w");
-	fprintf(fp, "%d", num+1);
+	fprintf(fp, "%hd", num+1);
 	fclose(fp);
 
-	sprintf(strnum, "/sdcard/save_%06d", num);
+	sprintf(bname, "/sdcard/save_%06d", num);
 }
 
-void sd_save_ping(uint16_t *buf, size_t len)
+int sd_save_ping(uint16_t *buf, size_t len)
 {
+	printf("Saving to SD...\n");
 	if(!sd_check())
 	{
 		con_err("SD card not connected\n");
 		return 0;
 	}
 
-	char bname[12];
+	char bname[24];
 	getCurBaseFileName(bname);
 
-	char fname[20];
-	sprintf(fname, "%s.bin",bname);
+	printf("Bname: %s\n", bname);
 
-	FILE *fp = fopen(fname, "w");
-	fwrite(buf, 2, len, fp);
-	fclose(fp);
+	char fname[32];
+	sprintf(fname, "%s.wav",bname);
+
+	printf("Trying save to %s\n",fname);
+
+	save_wav(buf, len, fname, 3125, 2);
+	
 
 	// sprintf(fname, "%s.info",bname);
 	// FILE *fp = fopen(fname,"w");
@@ -118,5 +157,6 @@ void sd_save_ping(uint16_t *buf, size_t len)
 	// fclose(fp);
 
 	printf("File write done\n");
-	
+
+	return 1;
 }

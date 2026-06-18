@@ -75,7 +75,7 @@ def norm(data, meanalpha, filtalpha):
 
 def dsp(files):
 	data = readFiles([files[0]])[0]
-	data = data[]
+	# data = data[]
 	dc = np.mean(data[int(len(data)/2):])
 
 	data = data - dc

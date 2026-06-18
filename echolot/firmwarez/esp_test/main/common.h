@@ -6,6 +6,9 @@
 #include "freertos/task.h"
 #include "esp_log.h"
 #include <inttypes.h>
+#include "cons.h"
+#include "lib.h"
+#include "gps.h"
 
 
 #define TX_GPIO_1		13
@@ -36,19 +39,37 @@
 
 
 // TX params
-#define TX_FREQ_HZ   187000
+#define TX_FREQ_HZ				187000
 #define BURST_TO_BURST_DELAY_MS 40
-#define IR_DSBL_DELAY_US 1000
+#define IR_DSBL_DELAY_US		1000
 #define MT_PRECHARGE_DELAY_MS	10
 
 // ADC params
 #define ADC_UNIT_USED           ADC_UNIT_1
 #define ADC_CHANNEL_USED        ADC_CHANNEL_6     // GPIO34
-#define ADC_SAMPLE_FREQ_HZ      500000
+#define ADC_SAMPLE_FREQ_HZ      250000
 
-#define ADC_RECORD_TIME_MS		40
+#define ADC_RECORD_TIME_MS		BURST_TO_BURST_DELAY_MS
 
 #define ADC_RECORD_SAMPLES		(int)(ADC_RECORD_TIME_MS*ADC_SAMPLE_FREQ_HZ/1000)
 
 #define UART_PORT               UART_NUM_0
 #define UART_BAUDRATE           921600
+
+
+typedef struct {
+	uint8_t sd_ok;
+	uint8_t time_set;
+	uint8_t date_set;
+	uint8_t gps_ok;
+	float lon;
+	float lat;
+	uint16_t filenum;
+	char time[64];
+	gps_data_t *gps;
+
+} dev_status_t;
+
+
+extern dev_status_t *DEVSTATUS;
+
