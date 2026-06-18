@@ -9,7 +9,7 @@
 static spi_device_handle_t spi_handle = NULL;
 
 
-static uint8_t framebuf[LCD_PIXELS][2];
+static uint8_t framebuf[LCD_PIXELS*2];
 
 void lcd_init(void)
 {
@@ -31,16 +31,7 @@ void lcd_init(void)
 	gpio_reset_pin(LCD_DC_PIN);
 	gpio_set_direction(LCD_DC_PIN, GPIO_MODE_OUTPUT);
 
-	// 1. Инициализация SPI шины с DMA
-	spi_bus_config_t bus_cfg = {
-		.mosi_io_num = LCD_MOSI_PIN,
-		.miso_io_num = -1,  // ST7735S в режиме SPI использует только MOSI
-		.sclk_io_num = LCD_SCLK_PIN,
-		.quadwp_io_num = -1,
-		.quadhd_io_num = -1,
-		.max_transfer_sz = LCD_PIXELS * 2,  // Макс. размер для DMA
-	};
-	ESP_ERROR_CHECK(spi_bus_initialize(SPI2_HOST, &bus_cfg, SPI_DMA_CH_AUTO));
+	
 
 	spi_device_interface_config_t dev_cfg = {
         .clock_speed_hz = LCD_SPI_SPEED,
@@ -234,7 +225,7 @@ void lcd_fill_screen(uint8_t R, uint8_t G, uint8_t B) {
 	// 	((G & 0b11111100) << 3) | (B >> 3)
 	// };
 
-	uint8_t* col1, col2;
+	uint8_t col1[2], col2[2];
 	packColor(255,0,0,col1);
 	packColor(0,255,0,col2);
 

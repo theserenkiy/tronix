@@ -13,16 +13,26 @@
 #define MOSDRV_ENA_PIN	26
 #define DCDC_ENA_PIN	27
 
+// SPI HOST2 params
+#define MOSI_PIN	18
+#define MISO_PIN	2
+#define SCLK_PIN	19
+
 // LCD params
 #define LCD_ROWS		160
 #define LCD_COLS		80
 #define LCD_SPI_SPEED		1000000
 #define LCD_LED_PIN		5
-#define LCD_MOSI_PIN	18
-#define LCD_SCLK_PIN	19
 #define LCD_CS_PIN		23
 #define LCD_DC_PIN		21
 #define LCD_RST_PIN		22
+
+// SD params
+#define SD_CS_PIN		4
+
+// GPS params
+#define GPS_TX_PIN		33
+#define GPS_RX_PIN		25
 
 
 // TX params
