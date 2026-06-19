@@ -1,4 +1,5 @@
 #include "wav.h"
+#include "esp_timer.h"
 
 // Отключаем выравнивание, чтобы структура занимала ровно 44 байта в памяти
 #pragma pack(push, 1)
@@ -55,8 +56,37 @@ void save_wav(uint16_t *buf, int nsamp, char* fname, uint32_t fs, uint8_t bitshi
 		.subchunk2Size = payload_size_bytes	
 	};
 	
-	FILE *fp = fopen(fname,"w");
+
+	static uint8_t io_buf[8192];
+
+	
+
+	uint64_t t0, t1, t2, t3;
+
+	t0 = esp_timer_get_time();
+
+
+
+	printf(">> WRITE FILE...\n");
+	FILE *fp = fopen(fname,"wb");
+	setvbuf(
+		fp,
+		(char *)io_buf,
+		_IOFBF,
+		sizeof(io_buf)
+	);
+	t1 = esp_timer_get_time();
+	printf("	open OK\n");
 	fwrite(&hdr,1,sizeof(WAVHeader),fp);
+	printf("	header OK\n");
 	fwrite(buf,2,nsamp,fp);
+	t2 = esp_timer_get_time();
+	printf("	payload OK\n");
 	fclose(fp);
+	t3 = esp_timer_get_time();
+	printf(">>> Written!\n");
+
+	printf("open  = %llu us\n", t1 - t0);
+	printf("write = %llu us\n", t2 - t1);
+	printf("close = %llu us\n", t3 - t2);
 }

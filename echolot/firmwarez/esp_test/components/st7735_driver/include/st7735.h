@@ -44,13 +44,15 @@ extern "C" {
 #define ST7735_WHITE   0xFFFF  /**< Branco */
 #define ST7735_RED     0xF800  /**< Vermelho */
 #define ST7735_GREEN   0x07E0  /**< Verde */
-#define ST7735_DARKGREEN   0x05E0  /**< Verde */
+#define ST7735_DARKGREEN   0x03E0  /**< Verde */
 #define ST7735_BLUE    0x001F  /**< Azul */
 #define ST7735_DARKBLUE    0x000F  /**< Azul */
+#define ST7735_TURQUOSE    0x0508  /**< Azul */
 #define ST7735_CYAN    0x07FF  /**< Ciano */
 #define ST7735_MAGENTA 0xF81F  /**< Magenta */
 #define ST7735_YELLOW  0xFFE0  /**< Amarelo */
 #define ST7735_ORANGE  0xFC00  /**< Laranja */
+#define ST7735_DARKORANGE  0x8300  /**< Laranja */
 #define ST7735_GRAY    0x7BEF  /**< Cinzento */
 
 /** Macro para criar cor RGB565 a partir de componentes RGB (0-255) */
@@ -72,6 +74,8 @@ typedef struct {
 } st7735_config_t;
 
 /* ==================== Funções Públicas ==================== */
+
+void st7735_sleep(int state);
 
 /**
  * @brief Inicializa o display ST7735

@@ -1,20 +1,11 @@
 #include <stdio.h>
 #include <inttypes.h>
+#include <time.h>
 
 int main()
 {
-	char *ptr = 
-	n = sscanf(
-        ptr,
-        "$GPRMC,%*f,%c,%lf,%c,%lf,%c,%*f,%*f,%d",
-        &status,
-        &lat_raw,
-        &ns,
-        &lon_raw,
-        &ew,
-        &date);
-
-
-
+	time_t rawtime;
+	time(&rawtime);
+	printf("TIME: %d\n",(int)rawtime);
 	return 0;
 }

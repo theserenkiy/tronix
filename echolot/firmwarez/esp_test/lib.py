@@ -75,6 +75,10 @@ def displayFiles(files):
 	displayData(readFiles(files))
 
 
+def extractRawDataWAV(raw):
+	full_view = memoryview(raw)
+	return full_view[44:]
+
 def extractRawData(raw):
 	full_view = memoryview(raw)
 
@@ -99,7 +103,7 @@ def extractRawData(raw):
 
 
 def prepareRawData(raw):
-	data = extractRawData(raw)
+	data = extractRawDataWAV(raw)
 
 	return np.frombuffer(data, dtype=np.uint16)
 

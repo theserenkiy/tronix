@@ -28,6 +28,10 @@ typedef struct
 
 void gps_init(void);
 
+void gps_task(void *prm);
+
+void gps_enable(uint8_t state);
+
 void gps_read();
 
 void gps_get_data(gps_data_t *gps);

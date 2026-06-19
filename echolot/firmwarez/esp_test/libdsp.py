@@ -113,8 +113,8 @@ def dsp(files):
 	mag1 = np.abs(complex1)
 	mag2 = np.abs(complex2)
 
-	c_mag1 = np.clip(mag1, 0, 100)
-	c_mag2 = np.clip(mag2, 0, 100)
+	c_mag1 = mag1 #np.clip(mag1, 0, 100)
+	c_mag2 = mag2 #np.clip(mag2, 0, 100)
 
 	Ncycles = 32
 

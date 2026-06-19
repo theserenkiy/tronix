@@ -1,7 +1,8 @@
 #include "common.h"
 #include "lcd2.h"
 
-
+int is_sleeping = 0;
+int is_waveform = 0;
 
 void lcd2_init(void)
 {
@@ -35,44 +36,89 @@ void lcd2_init(void)
 	st7735_fill_screen(ST7735_BLACK);
 	
 	
-	xTaskCreate(
-		lcd2_task,    // Pointer to the task function
-		"LCD_TASK",    // Debug name string (Max 16 chars)
-		4096,              // Stack size in BYTES (Note: Vanilla FreeRTOS uses words, ESP32 uses bytes)
-		NULL,              // Pointer to pass parameters (NULL if none)
-		1,                 // Task priority (Higher number = Higher priority)
-		NULL              // Task handle pointer (NULL if not needed)
-	);
+}
+
+void drawBlock(char *caption, int y, uint16_t color,  char *msg)
+{
+	st7735_fill_rect(0,y,20,11,color);
+	// st7735_fill_rect(20,y,140,11,0);
+	st7735_draw_string(2, y+2, caption, ST7735_WHITE, color, 1);
+	st7735_draw_string(25, y+2, msg, ST7735_WHITE, 0, 1);
 }
 
 void lcd2_update()
 {
-	{
-		uint16_t color = DEVSTATUS->sd_ok ? ST7735_DARKGREEN : ST7735_RED;
-		st7735_fill_rect(0,0,16,11,color);
-		st7735_draw_string(2, 2, "SD", ST7735_WHITE, color, 1);
-	}
+	if(is_sleeping || is_waveform)
+		return;
+	printf("LCD UPDATE...\n");
 
-	// {
-	// 	uint16_t color = DEVSTATUS->gps_ok ? ST7735_DARKBLUE : ST7735_RED;
-	// 	st7735_fill_rect(18,0,20,11,color);
-	// 	st7735_draw_string(2, 22, "GPS", ST7735_WHITE, color, 1);
-	// }
+	drawBlock(
+		"TIM",
+		0, 
+		DSTAT->time_set && DSTAT->date_set ? ST7735_TURQUOSE : ST7735_RED,  
+		DSTAT->datetime
+	);
+	char fnum[10];
+	sprintf(fnum,"%d",DSTAT->filenum);
+	drawBlock(
+		"SD", 
+		12, 
+		DSTAT->sd_ok ? ST7735_DARKGREEN : ST7735_RED, 
+		fnum
+	);
+	drawBlock(
+		"GPS",
+		24, 
+		DSTAT->gps_enabled 
+			? (DSTAT->gps_ok ?  ST7735_DARKBLUE : ST7735_RED)
+			: ST7735_DARKORANGE, 
+		DSTAT->gps_str
+	);
 
-	// st7735_draw_string(40, 2, DEVSTATUS->time, ST7735_WHITE, 0, 1);
+	printf("LCD UPDATE OK\n");
 }
 
-void lcd2_task(void *prm)
+void lcd2_sleep(int state)
 {
-	
+	printf("LCD SLEEP %d\n",state);
+	is_sleeping = state;
+	st7735_sleep(state);
 
-	while (1) {
+	if(!state)
+		lcd2_update();
+}
 
-		
 
-
-		vTaskDelay(pdMS_TO_TICKS(1000));
+void lcd2_waveform(uint16_t *buf, int samples, int toggle)
+{
+	st7735_fill_screen(0);
+	if(toggle && is_waveform)
+	{
+		is_waveform = 0;
+		lcd2_update();
+		return;
 	}
-
-	vTaskDelete(NULL); 
+	is_waveform = 1;
+	
+	float ysc = 51.2;
+	float xsc = samples/160;
+	int min,max,start,end;
+	for(int x=0; x < 160; x++)
+	{
+		min=4095;
+		max=0;
+		start=(int)(x*xsc);
+		end=(int)(start+xsc);
+		for(int i=start; i < end; i++)
+		{
+			if(buf[i] > max)
+				max = buf[i];
+			if(buf[i] < min)
+				min = buf[i];
+		}
+		max = (int)(max/ysc);
+		min = (int)(min/ysc);
+		printf("max %d min %d\n",max,min);
+		st7735_fill_rect(x,80-max,1,max-min,0xFFFF);
+	}
 }

@@ -111,9 +111,20 @@ void sonar_tx_init(void)
 	ESP_ERROR_CHECK(mcpwm_timer_enable(timer_1));
 }
 
+void sonar_precharge(int ms)
+{
+	sonar_charge(1);
+	vTaskDelay(pdMS_TO_TICKS(ms));
+}
+
+void sonar_charge(int state)
+{
+	gpio_set_level(DCDC_ENA_PIN, state);
+}
+
 void sonar_tx_burst(uint32_t cycles, int need_osc_suppression)
 {
-	gpio_set_level(DCDC_ENA_PIN, 1);
+	sonar_charge(1);
 	vTaskDelay(pdMS_TO_TICKS(MT_PRECHARGE_DELAY_MS));
 
 	gpio_set_level(MOSDRV_ENA_PIN, 1);
@@ -144,5 +155,5 @@ void sonar_tx_burst(uint32_t cycles, int need_osc_suppression)
 		esp_rom_delay_us(IR_DSBL_DELAY_US);
 		
 	gpio_set_level(MOSDRV_ENA_PIN, 0);
-	gpio_set_level(DCDC_ENA_PIN, 0);
+	sonar_charge(0);
 }

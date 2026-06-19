@@ -7,8 +7,7 @@
 #include "sd.h"
 #include "gps.h"
 #include "uart_logger.h"
-#include <time.h>
-#include <sys/time.h>
+
 
 #define TX_ENA	0
 #define ADC_ENA 1
@@ -38,14 +37,23 @@ dev_status_t dstat = {
 	.time_set = 0,
 	.date_set = 0,
 	.filenum = -1,
+	.gps_updtime = 0,
+	.gps_str = "--.----  --.---- S--",
 	.lon = 0,
 	.lat = 0,
-	.time = ""
+	.satnum = 0,
+	.datetime = "",
+	.gps_enabled = 1
 };
-dev_status_t *DEVSTATUS;
+dev_status_t *DSTAT;
+
+SemaphoreHandle_t spi_mutex = NULL;
+
+char info[1024];
 
 void status_task(void *prm)
 {
+	
 	while(1)
 	{
 		time_t now;
@@ -54,24 +62,53 @@ void status_task(void *prm)
 		localtime_r(&now, &timeinfo);
 
 		// Time update
-		strftime(DEVSTATUS->time, sizeof(DEVSTATUS->time), "%H:%M:%S", &timeinfo);
+		strftime(DSTAT->datetime, sizeof(DSTAT->datetime), "%Y.%m.%d %H:%M:%S", &timeinfo);
 
 		// SD card
 		if(!sd_check())
 		{
 			sd_init();
-			DEVSTATUS->sd_ok = sd_check();
+			DSTAT->sd_ok = sd_check();
 		}
 
 		
-		gps_read();
-		char info[1024];
-		gps_info(info);
-		printf("GPS INFO: \n%s\n",info);
+		DSTAT->gps_ok = DSTAT->gps_updtime && DSTAT->gps_updtime > now-30;
+
+		// gps_info(info);
+		// printf("GPS INFO: \n%s\n",info);
 
 
 		lcd2_update();
-		delay_ms(1000);
+		vTaskDelay(pdMS_TO_TICKS(1000));
+	}
+}
+
+void make_measure()
+{
+	lcd2_sleep(1);
+	gps_enable(0);
+	sonar_precharge(200);
+	sonar_tx_burst(32, 1);
+	sonar_adc_capture(buffer, ADC_RECORD_SAMPLES);
+	// uart_logger_send_buffer(buffer, ADC_RECORD_SAMPLES);
+	sd_save_ping(buffer, ADC_RECORD_SAMPLES);
+	lcd2_waveform(buffer, ADC_RECORD_SAMPLES, 0);
+	sonar_charge(1);
+	lcd2_sleep(0);
+	gps_enable(1);
+}
+
+void button_pressed(int num)
+{
+	printf("BUTTON PRESSED %d\n",num);
+	if(num==0)
+	{
+		make_measure();	
+	}
+	else if(num==1)
+	{
+		lcd2_waveform(buffer, ADC_RECORD_SAMPLES, 1);
+		
 	}
 }
 
@@ -79,13 +116,17 @@ void app_main()
 {
 	printf("Entering app_main...\n");
 
-	DEVSTATUS = &dstat;
+	DSTAT = &dstat;
+	spi_mutex = xSemaphoreCreateMutex();
 
 	init_spi2_host();
 	sd_init();
 	gps_init();
 
 	lcd2_init();
+	sonar_tx_init();
+	sonar_adc_init();
+	sonar_charge(1);
 
 	xTaskCreate(
 		status_task,    // Pointer to the task function
@@ -95,57 +136,60 @@ void app_main()
 		1,                 // Task priority (Higher number = Higher priority)
 		NULL              // Task handle pointer (NULL if not needed)
 	);
+
+	xTaskCreate(
+		gps_task,    // Pointer to the task function
+		"GPS_TASK",    // Debug name string (Max 16 chars)
+		4096,              // Stack size in BYTES (Note: Vanilla FreeRTOS uses words, ESP32 uses bytes)
+		NULL,              // Pointer to pass parameters (NULL if none)
+		1,                 // Task priority (Higher number = Higher priority)
+		NULL              // Task handle pointer (NULL if not needed)
+	);
 	
 
-	if(TX_ENA)
-	{
-		sonar_tx_init();
-	}
-	else
-	{
-		gpio_reset_pin(MOSDRV_ENA_PIN);
-		gpio_set_direction(MOSDRV_ENA_PIN, GPIO_MODE_OUTPUT);
-		gpio_set_level(MOSDRV_ENA_PIN, 1);
+	// if(TX_ENA)
+	// {
+		
+	// }
+	// else
+	// {
+	// 	gpio_reset_pin(MOSDRV_ENA_PIN);
+	// 	gpio_set_direction(MOSDRV_ENA_PIN, GPIO_MODE_OUTPUT);
+	// 	gpio_set_level(MOSDRV_ENA_PIN, 1);
 
-		gpio_reset_pin(TX_GPIO_2);
-		gpio_set_direction(TX_GPIO_2, GPIO_MODE_OUTPUT);
-		gpio_set_level(TX_GPIO_2, 0);
-	}
+	// 	gpio_reset_pin(TX_GPIO_2);
+	// 	gpio_set_direction(TX_GPIO_2, GPIO_MODE_OUTPUT);
+	// 	gpio_set_level(TX_GPIO_2, 0);
+	// }
 	
-	if(ADC_ENA)
-		sonar_adc_init();
+		
 	
 	// lcd_init();
 
-	vTaskDelay(pdMS_TO_TICKS(1000));
+	
 
-	int is_first = 1;
-	int n = 0;
+	int buttons[] = {BUT1_PIN,1,BUT2_PIN,1}; 
+
+	for(int i=0; i < 4; i+=2)
+	{
+		gpio_reset_pin(buttons[i]);
+		gpio_set_direction(buttons[i], GPIO_MODE_INPUT);
+		gpio_set_pull_mode(buttons[i], GPIO_PULLUP_ONLY);
+	}
+	int butlvl;
 	while(1)
 	{
-		if(TX_ENA)
-			sonar_tx_burst(32, 1);
-		
-		
-		if(ADC_ENA)
+		for(int i=0; i < 4;i+=2)
 		{
-			if(is_first)
+			butlvl = gpio_get_level(buttons[i]);
+			if(!butlvl && buttons[i+1])
 			{
-				sonar_adc_capture(buffer, ADC_RECORD_SAMPLES);
-				// uart_logger_send_buffer(buffer, ADC_RECORD_SAMPLES);
-				sd_save_ping(buffer, ADC_RECORD_SAMPLES);
-				// break;
+				button_pressed(i >> 1);
 			}
-			is_first = 0;
+
+			buttons[i+1] = butlvl;
 		}
-
-		// lcd_fill_screen(0,0,0);
-
-		n++;
-
-		// vTaskDelay(pdMS_TO_TICKS(BURST_TO_BURST_DELAY_MS));
-		vTaskDelay(pdMS_TO_TICKS(1000));
-		
+		vTaskDelay(pdMS_TO_TICKS(20));
 	}
 	
 }

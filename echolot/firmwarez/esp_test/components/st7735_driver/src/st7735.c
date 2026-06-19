@@ -10,10 +10,11 @@
 #include "esp_heap_caps.h"
 #include "st7735.h"
 #include "st7735_commands.h"
+#include "common.h"
 
 static const char *TAG = "ST7735";
 
-#define SPI_CLOCK_SPEED_HZ  (8 * 1000 * 1000)
+#define SPI_CLOCK_SPEED_HZ  (20 * 1000 * 1000)
 #define MAX_TRANSFER_SIZE   (160 * 80 * 2 + 8)
 
 static spi_device_handle_t spi = NULL;
@@ -75,17 +76,49 @@ static const uint8_t font5x7[96 * 5] = {
     0x08,0x08,0x2A,0x1C,0x08, 0x00,0x00,0x00,0x00,0x00
 };
 
+static void transmit(spi_transaction_t *t, int dc, int delay_ms)
+{
+    if (spi_mutex == NULL) {
+        return; // Мьютекс не инициализирован
+    }
+
+    // Пытаемся захватить мьютекс (ждем timeout_ticks, если шина занята)
+    if (xSemaphoreTake(spi_mutex, pdMS_TO_TICKS(200)) == pdTRUE) {
+        
+        gpio_set_level(dc_pin, dc);
+        // Мьютекс у нас! Безопасно отправляем данные
+        esp_err_t ret = spi_device_transmit(spi, t);
+        
+        if(delay_ms)
+            vTaskDelay(pdMS_TO_TICKS(delay_ms));
+
+        // Обязательно освобождаем мьютекс после окончания передачи!
+        xSemaphoreGive(spi_mutex);
+        
+        return;
+    } else {
+        printf("Mutex timed out\n");
+        // Время ожидания вышло, шина была долго занята другой задачей
+        return; 
+    }
+
+   
+}
+
 static void write_command(uint8_t cmd) {
     spi_transaction_t t = { .length = 8, .tx_buffer = &cmd };
-    gpio_set_level(dc_pin, 0);
-    spi_device_polling_transmit(spi, &t);
+    transmit(&t,0,0);
+}
+
+static void write_command_delayed(uint8_t cmd, int delay_ms) {
+    spi_transaction_t t = { .length = 8, .tx_buffer = &cmd };
+    transmit(&t,0,delay_ms);
 }
 
 static void write_data(const uint8_t *data, size_t len) {
     if (len == 0) return;
     spi_transaction_t t = { .length = len * 8, .tx_buffer = data };
-    gpio_set_level(dc_pin, 1);
-    spi_device_polling_transmit(spi, &t);
+    transmit(&t,1,0);
 }
 
 static inline void write_data_byte(uint8_t byte) {
@@ -103,6 +136,18 @@ static void set_address_window(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y
     data[2] = (y1 + rowstart) >> 8; data[3] = (y1 + rowstart) & 0xFF;
     write_data(data, 4);
     write_command(ST7735_RAMWR);
+}
+
+void st7735_sleep(int state)
+{
+    if(state)
+    {
+        write_command_delayed(ST7735_SLPIN,150); 
+    }
+    else
+    {
+        write_command_delayed(ST7735_SLPOUT,150); 
+    }
 }
 
 esp_err_t st7735_init(const st7735_config_t *cfg) {

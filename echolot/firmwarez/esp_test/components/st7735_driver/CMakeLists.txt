@@ -3,4 +3,5 @@ idf_component_register(
          "src/graphics.c"
     INCLUDE_DIRS "include"
     REQUIRES driver esp_timer log esp_hw_support esp_driver_spi esp_driver_gpio
+    PRIV_REQUIRES main
 )

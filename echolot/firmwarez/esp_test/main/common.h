@@ -9,6 +9,9 @@
 #include "cons.h"
 #include "lib.h"
 #include "gps.h"
+#include <time.h>
+#include <sys/time.h>
+#include "freertos/semphr.h"
 
 
 #define TX_GPIO_1		13
@@ -36,6 +39,11 @@
 // GPS params
 #define GPS_TX_PIN		33
 #define GPS_RX_PIN		25
+#define GPS_ENA_PIN		32
+
+// Buttons
+#define BUT1_PIN		17
+#define BUT2_PIN		16
 
 
 // TX params
@@ -62,14 +70,19 @@ typedef struct {
 	uint8_t time_set;
 	uint8_t date_set;
 	uint8_t gps_ok;
+	time_t gps_updtime;
 	float lon;
 	float lat;
-	uint16_t filenum;
-	char time[64];
+	uint8_t satnum;
+	char gps_str[24];
+	int16_t filenum;
+	char datetime[64];
 	gps_data_t *gps;
+	uint8_t gps_enabled;
 
 } dev_status_t;
 
 
-extern dev_status_t *DEVSTATUS;
+extern dev_status_t *DSTAT;
 
+extern SemaphoreHandle_t spi_mutex;
