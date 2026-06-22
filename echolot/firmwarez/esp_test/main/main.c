@@ -12,8 +12,12 @@
 #define TX_ENA	0
 #define ADC_ENA 1
 
+#define NCYCLES	5
 
-uint16_t buffer[ADC_RECORD_SAMPLES];
+
+
+// uint16_t buffer[ADC_RECORD_SAMPLES];
+uint16_t big_buffer[ADC_RECORD_SAMPLES*6];
 
 void init_spi2_host()
 {
@@ -21,11 +25,11 @@ void init_spi2_host()
 	// 1. Инициализация SPI шины с DMA
 	spi_bus_config_t bus_cfg = {
 		.mosi_io_num = MOSI_PIN,
-		.miso_io_num = MISO_PIN,  // ST7735S в режиме SPI использует только MOSI
+		.miso_io_num = MISO_PIN,
 		.sclk_io_num = SCLK_PIN,
 		.quadwp_io_num = -1,
 		.quadhd_io_num = -1,
-		.max_transfer_sz = 24000,  // Макс. размер для DMA
+		.max_transfer_sz = 24000, 
 	};
 	ESP_ERROR_CHECK(spi_bus_initialize(SPI2_HOST, &bus_cfg, SPI_DMA_CH_AUTO));
 	printf("SPI2 host init done!\n");
@@ -78,24 +82,48 @@ void status_task(void *prm)
 		// printf("GPS INFO: \n%s\n",info);
 
 
-		lcd2_update();
+		// lcd2_update();
 		vTaskDelay(pdMS_TO_TICKS(1000));
 	}
 }
 
 void make_measure()
 {
-	lcd2_sleep(1);
+	
+	FILE *fp = sd_open_wav(ADC_RECORD_SAMPLES*NCYCLES*6);
+
+	// lcd2_sleep(1);
+	// lcd2_sleep(1);
 	gps_enable(0);
-	sonar_precharge(200);
-	sonar_tx_burst(32, 1);
-	sonar_adc_capture(buffer, ADC_RECORD_SAMPLES);
-	// uart_logger_send_buffer(buffer, ADC_RECORD_SAMPLES);
-	sd_save_ping(buffer, ADC_RECORD_SAMPLES);
-	lcd2_waveform(buffer, ADC_RECORD_SAMPLES, 0);
+	sonar_precharge(500);
+	for(int cyc=0; cyc < 1; cyc++)
+	{
+		for(int i=0; i < 3; i++)
+		{
+			// sonar_tx_burst(32, 1);
+			sonar_ping();
+			sonar_adc_capture(big_buffer+(ADC_RECORD_SAMPLES *i), ADC_RECORD_SAMPLES);
+			delay_ms(BURST_TO_BURST_DELAY_MS);
+			// uart_logger_send_buffer(buffer, ADC_RECORD_SAMPLES);
+		}
+
+		for(int i=3; i < 6; i++)
+		{
+			// sonar_tx_burst(32, 1);
+			sonar_ping2();
+			sonar_adc_capture(big_buffer+(ADC_RECORD_SAMPLES *i), ADC_RECORD_SAMPLES);
+			delay_ms(BURST_TO_BURST_DELAY_MS);
+			// uart_logger_send_buffer(buffer, ADC_RECORD_SAMPLES);
+		}
+		fwrite(big_buffer,2,ADC_RECORD_SAMPLES*6,fp);
+	}
+	fclose(fp);
+	printf("File closed\n");
+	// sd_save_ping(big_buffer, ADC_RECORD_SAMPLES*6);
+	// lcd2_sleep(0);
+	// lcd2_waveform(big_buffer, ADC_RECORD_SAMPLES, 0);
 	sonar_charge(1);
-	lcd2_sleep(0);
-	gps_enable(1);
+	// gps_enable(1);
 }
 
 void button_pressed(int num)
@@ -107,7 +135,7 @@ void button_pressed(int num)
 	}
 	else if(num==1)
 	{
-		lcd2_waveform(buffer, ADC_RECORD_SAMPLES, 1);
+		lcd2_waveform(big_buffer, ADC_RECORD_SAMPLES, 1);
 		
 	}
 }
@@ -115,15 +143,33 @@ void button_pressed(int num)
 void app_main()
 {
 	printf("Entering app_main...\n");
-
 	DSTAT = &dstat;
+
+	gpio_reset_pin(LCD_CS_PIN);
+	gpio_set_direction(LCD_CS_PIN, GPIO_MODE_OUTPUT);
+	gpio_set_level(LCD_CS_PIN,1);
+
+	init_spi2_host();
+	sd_init();
+
+	printf("opening file...\n");
+	FILE *fp = fopen("/sdcard/test.wav","wb");
+	printf("opened!\n");
+	fwrite(big_buffer,2,ADC_RECORD_SAMPLES*6,fp);
+	printf("written\n");
+	fclose(fp);
+	printf("Closed.\n");
+	return;
+
+
+	
 	spi_mutex = xSemaphoreCreateMutex();
 
 	init_spi2_host();
 	sd_init();
-	gps_init();
+	// gps_init();
 
-	lcd2_init();
+	// lcd2_init();
 	sonar_tx_init();
 	sonar_adc_init();
 	sonar_charge(1);
@@ -137,14 +183,14 @@ void app_main()
 		NULL              // Task handle pointer (NULL if not needed)
 	);
 
-	xTaskCreate(
-		gps_task,    // Pointer to the task function
-		"GPS_TASK",    // Debug name string (Max 16 chars)
-		4096,              // Stack size in BYTES (Note: Vanilla FreeRTOS uses words, ESP32 uses bytes)
-		NULL,              // Pointer to pass parameters (NULL if none)
-		1,                 // Task priority (Higher number = Higher priority)
-		NULL              // Task handle pointer (NULL if not needed)
-	);
+	// xTaskCreate(
+	// 	gps_task,    // Pointer to the task function
+	// 	"GPS_TASK",    // Debug name string (Max 16 chars)
+	// 	4096,              // Stack size in BYTES (Note: Vanilla FreeRTOS uses words, ESP32 uses bytes)
+	// 	NULL,              // Pointer to pass parameters (NULL if none)
+	// 	1,                 // Task priority (Higher number = Higher priority)
+	// 	NULL              // Task handle pointer (NULL if not needed)
+	// );
 	
 
 	// if(TX_ENA)

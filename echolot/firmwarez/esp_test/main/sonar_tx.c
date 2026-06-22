@@ -122,12 +122,41 @@ void sonar_charge(int state)
 	gpio_set_level(DCDC_ENA_PIN, state);
 }
 
-void sonar_tx_burst(uint32_t cycles, int need_osc_suppression)
+void sonar_ping()
 {
 	sonar_charge(1);
 	vTaskDelay(pdMS_TO_TICKS(MT_PRECHARGE_DELAY_MS));
-
 	gpio_set_level(MOSDRV_ENA_PIN, 1);
+
+	sonar_tx_burst(10);
+	esp_rom_delay_us(40);
+	sonar_tx_burst(10);
+	esp_rom_delay_us(40);
+	sonar_tx_burst(10);
+	esp_rom_delay_us(40);
+	sonar_tx_burst(10);
+
+
+	esp_rom_delay_us(IR_DSBL_DELAY_US);
+	gpio_set_level(MOSDRV_ENA_PIN, 0);
+	sonar_charge(0);
+}
+
+void sonar_ping2()
+{
+	sonar_charge(1);
+	vTaskDelay(pdMS_TO_TICKS(MT_PRECHARGE_DELAY_MS));
+	gpio_set_level(MOSDRV_ENA_PIN, 1);
+
+	sonar_tx_burst(60);
+	
+	esp_rom_delay_us(IR_DSBL_DELAY_US);
+	gpio_set_level(MOSDRV_ENA_PIN, 0);
+	sonar_charge(0);
+}
+
+void sonar_tx_burst(uint32_t cycles)
+{
 
     uint32_t burst_us =
         (cycles * 1000000ULL) / TX_FREQ_HZ;
@@ -151,9 +180,5 @@ void sonar_tx_burst(uint32_t cycles, int need_osc_suppression)
     mcpwm_generator_set_force_level(generator_1, 0, true);
 	mcpwm_generator_set_force_level(generator_2, 0, true);
 
-	if(need_osc_suppression)
-		esp_rom_delay_us(IR_DSBL_DELAY_US);
-		
-	gpio_set_level(MOSDRV_ENA_PIN, 0);
-	sonar_charge(0);
+	
 }

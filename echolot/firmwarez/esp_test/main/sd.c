@@ -29,13 +29,24 @@ void sd_init()
 	printf("Initing SD card...\n");
 	sd_mounted = 0;
 
+	gpio_config_t miso_config = {
+		.pin_bit_mask = (1ULL << MISO_PIN), // Замените PIN_MISO на ваш пин
+		.mode = GPIO_MODE_INPUT,
+		.pull_up_en = GPIO_PULLUP_ENABLE,
+		.pull_down_en = GPIO_PULLDOWN_DISABLE,
+		.intr_type = GPIO_INTR_DISABLE
+	};
+	gpio_config(&miso_config);
+
 	sdmmc_host_t host = SDSPI_HOST_DEFAULT();
+	host.max_freq_khz = 10000;
 	host.slot = SPI2_HOST;
 
 	sdspi_device_config_t slot_config =	SDSPI_DEVICE_CONFIG_DEFAULT();
 
 	slot_config.gpio_cs = SD_CS_PIN;
 	slot_config.host_id = SPI2_HOST;
+	// slot_config.clock = 400000; 
 
 	esp_vfs_fat_sdmmc_mount_config_t mount_config = {
 		.format_if_mount_failed = false,
@@ -131,6 +142,27 @@ void get_info(char *str)
 	);
 }
 
+FILE * sd_open_wav(int len)
+{
+	printf("Saving to SD...\n");
+	if(!sd_check())
+	{
+		con_err("SD card not connected\n");
+		return NULL;
+	}
+
+	char bname[24];
+	DSTAT->filenum++;
+	sprintf(bname, "/sdcard/save_%06d", DSTAT->filenum);
+
+	printf("Bname: %s\n", bname);
+
+	char fname[32];
+	sprintf(fname, "%s.wav",bname);
+	printf("Trying save to %s\n",fname);
+	return open_wav(len, fname, 3125);
+}
+
 
 int sd_save_ping(uint16_t *buf, size_t len)
 {
@@ -152,11 +184,11 @@ int sd_save_ping(uint16_t *buf, size_t len)
 	printf("Trying save to %s\n",fname);
 	save_wav(buf, len, fname, 3125, 0);
 
-	sprintf(fname, "%s.txt",bname);
-	get_info(record_info);
-	FILE *fp = fopen(fname, "w");
-	fputs(record_info, fp);
-	fclose(fp);
+	// sprintf(fname, "%s.txt",bname);
+	// get_info(record_info);
+	// FILE *fp = fopen(fname, "w");
+	// fputs(record_info, fp);
+	// fclose(fp);
 
 
 
@@ -170,7 +202,7 @@ int sd_save_ping(uint16_t *buf, size_t len)
 	// fwrite();
 	// fclose(fp);
 
-	printf("File write done\n");
+	// printf("File write done\n");
 
 	return 1;
 }

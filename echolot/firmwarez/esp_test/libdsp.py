@@ -72,6 +72,11 @@ def norm(data, meanalpha, filtalpha):
 	mean = winfilt2(flt,meanalpha)
 	return flt-mean
 
+def genN(N,fs,fhet):
+	Ns = int(round(N * fs / 187000))
+	# Ns = N * fs / 187000
+	t = np.arange(Ns) / fs
+	return np.sin(2*np.pi*fhet*t)
 
 def dsp(files):
 	data = readFiles([files[0]])[0]
@@ -116,15 +121,13 @@ def dsp(files):
 	c_mag1 = mag1 #np.clip(mag1, 0, 100)
 	c_mag2 = mag2 #np.clip(mag2, 0, 100)
 
-	Ncycles = 32
+	ref0 = genN(32,fs,fhet)
+	ref = genN(10,fs,fhet)
+	zz = np.zeros(int(40/(1e6/fs)))
+	ref2 = np.concatenate((ref, zz, ref, zz, ref, zz, ref))
 
-	Ns = int(round(Ncycles * fs / fhet))
 
-	t = np.arange(Ns) / fs
-
-	ref = np.sin(2*np.pi*fhet*t)
-
-	corr = np.correlate(data, ref[::-1], mode='same')
+	corr = np.correlate(data, ref0[::-1], mode='same')
 	corr = np.abs(corr)
 	# corr = np.clip(corr,0,2000)
 
@@ -135,18 +138,26 @@ def dsp(files):
 	fmag = winfilt2(c_mag2,0.005)
 	mmag = winfilt2(fmag,0.0005)
 
+
+
+
+	# displayData(
+	# 	c_mag2[0:10000] + c_mag2[10000:20000]
+	# )
+
 	displayData([
+		# refsig
 		data, 
 		adata, 
-		env2, 
+		# env2, 
 		# mag2, 
-		c_mag2, 
-		fmag,
-		mmag,
-		fmag-mmag
+		# c_mag2, #[0:10000] + c_mag2[10000:20000]+ c_mag2[20000:30000]+ c_mag2[30000:40000], 
+		# fmag,
+		# mmag,
+		# fmag-mmag
 		# norm(c_mag2,0.00001,0.005)
 		
-		# corr,
+		corr,
 		# mcorr,
 		# mcenv,
 		# fmcorr,
