@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include "common.h"
 #include "driver/spi_master.h"
-#include "sonar_adc.h"
-#include "sonar_tx.h"
+#include "sonar.h"
 #include "lcd2.h"
 #include "sd.h"
 #include "gps.h"
+#include "chirp.h"
 #include "uart_logger.h"
 #include "esp_timer.h"
 
@@ -83,14 +83,13 @@ void status_task(void *prm)
 		// printf("GPS INFO: \n%s\n",info);
 
 
-		// lcd2_update();
+		lcd2_update();
 		vTaskDelay(pdMS_TO_TICKS(1000));
 	}
 }
 
 void make_measure()
 {
-	
 	FILE *fp = sd_open_wav(ADC_RECORD_SAMPLES*NCYCLES*6);
 
 	// lcd2_sleep(1);
@@ -146,57 +145,19 @@ void app_main()
 	printf("Entering app_main...\n");
 	DSTAT = &dstat;
 
-	gpio_reset_pin(LCD_CS_PIN);
-	gpio_set_direction(LCD_CS_PIN, GPIO_MODE_OUTPUT);
-	gpio_set_level(LCD_CS_PIN,1);
-
 	init_spi2_host();
 	sd_init();
 
-	// printf("opening file...\n");
-	// FILE *fp = fopen("/sdcard/test.wav","wb");
-	// printf("opened!\n");
-	// fwrite(big_buffer,2,ADC_RECORD_SAMPLES*6,fp);
-	// printf("written\n");
-	// fclose(fp);
-	// printf("Closed.\n");
-	// return;
-
-
-
-
-	uint64_t t0, t1, t2, t3;
-
-	t0 = esp_timer_get_time();
-
-	FILE *f = fopen("/sdcard/test.bin", "wb");
-
-	t1 = esp_timer_get_time();
-
-	fwrite(big_buffer,2,ADC_RECORD_SAMPLES*6,f);
-
-	t2 = esp_timer_get_time();
-
-	fclose(f);
-
-	t3 = esp_timer_get_time();
-
-	printf("open  = %llu us\n", t1 - t0);
-	printf("write = %llu us\n", t2 - t1);
-	printf("close = %llu us\n", t3 - t2);
-
-	return;
+	// sd_speed_test();
 	
 	spi_mutex = xSemaphoreCreateMutex();
 
-	init_spi2_host();
-	sd_init();
-	// gps_init();
-
-	// lcd2_init();
+	lcd2_init();
 	sonar_tx_init();
 	sonar_adc_init();
-	sonar_charge(1);
+	// sonar_charge(1);
+
+
 
 	xTaskCreate(
 		status_task,    // Pointer to the task function
@@ -206,6 +167,12 @@ void app_main()
 		1,                 // Task priority (Higher number = Higher priority)
 		NULL              // Task handle pointer (NULL if not needed)
 	);
+
+	while(1)
+	{
+		
+		vTaskDelay(pdMS_TO_TICKS(20));
+	}
 
 	// xTaskCreate(
 	// 	gps_task,    // Pointer to the task function
@@ -217,25 +184,9 @@ void app_main()
 	// );
 	
 
-	// if(TX_ENA)
-	// {
-		
-	// }
-	// else
-	// {
-	// 	gpio_reset_pin(MOSDRV_ENA_PIN);
-	// 	gpio_set_direction(MOSDRV_ENA_PIN, GPIO_MODE_OUTPUT);
-	// 	gpio_set_level(MOSDRV_ENA_PIN, 1);
-
-	// 	gpio_reset_pin(TX_GPIO_2);
-	// 	gpio_set_direction(TX_GPIO_2, GPIO_MODE_OUTPUT);
-	// 	gpio_set_level(TX_GPIO_2, 0);
-	// }
-	
 		
 	
 	// lcd_init();
-
 	
 
 	int buttons[] = {BUT1_PIN,1,BUT2_PIN,1}; 

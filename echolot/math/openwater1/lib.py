@@ -18,11 +18,12 @@ def readWAVbyNum(num):
 	if not os.path.exists(fname):
 		raise Exception("File not found (")
 
-
 	with open(fname,"rb") as f:
 		f.seek(44)
-		return np.frombuffer(f.read(), dtype=np.uint16)
+		return readSignalFromFp(f)
 	
+def readSignalFromFp(f):
+	return np.frombuffer(f.read(), dtype=np.uint16)
 
 def getOnlyChunks(sig,chunkSize,nums):
 	conclist = []

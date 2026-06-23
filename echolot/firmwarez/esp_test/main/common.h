@@ -34,7 +34,7 @@
 #define LCD_COLS		80
 #define LCD_SPI_SPEED		1000000
 #define LCD_LED_PIN		5
-#define LCD_CS_PIN		23
+#define LCD_CS_PIN		15
 #define LCD_DC_PIN		21
 #define LCD_RST_PIN		22
 

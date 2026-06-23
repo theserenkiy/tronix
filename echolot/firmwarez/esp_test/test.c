@@ -4,8 +4,8 @@
 
 int main()
 {
-	time_t rawtime;
-	time(&rawtime);
-	printf("TIME: %d\n",(int)rawtime);
+	int a = 250;
+	double b = a / 1000.0;
+	printf("B: %.4f\n",b);
 	return 0;
 }

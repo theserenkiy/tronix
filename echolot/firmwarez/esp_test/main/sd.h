@@ -2,6 +2,8 @@
 
 void sd_init();
 
+void sd_speed_test();
+
 int sd_check();
 
 void get_info(char *str);

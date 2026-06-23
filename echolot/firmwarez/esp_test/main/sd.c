@@ -101,6 +101,29 @@ void sd_init()
 
 }
 
+void sd_speed_test()
+{
+	uint64_t t0, t1, t2, t3;
+
+	t0 = esp_timer_get_time();
+
+	FILE *f = fopen("/sdcard/test.bin", "wb");
+
+	t1 = esp_timer_get_time();
+
+	fwrite(big_buffer,2,ADC_RECORD_SAMPLES*6,f);
+
+	t2 = esp_timer_get_time();
+
+	fclose(f);
+
+	t3 = esp_timer_get_time();
+
+	printf("open  = %llu us\n", t1 - t0);
+	printf("write = %llu us\n", t2 - t1);
+	printf("close = %llu us\n", t3 - t2);
+}
+
 int sd_check()
 {
 	// printf("Checking SD...\n");

@@ -12,13 +12,7 @@ static mcpwm_gen_handle_t generator_2 = NULL;
 
 void sonar_tx_init(void)
 {
-	gpio_reset_pin(MOSDRV_ENA_PIN);
-	gpio_set_direction(MOSDRV_ENA_PIN, GPIO_MODE_OUTPUT);
-	gpio_set_level(MOSDRV_ENA_PIN, 0);
-
-	gpio_reset_pin(DCDC_ENA_PIN);
-	gpio_set_direction(DCDC_ENA_PIN, GPIO_MODE_OUTPUT);
-	gpio_set_level(DCDC_ENA_PIN, 1);
+	
 
 	mcpwm_timer_config_t timer_config = {
 		.group_id = 0,
@@ -111,16 +105,7 @@ void sonar_tx_init(void)
 	ESP_ERROR_CHECK(mcpwm_timer_enable(timer_1));
 }
 
-void sonar_precharge(int ms)
-{
-	sonar_charge(1);
-	vTaskDelay(pdMS_TO_TICKS(ms));
-}
 
-void sonar_charge(int state)
-{
-	gpio_set_level(DCDC_ENA_PIN, state);
-}
 
 void sonar_ping()
 {
@@ -135,11 +120,7 @@ void sonar_ping()
 	sonar_tx_burst(10);
 	esp_rom_delay_us(40);
 	sonar_tx_burst(10);
-
-
-	esp_rom_delay_us(IR_DSBL_DELAY_US);
-	gpio_set_level(MOSDRV_ENA_PIN, 0); 
-	sonar_charge(0);
+	
 }
 
 void sonar_ping2()
@@ -157,7 +138,6 @@ void sonar_ping2()
 
 void sonar_tx_burst(uint32_t cycles)
 {
-
     uint32_t burst_us =
         (cycles * 1000000ULL) / TX_FREQ_HZ;
 
