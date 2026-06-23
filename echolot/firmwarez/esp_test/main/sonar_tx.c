@@ -138,7 +138,7 @@ void sonar_ping()
 
 
 	esp_rom_delay_us(IR_DSBL_DELAY_US);
-	gpio_set_level(MOSDRV_ENA_PIN, 0);
+	gpio_set_level(MOSDRV_ENA_PIN, 0); 
 	sonar_charge(0);
 }
 

@@ -20,9 +20,14 @@
 #define DCDC_ENA_PIN	27
 
 // SPI HOST2 params
-#define MOSI_PIN	18
-#define MISO_PIN	2
-#define SCLK_PIN	19
+// #define MOSI_PIN	18
+// #define MISO_PIN	2
+// #define SCLK_PIN	19
+
+#define MOSI_PIN	23
+#define MISO_PIN	19
+#define SCLK_PIN	18
+
 
 // LCD params
 #define LCD_ROWS		160

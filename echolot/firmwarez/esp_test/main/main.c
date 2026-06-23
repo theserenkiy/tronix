@@ -7,6 +7,7 @@
 #include "sd.h"
 #include "gps.h"
 #include "uart_logger.h"
+#include "esp_timer.h"
 
 
 #define TX_ENA	0
@@ -152,16 +153,39 @@ void app_main()
 	init_spi2_host();
 	sd_init();
 
-	printf("opening file...\n");
-	FILE *fp = fopen("/sdcard/test.wav","wb");
-	printf("opened!\n");
-	fwrite(big_buffer,2,ADC_RECORD_SAMPLES*6,fp);
-	printf("written\n");
-	fclose(fp);
-	printf("Closed.\n");
+	// printf("opening file...\n");
+	// FILE *fp = fopen("/sdcard/test.wav","wb");
+	// printf("opened!\n");
+	// fwrite(big_buffer,2,ADC_RECORD_SAMPLES*6,fp);
+	// printf("written\n");
+	// fclose(fp);
+	// printf("Closed.\n");
+	// return;
+
+
+
+
+	uint64_t t0, t1, t2, t3;
+
+	t0 = esp_timer_get_time();
+
+	FILE *f = fopen("/sdcard/test.bin", "wb");
+
+	t1 = esp_timer_get_time();
+
+	fwrite(big_buffer,2,ADC_RECORD_SAMPLES*6,f);
+
+	t2 = esp_timer_get_time();
+
+	fclose(f);
+
+	t3 = esp_timer_get_time();
+
+	printf("open  = %llu us\n", t1 - t0);
+	printf("write = %llu us\n", t2 - t1);
+	printf("close = %llu us\n", t3 - t2);
+
 	return;
-
-
 	
 	spi_mutex = xSemaphoreCreateMutex();
 

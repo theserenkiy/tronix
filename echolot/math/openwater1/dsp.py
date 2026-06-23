@@ -12,25 +12,31 @@ pinglen_samp = int(fs*pinglen_ms/1000)
 
 f1 = f0-fhet
 
+
+
 num = sys.argv[1] if len(sys.argv) > 1 else None
 
-measnum = int(sys.argv[2] if len(sys.argv) > 2 else 0)
+start_cycle = int(sys.argv[2] if len(sys.argv) > 2 else 0)
 
-print(f"Using measnum = {measnum}")
+print(f"Start cycle = {start_cycle}")
 
-if measnum > 4:
-	exit("Measnum out of range")
+end_cycle = 5
+if start_cycle > 4:
+	exit("Start cycle out of range")
 
 
-def dsp_shift(sig):
+def dsp_shift(sig,start_offset=3,end_offset=6):
 	chunknums = []
-	for i in range(5):
-		chunknums += list(range(i*6+3,i*6+6))
+	for i in range(start_cycle,end_cycle):
+		chunknums += list(range(i*6+start_offset,i*6+end_offset))
 	
+	# print("Chunknums",chunknums)
+
+
 	sig = getOnlyChunks(sig,pinglen_samp,chunknums)
 	
 	res = None
-	for i in range(15):
+	for i in range(len(chunknums)):
 		start = i*pinglen_samp
 		zshift = quad_shift_abs(sig[start:start+pinglen_samp], 62000, fs)
 		zshift = winfilt(zshift,400)
@@ -47,7 +53,40 @@ def dsp_shift(sig):
 		res
 	])
 
-	plotAll()
+	# plotAll()
+
+def dsp_corr(sig,typ=0):
+	offs = 0 if typ==0 or typ==2 else 3
+	endoffs = 3+offs if typ != 2 else 6
+	chunknums = []
+	for i in range(start_cycle,5):
+		chunknums += list(range(i*6+offs,i*6+endoffs))
+	
+	sig = getOnlyChunks(sig,pinglen_samp,chunknums)
+
+	ref = genRefPack(10, 40, 4, fs, f0, f1) if typ==0 else genN(60,fs,f0,f1)
+	
+	res = None
+	for i in range(len(chunknums)):
+		start = i*pinglen_samp
+		ping = sig[start:start+pinglen_samp]
+		corr = np.correlate(ping, ref, mode="same")
+		corr = np.abs(corr)	
+		corr = winfilt(corr,400)
+		if res is None:
+			res = corr
+		else:
+			res = res + corr
+
+	createPlotWindow(f"DSP CORR {typ}",[
+		sig,
+		np.abs(sig),
+		# winfilt(asig,50)	# env
+		# ref0
+		res
+	])
+
+	# plotAll()
 	
 
 
@@ -60,7 +99,7 @@ def dsp(sig,typ):
 	asig = np.abs(sig)
 
 
-	ref = genRefPack(10, 40, 4, fs, f0, f1) if type==0 else genN(60,fs,f0,f1)
+	ref = genRefPack(10, 40, 4, fs, f0, f1) if typ==0 else genN(60,fs,f0,f1)
 
 	corr = np.correlate(sig, ref, mode='full')
 	corr = np.abs(corr)	
@@ -86,6 +125,8 @@ try:
 	# dsp(sig,0)
 	# dsp(sig,1)
 	dsp_shift(sig)
+	# dsp_corr(sig,0)
+	dsp_corr(sig,2)
 	plotAll()
 
 

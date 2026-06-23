@@ -39,7 +39,7 @@ void sd_init()
 	gpio_config(&miso_config);
 
 	sdmmc_host_t host = SDSPI_HOST_DEFAULT();
-	host.max_freq_khz = 10000;
+	// host.max_freq_khz = 10000;
 	host.slot = SPI2_HOST;
 
 	sdspi_device_config_t slot_config =	SDSPI_DEVICE_CONFIG_DEFAULT();
