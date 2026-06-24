@@ -32,7 +32,7 @@ static void record_pings(FILE *fp)
 	flush_buf(fp);
 } 
 
-void recorder_record_by_config(record_info_t *cnf, int len)
+void recorder_record_by_config(record_cfg_t *cnf, int len)
 {
 	int total_sz = 0;
 	char text[WAV_INFO_SZ];
@@ -51,27 +51,54 @@ void recorder_record_by_config(record_info_t *cnf, int len)
 	}
 	snprintf(text+txtpos,WAV_INFO_SZ-txtpos,"\n]]}\n");
 	printf("WAV INFO: %s\n",text);
+	return;
 	FILE *fp = wav_open("/sdcard/test.wav", total_sz, 3125, text);
 
 	for(int i=0; i < len; i++)
 	{
-
+		chirp_gen(
+			cnf[i].fstart_khz,
+			cnf[i].fstop_khz, 
+			cnf[i].dur_us
+		);
+		for(int ibuf=0; ibuf < cnf[i].nbufs; ibuf++)
+		{
+			record_pings(fp);
+		}
 	}
+	fclose(fp);
 }
 
 void recorder_make_record()
 {
-	FILE *fp = wav_open("/sdcard/test.wav", SONAR_BUF_SZ_SAMPLES*4, 3125, "Test info");
+	record_cfg_t rec[] = {
+		{
+			.fstart_khz = 160,
+			.fstop_khz = 200,
+			.dur_us = 1000,
+			.nbufs = 2
+		},
+		{
+			.fstart_khz = 185,
+			.fstop_khz = 185,
+			.dur_us = 400,
+			.nbufs = 2
+		}
+	};
 
-	chirp_gen(160000, 200000, 1000);
-	record_pings(fp);
-	record_pings(fp);
+	recorder_record_by_config(rec,2);
 
-	chirp_gen(185000, 185000, 320);
-	record_pings(fp);
-	record_pings(fp);
+	// FILE *fp = wav_open("/sdcard/test.wav", SONAR_BUF_SZ_SAMPLES*4, 3125, "Test info");
+
+	// chirp_gen(160000, 200000, 1000);
+	// record_pings(fp);
+	// record_pings(fp);
+
+	// chirp_gen(185000, 185000, 320);
+	// record_pings(fp);
+	// record_pings(fp);
 	
-	fclose(fp);
+	// fclose(fp);
 }
 
 

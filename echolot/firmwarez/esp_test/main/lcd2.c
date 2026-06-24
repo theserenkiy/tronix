@@ -6,6 +6,7 @@ int is_waveform = 0;
 
 void lcd2_init(void)
 {
+	spi_mutex = xSemaphoreCreateMutex();
 
 	gpio_reset_pin(LCD_LED_PIN);
 	gpio_set_direction(LCD_LED_PIN, GPIO_MODE_OUTPUT);
@@ -33,17 +34,22 @@ void lcd2_init(void)
 	ESP_LOGI("ST7735", "Display initialized successfully");
 	
 	// Очистка экрана черным цветом
-	st7735_fill_screen(ST7735_BLACK);
-	
-	
+	st7735_fill_screen(ST7735_GREEN);
+	// st7735_fill_rect(10,10,10,10,ST7735_RED);
+	st7735_draw_pixel(10,10,ST7735_RED);
+	st7735_draw_pixel(150,10,ST7735_BLUE);
+	st7735_draw_pixel(150,70,ST7735_GREEN);
+	st7735_draw_pixel(10,70,ST7735_YELLOW);
+	st7735_draw_string(20,20,"Preved!",ST7735_RED,2);
+	st7735_redraw();
 }
 
 void drawBlock(char *caption, int y, uint16_t color,  char *msg)
 {
 	st7735_fill_rect(0,y,20,11,color);
 	// st7735_fill_rect(20,y,140,11,0);
-	st7735_draw_string(2, y+2, caption, ST7735_WHITE, color, 1);
-	st7735_draw_string(25, y+2, msg, ST7735_WHITE, 0, 1);
+	st7735_draw_string(2, y+2, caption, ST7735_WHITE, 1);
+	st7735_draw_string(25, y+2, msg, ST7735_WHITE, 1);
 }
 
 void lcd2_update()

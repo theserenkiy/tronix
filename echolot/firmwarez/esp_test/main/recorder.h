@@ -11,4 +11,4 @@ typedef struct {
 	uint16_t fstop_khz;
 	uint16_t dur_us;
 	uint8_t nbufs;
-} record_info_t;
+} record_cfg_t;

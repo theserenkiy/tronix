@@ -7,6 +7,7 @@
 #include "gps.h"
 #include "chirp.h"
 #include "recorder.h"
+#include "encoder.h"
 #include "uart_logger.h"
 #include "esp_timer.h"
 
@@ -15,7 +16,6 @@
 #define ADC_ENA 1
 
 #define NCYCLES	5
-
 
 
 // uint16_t buffer[ADC_RECORD_SAMPLES];
@@ -31,7 +31,7 @@ void init_spi2_host()
 		.sclk_io_num = SCLK_PIN,
 		.quadwp_io_num = -1,
 		.quadhd_io_num = -1,
-		.max_transfer_sz = 24000, 
+		.max_transfer_sz = 25600, 
 	};
 	ESP_ERROR_CHECK(spi_bus_initialize(SPI2_HOST, &bus_cfg, SPI_DMA_CH_AUTO));
 	printf("SPI2 host init done!\n");
@@ -49,7 +49,9 @@ dev_status_t dstat = {
 	.lat = 0,
 	.satnum = 0,
 	.datetime = "",
-	.gps_enabled = 1
+	.gps_enabled = 1,
+	.is_measuring = 0,
+	.depth = 0
 };
 dev_status_t *DSTAT;
 
@@ -109,9 +111,21 @@ void app_main()
 {
 	sonar_init();
 
-
 	printf("Entering app_main...\n");
 	DSTAT = &dstat;
+
+	// encoder_init();
+	// encoder_loop();
+
+	init_spi2_host();
+	lcd2_init();
+
+	while(1)
+	{
+		vTaskDelay(pdMS_TO_TICKS(100));
+	}
+
+	return;
 
 	init_spi2_host();
 	sd_init();
@@ -125,7 +139,7 @@ void app_main()
 
 	// sd_speed_test(big_buffer);
 	
-	spi_mutex = xSemaphoreCreateMutex();
+	
 
 	lcd2_init();
 	// sonar_tx_init();
@@ -143,11 +157,7 @@ void app_main()
 		NULL              // Task handle pointer (NULL if not needed)
 	);
 
-	while(1)
-	{
-		
-		vTaskDelay(pdMS_TO_TICKS(20));
-	}
+	
 
 	// xTaskCreate(
 	// 	gps_task,    // Pointer to the task function

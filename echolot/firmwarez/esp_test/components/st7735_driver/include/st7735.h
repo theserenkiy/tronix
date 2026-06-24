@@ -84,6 +84,8 @@ void st7735_sleep(int state);
  */
 esp_err_t st7735_init(const st7735_config_t *cfg);
 
+void st7735_redraw();
+
 /**
  * @brief Desenha um pixel
  * @param x Coordenada X (0 a width-1)
@@ -133,7 +135,7 @@ void st7735_invert_display(bool invert);
  * @param bg Cor de fundo
  * @param size Escala (1 = 5x7, 2 = 10x14, etc.)
  */
-void st7735_draw_char(uint16_t x, uint16_t y, char c, uint16_t color, uint16_t bg, uint8_t size);
+void st7735_draw_char(uint16_t x, uint16_t y, char c, uint16_t color, uint8_t size);
 
 /**
  * @brief Desenha uma string de texto
@@ -144,12 +146,13 @@ void st7735_draw_char(uint16_t x, uint16_t y, char c, uint16_t color, uint16_t b
  * @param bg Cor de fundo
  * @param size Escala do texto
  */
-void st7735_draw_string(uint16_t x, uint16_t y, const char *str, uint16_t color, uint16_t bg, uint8_t size);
+// void st7735_draw_string(uint16_t x, uint16_t y, const char *str, uint16_t color, uint16_t bg, uint8_t size);
 
 /**
  * @brief Obtém a largura atual do display
  * @return Largura em pixels (depende da rotação)
  */
+void st7735_draw_string(uint16_t x, uint16_t y, const char *str, uint16_t color, uint8_t size);
 uint16_t st7735_get_width(void);
 
 /**

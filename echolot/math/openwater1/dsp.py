@@ -115,7 +115,7 @@ def dsp_lfm(sig):
 	res2 = None
 	for i in range(0,10):
 		start = i*pinglen_samp
-		ping = sig[start+6000:start+pinglen_samp]
+		ping = sig[start:start+pinglen_samp]
 		
 		corr = correlate(ping,ref,win)
 		corr2 = correlate(ping,ref12,win)
