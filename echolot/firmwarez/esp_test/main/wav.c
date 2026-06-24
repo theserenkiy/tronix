@@ -1,3 +1,4 @@
+#include "common.h"
 #include "wav.h"
 #include "esp_timer.h"
 
@@ -26,7 +27,7 @@ typedef struct {
     
     char     tagID[4] __attribute__((nonstring));        // Например, "ICMT" (комментарий) или "INAM" (название)
     uint32_t tagSize;         // Длина текста с учетом выравнивания (четное число)
-    char     text[1024];       // Ваш текстовый буфер фиксированного размера	
+    char     text[WAV_INFO_SZ];       // Ваш текстовый буфер фиксированного размера	
 
 
     // ---- Блок data ----
@@ -56,16 +57,16 @@ FILE *wav_open(char* fname, int nsamp, uint32_t fs, char *info)
 		.bitsPerSample = 16,
 
 		.listID = "LIST",
-		.listSize = 1024+12,
+		.listSize = WAV_INFO_SZ+12,
 		.listType = "INFO",
 		.tagID = "ICMT",
-		.tagSize = 1024,
+		.tagSize = WAV_INFO_SZ,
 
 		.subchunk2ID = "data",
 		.subchunk2Size = payload_size_bytes	
 	};
 
-	strncpy(hdr.text, info, 1023);
+	strncpy(hdr.text, info, WAV_INFO_SZ-1);
 
 	// static uint8_t io_buf[8192];
 

@@ -70,6 +70,7 @@
 #define SONAR_BUF_SZ_PINGS		5
 #define SONAR_BUF_SZ_SAMPLES	ADC_RECORD_SAMPLES * SONAR_BUF_SZ_PINGS
 
+#define WAV_INFO_SZ				1024
 
 
 #define UART_PORT               UART_NUM_0
@@ -90,6 +91,7 @@ typedef struct {
 	char datetime[64];
 	gps_data_t *gps;
 	uint8_t gps_enabled;
+	float depth;
 
 } dev_status_t;
 

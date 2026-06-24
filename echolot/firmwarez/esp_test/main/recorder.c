@@ -32,6 +32,33 @@ static void record_pings(FILE *fp)
 	flush_buf(fp);
 } 
 
+void recorder_record_by_config(record_info_t *cnf, int len)
+{
+	int total_sz = 0;
+	char text[WAV_INFO_SZ];
+	memset(text,(int)' ',WAV_INFO_SZ);
+	uint16_t txtpos = sprintf(text, "{\"depth\": %.1f,\n\"records\": [",DSTAT->depth);
+	for(int i=0; i < len; i++)
+	{
+		txtpos += snprintf(text+txtpos,WAV_INFO_SZ-txtpos,"%c\n	[%d,%d,%d,%d]",
+			i ? ',' : ' ',
+			cnf[i].fstart_khz,
+			cnf[i].fstop_khz, 
+			cnf[i].dur_us, 
+			cnf[i].nbufs*SONAR_BUF_SZ_PINGS
+		);
+		total_sz += cnf[i].nbufs*SONAR_BUF_SZ_SAMPLES;
+	}
+	snprintf(text+txtpos,WAV_INFO_SZ-txtpos,"\n]]}\n");
+	printf("WAV INFO: %s\n",text);
+	FILE *fp = wav_open("/sdcard/test.wav", total_sz, 3125, text);
+
+	for(int i=0; i < len; i++)
+	{
+
+	}
+}
+
 void recorder_make_record()
 {
 	FILE *fp = wav_open("/sdcard/test.wav", SONAR_BUF_SZ_SAMPLES*4, 3125, "Test info");
