@@ -2,7 +2,7 @@
 
 void sd_init();
 
-void sd_speed_test();
+void sd_speed_test(uint16_t *buf);
 
 int sd_check();
 

@@ -1,3 +1,4 @@
+#include "common.h"
 #include "sonar.h"
 #include "chirp.h"
 #include "wav.h"
@@ -10,13 +11,9 @@
 
 static adc_continuous_handle_t adc_handle = NULL;
 
-uint16_t *sonar_buffer;
 
-
-void sonar_init(uint16_t *buf)
+void sonar_init()
 {
-	sonar_buffer = buf;
-
 	gpio_reset_pin(MOSDRV_ENA_PIN);
 	gpio_set_direction(MOSDRV_ENA_PIN, GPIO_MODE_OUTPUT);
 	gpio_set_level(MOSDRV_ENA_PIN, 0);
@@ -24,6 +21,8 @@ void sonar_init(uint16_t *buf)
 	gpio_reset_pin(DCDC_ENA_PIN);
 	gpio_set_direction(DCDC_ENA_PIN, GPIO_MODE_OUTPUT);
 	gpio_set_level(DCDC_ENA_PIN, 0);
+
+	sonar_precharge(1000);
 
 	sonar_adc_init();
 	chirp_init();
@@ -146,7 +145,7 @@ esp_err_t sonar_adc_capture(uint16_t *buffer, size_t samples)
 		adc_continuous_stop(adc_handle)
 	);
 
-	printf("ADC record done\n");
+	// printf("ADC record done\n");
 
 	return ESP_OK;
 }

@@ -6,6 +6,7 @@
 #include "sd.h"
 #include "gps.h"
 #include "chirp.h"
+#include "recorder.h"
 #include "uart_logger.h"
 #include "esp_timer.h"
 
@@ -18,7 +19,7 @@
 
 
 // uint16_t buffer[ADC_RECORD_SAMPLES];
-uint16_t big_buffer[ADC_RECORD_SAMPLES*6];
+uint16_t sonar_buffer[SONAR_BUF_SZ_SAMPLES];
 
 void init_spi2_host()
 {
@@ -88,73 +89,47 @@ void status_task(void *prm)
 	}
 }
 
-void make_measure()
-{
-	FILE *fp = sd_open_wav(ADC_RECORD_SAMPLES*NCYCLES*6);
 
-	// lcd2_sleep(1);
-	// lcd2_sleep(1);
-	gps_enable(0);
-	sonar_precharge(500);
-	for(int cyc=0; cyc < 1; cyc++)
-	{
-		for(int i=0; i < 3; i++)
-		{
-			// sonar_tx_burst(32, 1);
-			sonar_ping();
-			sonar_adc_capture(big_buffer+(ADC_RECORD_SAMPLES *i), ADC_RECORD_SAMPLES);
-			delay_ms(BURST_TO_BURST_DELAY_MS);
-			// uart_logger_send_buffer(buffer, ADC_RECORD_SAMPLES);
-		}
-
-		for(int i=3; i < 6; i++)
-		{
-			// sonar_tx_burst(32, 1);
-			sonar_ping2();
-			sonar_adc_capture(big_buffer+(ADC_RECORD_SAMPLES *i), ADC_RECORD_SAMPLES);
-			delay_ms(BURST_TO_BURST_DELAY_MS);
-			// uart_logger_send_buffer(buffer, ADC_RECORD_SAMPLES);
-		}
-		fwrite(big_buffer,2,ADC_RECORD_SAMPLES*6,fp);
-	}
-	fclose(fp);
-	printf("File closed\n");
-	// sd_save_ping(big_buffer, ADC_RECORD_SAMPLES*6);
-	// lcd2_sleep(0);
-	// lcd2_waveform(big_buffer, ADC_RECORD_SAMPLES, 0);
-	sonar_charge(1);
-	// gps_enable(1);
-}
 
 void button_pressed(int num)
 {
 	printf("BUTTON PRESSED %d\n",num);
 	if(num==0)
 	{
-		make_measure();	
+		//make_measure();	
 	}
 	else if(num==1)
 	{
-		lcd2_waveform(big_buffer, ADC_RECORD_SAMPLES, 1);
+		lcd2_waveform(sonar_buffer, ADC_RECORD_SAMPLES, 1);
 		
 	}
 }
 
 void app_main()
 {
+	sonar_init();
+
+
 	printf("Entering app_main...\n");
 	DSTAT = &dstat;
 
 	init_spi2_host();
 	sd_init();
 
-	// sd_speed_test();
+	recorder_init();
+	// recorder_test();
+	printf("Recording...\n");
+	recorder_make_record();
+	printf("Done!\n");
+	return;
+
+	// sd_speed_test(big_buffer);
 	
 	spi_mutex = xSemaphoreCreateMutex();
 
 	lcd2_init();
-	sonar_tx_init();
-	sonar_adc_init();
+	// sonar_tx_init();
+	// sonar_adc_init();
 	// sonar_charge(1);
 
 

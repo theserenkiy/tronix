@@ -14,6 +14,7 @@
 #include <string.h>
 #include <dirent.h>
 #include "esp_log.h"
+#include "esp_timer.h"
 
 
 
@@ -101,7 +102,7 @@ void sd_init()
 
 }
 
-void sd_speed_test()
+void sd_speed_test(uint16_t *buf)
 {
 	uint64_t t0, t1, t2, t3;
 
@@ -111,7 +112,7 @@ void sd_speed_test()
 
 	t1 = esp_timer_get_time();
 
-	fwrite(big_buffer,2,ADC_RECORD_SAMPLES*6,f);
+	fwrite(buf,2,ADC_RECORD_SAMPLES*6,f);
 
 	t2 = esp_timer_get_time();
 
@@ -183,52 +184,10 @@ FILE * sd_open_wav(int len)
 	char fname[32];
 	sprintf(fname, "%s.wav",bname);
 	printf("Trying save to %s\n",fname);
-	return open_wav(len, fname, 3125);
+	return wav_open(fname, len, 3125, "test test test");
 }
 
 
-int sd_save_ping(uint16_t *buf, size_t len)
-{
-	printf("Saving to SD...\n");
-	if(!sd_check())
-	{
-		con_err("SD card not connected\n");
-		return 0;
-	}
-
-	char bname[24];
-	DSTAT->filenum++;
-	sprintf(bname, "/sdcard/save_%06d", DSTAT->filenum);
-
-	printf("Bname: %s\n", bname);
-
-	char fname[32];
-	sprintf(fname, "%s.wav",bname);
-	printf("Trying save to %s\n",fname);
-	save_wav(buf, len, fname, 3125, 0);
-
-	// sprintf(fname, "%s.txt",bname);
-	// get_info(record_info);
-	// FILE *fp = fopen(fname, "w");
-	// fputs(record_info, fp);
-	// fclose(fp);
-
-
-
-	
-
-	// sprintf(fname, "%s.info",bname);
-	// FILE *fp = fopen(fname,"w");
-
-	// char info[1024];
-	// gps_get()
-	// fwrite();
-	// fclose(fp);
-
-	// printf("File write done\n");
-
-	return 1;
-}
 
 /**
  * @brief Находит максимальный номер файла вида "save_XXXX.wav" в каталоге /sdcard

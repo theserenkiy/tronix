@@ -16,6 +16,7 @@
 
 #define TX_GPIO_1		13
 #define TX_GPIO_2		14	//this used for IR2104
+#define TX_TEST_PIN		5
 #define MOSDRV_ENA_PIN	26
 #define DCDC_ENA_PIN	27
 
@@ -47,13 +48,15 @@
 #define GPS_ENA_PIN		32
 
 // Buttons
-#define BUT1_PIN		17
-#define BUT2_PIN		16
+#define ENC_A_PIN		17
+#define ENC_B_PIN		16
+#define BUT1_PIN		0
+#define BUT2_PIN		2
+
 
 
 // TX params
 #define TX_FREQ_HZ				187000
-#define BURST_TO_BURST_DELAY_MS 40
 #define IR_DSBL_DELAY_US		1000
 #define MT_PRECHARGE_DELAY_MS	10
 
@@ -62,9 +65,12 @@
 #define ADC_CHANNEL_USED        ADC_CHANNEL_6     // GPIO34
 #define ADC_SAMPLE_FREQ_HZ      250000
 
-#define ADC_RECORD_TIME_MS		BURST_TO_BURST_DELAY_MS
-
+#define ADC_RECORD_TIME_MS		50
 #define ADC_RECORD_SAMPLES		(int)(ADC_RECORD_TIME_MS*ADC_SAMPLE_FREQ_HZ/1000)
+#define SONAR_BUF_SZ_PINGS		5
+#define SONAR_BUF_SZ_SAMPLES	ADC_RECORD_SAMPLES * SONAR_BUF_SZ_PINGS
+
+
 
 #define UART_PORT               UART_NUM_0
 #define UART_BAUDRATE           921600
@@ -87,6 +93,8 @@ typedef struct {
 
 } dev_status_t;
 
+
+extern uint16_t sonar_buffer[SONAR_BUF_SZ_SAMPLES];
 
 extern dev_status_t *DSTAT;
 

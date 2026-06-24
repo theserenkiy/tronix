@@ -7,7 +7,10 @@ import os
 
 
 
-
+def correlate(sig,ref,win=100):
+	corr = np.correlate(sig, ref, mode="same")
+	corr = np.abs(corr)	
+	return winfilt(corr,win)
 
 def removeDC(sig):
 	dc = np.mean(sig[int(len(sig)/2):])
