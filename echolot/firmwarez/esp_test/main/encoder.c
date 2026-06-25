@@ -60,7 +60,7 @@ void encoder_init()
 
 void encoder_on_change(int direction)
 {
-	printf("Encoder changed: %d\n",direction);
+	ui_on_encoder(direction);
 }
 
 void encoder_task(void *prm)

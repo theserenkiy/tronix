@@ -4,9 +4,13 @@ import sys
 import os
 import traceback
 
+fs = 10000;
+
 sig = None
 with open("chirp.bin","rb") as f:
-	sig = readSignalFromFp(f)
+	sig = readSignalFromFp(f)-0.5
 
-createPlotWindow("Chirp",[sig])
+ref = genT(len(sig)/fs,10000,200)
+
+createPlotWindow("Chirp",[sig, ref, sig*ref])
 plotAll()

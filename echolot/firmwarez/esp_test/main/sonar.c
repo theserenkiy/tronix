@@ -1,6 +1,6 @@
 #include "common.h"
 #include "sonar.h"
-#include "chirp.h"
+#include "gen.h"
 #include "wav.h"
 #include <string.h>
 #include "esp_log.h"
@@ -25,7 +25,7 @@ void sonar_init()
 	sonar_precharge(1000);
 
 	sonar_adc_init();
-	chirp_init();
+	gen_init();
 }
 
 void sonar_precharge(int ms)
@@ -57,7 +57,7 @@ void sonar_ping(uint16_t *buf, int ntimes)
 	for(int i=0; i < ntimes; i++)
 	{
 		sonar_tx_prepare();
-		chirp_fire();
+		gen_fire();
 		sonar_tx_done();
 
 		sonar_adc_capture(buf, ADC_RECORD_SAMPLES);

@@ -5,7 +5,7 @@
 #include "lcd.h"
 #include "sd.h"
 #include "gps.h"
-#include "chirp.h"
+#include "gen.h"
 #include "recorder.h"
 #include "encoder.h"
 #include "dsp.h"
@@ -184,29 +184,7 @@ void app_main()
 	// lcd_init();
 	
 
-	int buttons[] = {BUT1_PIN,1,BUT2_PIN,1}; 
-
-	for(int i=0; i < 4; i+=2)
-	{
-		gpio_reset_pin(buttons[i]);
-		gpio_set_direction(buttons[i], GPIO_MODE_INPUT);
-		gpio_set_pull_mode(buttons[i], GPIO_PULLUP_ONLY);
-	}
-	int butlvl;
-	while(1)
-	{
-		for(int i=0; i < 4;i+=2)
-		{
-			butlvl = gpio_get_level(buttons[i]);
-			if(!butlvl && buttons[i+1])
-			{
-				button_pressed(i >> 1);
-			}
-
-			buttons[i+1] = butlvl;
-		}
-		vTaskDelay(pdMS_TO_TICKS(20));
-	}
+	
 	
 }
 

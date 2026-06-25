@@ -72,6 +72,11 @@ def genN(N,fs,f0,f1):
 	t = np.arange(Ns) / fs
 	return np.sin(2*np.pi*f1*t)
 
+def genT(T,fs,f):
+	Ns = int(T*fs)
+	t = np.arange(Ns) / fs
+	return np.sin(2*np.pi*f*t)
+
 def genRefPack(N_puls, delay_us, N_cycles, fs, f0, f1):
 	ref = genN(10,fs,f0,f1)
 	zz = np.zeros(int(delay_us/(1e6/fs)))

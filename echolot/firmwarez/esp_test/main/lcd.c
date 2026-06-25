@@ -95,11 +95,11 @@ uint16_t lcd_mk_temperature_color(uint8_t t)
 {
 	uint8_t steps = 32;
 	uint8_t hmin = 40;
-	uint8_t hmax = 200;
+	uint8_t hmax = 170;
 	float hstep = (float)(hmax-hmin)/steps;
 	float minl = 0.4;
 	float lstep = (1-minl)/steps;
-	return lcd_mk_hsl_color((int)(hmax-(t*hstep)),127,minl+(t*lstep));
+	return lcd_mk_hsl_color((int)(hmax-(t*hstep)),127,1);//minl+(t*lstep));
 }
 
 void lcd_gray_test()
@@ -137,11 +137,9 @@ void lcd_draw_osc(int len)
 	printf("Vscale: %.3f; Hscale: %d; \n",vscale,hscale);
 
 	uint16_t col[80];
-	int colnum = 0;
 	int colidx;
 	uint16_t fill,maxfill;
 	uint16_t vline[80];
-	int vlidx;
 	float k_br;
 	uint8_t bright;
 	uint16_t x = 0;
@@ -184,7 +182,7 @@ void lcd_draw_osc(int len)
 
 		for(int i=0; i < 80; i++)
 		{
-			bright = (int)(col[i]*k_br) << 3;
+			bright = (int)(col[i]*k_br);
 			vline[79-i] = tempcolors[bright];
 			st7735_vline_buf(vline,x);
 		}

@@ -1,5 +1,5 @@
 #include "common.h"
-#include "chirp.h"
+#include "gen.h"
 #include "wav.h"
 #include "dsp.h"
 
