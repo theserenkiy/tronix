@@ -2,12 +2,13 @@
 #include "common.h"
 #include "driver/spi_master.h"
 #include "sonar.h"
-#include "lcd2.h"
+#include "lcd.h"
 #include "sd.h"
 #include "gps.h"
 #include "chirp.h"
 #include "recorder.h"
 #include "encoder.h"
+#include "dsp.h"
 #include "uart_logger.h"
 #include "esp_timer.h"
 
@@ -55,7 +56,7 @@ dev_status_t dstat = {
 };
 dev_status_t *DSTAT;
 
-SemaphoreHandle_t spi_mutex = NULL;
+SemaphoreHandle_t spi_mutex;
 
 char info[1024];
 
@@ -86,7 +87,7 @@ void status_task(void *prm)
 		// printf("GPS INFO: \n%s\n",info);
 
 
-		lcd2_update();
+		lcd_update();
 		vTaskDelay(pdMS_TO_TICKS(1000));
 	}
 }
@@ -102,7 +103,7 @@ void button_pressed(int num)
 	}
 	else if(num==1)
 	{
-		lcd2_waveform(sonar_buffer, ADC_RECORD_SAMPLES, 1);
+		lcd_waveform(sonar_buffer, ADC_RECORD_SAMPLES, 1);
 		
 	}
 }
@@ -118,7 +119,16 @@ void app_main()
 	// encoder_loop();
 
 	init_spi2_host();
-	lcd2_init();
+	sd_init();
+	lcd_init();
+
+	lcd_gray_test();
+
+	printf("Reading...");
+	dsp_read_wav("/sdcard/test.wav",12500,0);
+	printf("Read OK!\n");
+	lcd_draw_osc(10000);
+	lcd_redraw();
 
 	while(1)
 	{
@@ -141,7 +151,7 @@ void app_main()
 	
 	
 
-	lcd2_init();
+	lcd_init();
 	// sonar_tx_init();
 	// sonar_adc_init();
 	// sonar_charge(1);

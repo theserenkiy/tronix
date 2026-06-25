@@ -94,6 +94,8 @@ void st7735_redraw();
  */
 void st7735_draw_pixel(uint16_t x, uint16_t y, uint16_t color);
 
+void st7735_vline_buf(uint16_t *vline, uint16_t x);
+
 /**
  * @brief Preenche um retângulo com uma cor
  * @param x Coordenada X do canto superior esquerdo

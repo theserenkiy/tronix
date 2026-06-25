@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+
+<script>
+
+function hsl2rgb(h,s,l)
+{
+	let _2PI = 2*Math.PI;
+	let _23PI = _2PI/3;
+	let Rphase = _2PI*(h/360);
+	let Gphase = Rphase+_23PI;
+	let Bphase = Gphase+_23PI;
+
+	return {
+		R: Math.round((s*Math.sin(Rphase)+127)*l),
+		G: Math.round((s*Math.sin(Gphase)+127)*l),
+		B: Math.round((s*Math.sin(Bphase)+127)*l),
+	}
+}
+
+window.onload = () => {
+let h = "";
+let steps = 16;
+let hrange = [40,200]
+let hstep = (hrange[1]-hrange[0])/steps;
+let minl = 0.4;
+let lstep = (1-minl)/steps;
+for(let i=0; i < steps; i++)
+{
+	c = hsl2rgb(Math.round(hrange[1]-(i*hstep)),127,minl+(i*lstep))
+	h += `<div style="background-color:rgb(${c.R},${c.G},${c.B}); width: 50px; height: 50px;display: inline-block;">${i}</div>`
+}
+document.body.innerHTML = h;
+}
+</script>
+</head>
+<body>
+	
+</body>
+</html>

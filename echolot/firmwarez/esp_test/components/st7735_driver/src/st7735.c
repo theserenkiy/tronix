@@ -99,8 +99,9 @@ static void transmit(spi_transaction_t *t, int dc, int delay_ms)
 		
 		gpio_set_level(dc_pin, dc);
 		// Мьютекс у нас! Безопасно отправляем данные
-		spi_device_transmit(spi, t);
-		
+		int res = spi_device_transmit(spi, t);
+        // printf("spi_device_transmit res = %d\n",res);
+
 		if(delay_ms)
 			vTaskDelay(pdMS_TO_TICKS(delay_ms));
 
@@ -250,7 +251,7 @@ esp_err_t st7735_init(const st7735_config_t *cfg) {
 void st7735_redraw()
 {
 	printf("REDRAW\n");
-	memset(vmem,VMEM_SZ*2,0xff);
+	// memset(vmem,VMEM_SZ*2,0xff);
 	set_address_window(0,0,display_width-1,display_height-1);
 	write_data((uint8_t *)vmem, VMEM_SZ*2);
 }
@@ -288,7 +289,7 @@ void st7735_fill_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t c
 
 	// printf("FILL RECT: x0=%d y0=%d x1=%d y1=%d w=%d h=%d color=%x\n",x,y,x1,y1,w,h,color);
 
-	color_swap(&color);
+	// color_swap(&color);
 
 	uint16_t *start = vmem+(y*display_width)+x;
 	uint16_t *cur = start;
@@ -314,9 +315,20 @@ void st7735_fill_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t c
 // }
 
 void st7735_draw_pixel(uint16_t x, uint16_t y, uint16_t color) {
-	if (x >= display_width || y >= display_height) return;
-	color_swap(&color);
-	vmem[y*display_width+x] = color;
+	if (x < display_width && y < display_height)
+	    vmem[y*display_width+x] = color;
+}
+
+void st7735_vline_buf(uint16_t *vline, uint16_t x)
+{
+    if(x >= display_width)
+        return;
+    int pixidx = x;
+    for(int i=0; i < display_height; i++)
+    {
+        vmem[pixidx] = vline[i];
+        pixidx += display_width;
+    }
 }
 
 void st7735_fill_screen(uint16_t color) {

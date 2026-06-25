@@ -106,8 +106,8 @@ void recorder_make_record()
 // {
 // 	FILE *fp = sd_open_wav(ADC_RECORD_SAMPLES*NCYCLES*6);
 
-// 	// lcd2_sleep(1);
-// 	// lcd2_sleep(1);
+// 	// lcd_sleep(1);
+// 	// lcd_sleep(1);
 // 	gps_enable(0);
 // 	sonar_precharge(500);
 // 	for(int cyc=0; cyc < 1; cyc++)
@@ -134,8 +134,8 @@ void recorder_make_record()
 // 	fclose(fp);
 // 	printf("File closed\n");
 // 	// sd_save_ping(big_buffer, ADC_RECORD_SAMPLES*6);
-// 	// lcd2_sleep(0);
-// 	// lcd2_waveform(big_buffer, ADC_RECORD_SAMPLES, 0);
+// 	// lcd_sleep(0);
+// 	// lcd_waveform(big_buffer, ADC_RECORD_SAMPLES, 0);
 // 	sonar_charge(1);
 // 	// gps_enable(1);
 // }

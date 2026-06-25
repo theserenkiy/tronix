@@ -1,242 +1,286 @@
-#include <stdio.h>
-#include "esp_log.h"
-#include "driver/spi_master.h"
-#include "lcd.h"
 #include "common.h"
+#include "lcd.h"
+#include "math.h"
 
-#define LCD_PIXELS	LCD_ROWS * LCD_COLS
-
-static spi_device_handle_t spi_handle = NULL;
-
-
-static uint8_t framebuf[LCD_PIXELS*2];
+int is_sleeping = 0;
+int is_waveform = 0;
 
 void lcd_init(void)
 {
-	printf("Initializing LCD...\n");
+	spi_mutex = xSemaphoreCreateMutex();
 
 	gpio_reset_pin(LCD_LED_PIN);
 	gpio_set_direction(LCD_LED_PIN, GPIO_MODE_OUTPUT);
-	gpio_set_drive_capability(LCD_LED_PIN, GPIO_DRIVE_CAP_1);
+	gpio_set_drive_capability(LCD_LED_PIN, GPIO_DRIVE_CAP_2);
 	gpio_set_level(LCD_LED_PIN, 1);
 
-	gpio_reset_pin(LCD_RST_PIN);
-	gpio_set_direction(LCD_RST_PIN, GPIO_MODE_OUTPUT);
-	gpio_set_level(LCD_RST_PIN, 0);
-
-	// gpio_reset_pin(LCD_CS_PIN);
-	// gpio_set_direction(LCD_CS_PIN, GPIO_MODE_OUTPUT);
-	// gpio_set_level(LCD_CS_PIN, 1);
-
-	gpio_reset_pin(LCD_DC_PIN);
-	gpio_set_direction(LCD_DC_PIN, GPIO_MODE_OUTPUT);
-
-	
-
-	spi_device_interface_config_t dev_cfg = {
-        .clock_speed_hz = LCD_SPI_SPEED,
-        .mode = 0,                          // SPI mode 0 (CPOL=0, CPHA=0)
-        .spics_io_num = LCD_CS_PIN,         // Номер пина CS (или -1 если управляем вручную)
-        .cs_ena_pretrans = 0,               // Задержка перед активацией CS
-        .cs_ena_posttrans = 0,              // Задержка после деактивации CS
-        .queue_size = 7,                    // Размер очереди транзакций
-        .flags = SPI_DEVICE_NO_DUMMY,                         // SPI_DEVICE_HALFDUPLEX и др.
-    };
-    
-    ESP_ERROR_CHECK(spi_bus_add_device(SPI2_HOST, &dev_cfg, &spi_handle));
-    printf("SPI device added successfully\n");
-
-
-	// gpio_set_level(LCD_CS_PIN, 0);
-
-	lcd_hard_reset();
-
-	lcd_init_registers();
-	printf("Display initialization completed\n");
-
-	lcd_fill_screen(255,0,255);
-
-	// gpio_set_level(LCD_CS_PIN, 1);
-
-}
-
-// Утилиты для отправки через SPI
-static void spi_write_cmd(uint8_t cmd) {
-	gpio_set_level(LCD_DC_PIN, 0); // Режим команды
-	
-	spi_transaction_t trans = {
-		.length = 8,                    // Отправляем 8 бит (1 байт)
-		.tx_buffer = &cmd
-	};
-	
-	spi_device_polling_transmit(spi_handle, &trans);      // Отправка cmd
-}
-
-static void spi_write_data(uint8_t *data, size_t len) {
-	gpio_set_level(LCD_DC_PIN, 1); // Режим данных
-
-	spi_transaction_t trans = {
-		.length = 8 * len,
-		.tx_buffer = data
+	// Конфигурация дисплея
+	st7735_config_t cfg = {
+		.cs_io_num   = LCD_CS_PIN,
+		.dc_io_num   = LCD_DC_PIN,
+		.rst_io_num  = LCD_RST_PIN,
+		.bl_io_num   = -1,  // -1 = не используется
+		.host_id     = SPI2_HOST,     // используем SPI2
 	};
 
-	spi_device_polling_transmit(spi_handle, &trans);      // Отправка data
-}
-
-static void spi_write_byte(uint8_t byte) {
-	spi_write_data(&byte, 1);
-}
-
-static void spi_write_conf(uint8_t cmd, uint8_t* data, size_t len) {
-	spi_write_cmd(cmd);
-	spi_write_data(data, len);
-}
-
-// Простейшая последовательность инициализации
-void lcd_hard_reset() {
-	printf("HARD RESET\n");
-	gpio_set_level(LCD_RST_PIN, 1);
-	vTaskDelay(pdMS_TO_TICKS(200));
-	gpio_set_level(LCD_RST_PIN, 0);
-	vTaskDelay(pdMS_TO_TICKS(200));
-	gpio_set_level(LCD_RST_PIN, 1);
-	vTaskDelay(pdMS_TO_TICKS(200)); // Ожидание после выхода из сброса [citation:6]
-}
-
-void lcd_init_registers() {
 	
-	printf("SWRESET\n");
-	spi_write_cmd(0x01);	// SWRESET 
-	vTaskDelay(pdMS_TO_TICKS(200));
-
-	printf("SLPOUT\n");
-	spi_write_cmd(0x11); // SLPOUT - Выход из сна
-	vTaskDelay(pdMS_TO_TICKS(500)); // Задержка после SLPOUT обязательна [citation:6]
-
-	printf("CONFIG\n");
-	// Frame rate
-	spi_write_cmd(0xB1);
-	uint8_t d0[] = {0x01, 0x2C, 0x2D};
-	spi_write_data(d0,3);
-
-	spi_write_cmd(0xB2);
-	uint8_t d1[] = {0x01, 0x2C, 0x2D};
-	spi_write_data(d1,3);
-
-	spi_write_cmd(0xB3);
-	uint8_t d2[] = {0x01, 0x2C, 0x2D, 0x01, 0x2C, 0x2D};
-	spi_write_data(d2,6);
-
-	// Inversion
-	spi_write_cmd(0xB4);
-	spi_write_byte(0x07);
-
-	// Power
-	uint8_t d3[] = {0xA2, 0x02, 0x84};
-	spi_write_conf(0xC0, d3, 3);
-
-	spi_write_cmd(0xC1);
-	spi_write_byte(0xC5);
-
-	uint8_t d4[] = {0x0A, 0x00};
-	spi_write_conf(0xC2, d4, 2);
-
-	uint8_t d5[] = {0x8A, 0x2A};
-	spi_write_conf(0xC3, d5, 2);
-
-	uint8_t d6[] = {0x8A, 0xEE};
-	spi_write_conf(0xC4, d6, 2);
-
-	spi_write_cmd(0xC5);
-	spi_write_byte(0x0E);
-
+	ESP_LOGI("ST7735", "Initializing display...");
+	esp_err_t ret = st7735_init(&cfg);
 	
-	// Color inversion
-	spi_write_cmd(0x21);
-
-
-	spi_write_cmd(0x36); // MADCTL - Настройка осей и порядка цвета
-	// !!!! or C8
-	spi_write_byte(0xC0); // MY=1, MX=1, MV=0, BGR=1 (типичное значение)
-
-	spi_write_cmd(0x3A); // COLMOD - Установка цветового режима
-	spi_write_byte(0x05); // 16 бит на пиксель (RGB565) [citation:6]
-
-	{ 
-		uint8_t d[] = {0x02,0x1C,0x07,0x12,0x37,0x32,0x29,0x2D,0x29,0x25,0x2B,0x39,0x00,0x01,0x03,0x10}; 
-		spi_write_conf(0xE0,d,16); 
+	if (ret != ESP_OK) {
+		ESP_LOGE("ST7735", "Display initialization failed!");
+		return;
 	}
-	{ 
-		uint8_t d[] = {0x03,0x1D,0x07,0x06,0x2E,0x2C,0x29,0x2D,0x2E,0x2E,0x37,0x3F,0x00,0x00,0x02,0x10}; 
-		spi_write_conf(0xE1,d,16); 
-	}
-
-	printf("NORON\n");
-	spi_write_cmd(0x13);	// NORON
-	vTaskDelay(pdMS_TO_TICKS(100));
-
-	printf("DISPON\n");
-	spi_write_cmd(0x29); // DISPON - Включение дисплея
-	vTaskDelay(pdMS_TO_TICKS(100));
+	
+	ESP_LOGI("ST7735", "Display initialized successfully");
+	
+	// Очистка экрана черным цветом
+	st7735_fill_screen(ST7735_GREEN);
+	// st7735_fill_rect(10,10,10,10,ST7735_RED);
+	st7735_draw_pixel(10,10,ST7735_RED);
+	st7735_draw_pixel(150,10,ST7735_BLUE);
+	st7735_draw_pixel(150,70,ST7735_GREEN);
+	st7735_draw_pixel(10,70,ST7735_YELLOW);
+	st7735_draw_string(20,20,"Preved!",ST7735_RED,2);
+	st7735_redraw();
 }
 
-void lcd_set_window(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
-    // Добавляем хардварное смещение дисплея 80х160
-    x1 += 26; x2 += 26;
-    y1 += 1;  y2 += 1;
-
-
-    // Столбцы (Column Address Set)
-    spi_write_cmd(0x2A);
-    uint8_t data_x[] = {0, x1, 0, x2};
-    spi_write_data(data_x, 4);
-
-    // Строки (Row Address Set)
-    spi_write_cmd(0x2B);
-    uint8_t data_y[] = {0, y1, 0, y2};
-    spi_write_data(data_y, 4);
-
-	spi_write_cmd(0x2C); // RAMWR - команда начала записи в RAM
-}
-
-inline void packColor(uint8_t R, uint8_t G, uint8_t B, uint8_t* color)
+inline void lcd_fill_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color)
 {
-	color[0] = (R & 0b11111000) | (G >> 5);
-	color[1] = ((G & 0b11111100) << 3) | (B >> 3);
+	st7735_fill_rect(x,y,w,h,color);
 }
 
-inline void putPix(uint8_t* color, uint8_t* buf)
+inline void lcd_fill_screen(uint16_t color)
 {
-	*buf = color[0];
-	*(buf+1) = color[1];
+	st7735_fill_screen(color);
 }
 
-// Заполнение экрана цветом
-void lcd_fill_screen(uint8_t R, uint8_t G, uint8_t B) {
-	
-	printf("Filling the screen...\n");
+inline void lcd_put_pixel(uint16_t x, uint16_t y, uint16_t color)
+{
+	st7735_draw_pixel(x, y, color);
+}
 
-	// gpio_set_level(LCD_CS_PIN, 0);
-	// RGB565
-	// uint8_t color_bytes_0[] = {255,255};
-	// uint8_t color_bytes_1[] = {0,0};
-	// { 
-	// 	(R & 0b11111000) | (G >> 5), 
-	// 	((G & 0b11111100) << 3) | (B >> 3)
-	// };
+inline void lcd_redraw()
+{
+	st7735_redraw();
+}
 
-	uint8_t col1[2], col2[2];
-	packColor(255,0,0,col1);
-	packColor(0,255,0,col2);
+uint16_t lcd_mk_color(int C)
+{
+	return ((C >> 16) & 0xF8)  | ((C << 3) & 0xE000) | ((C >> 13) & 0x7) | ((C << 5) & 0x1F00);
+}
 
-	for (uint32_t i = 0; i < LCD_PIXELS; i++) {
-		framebuf[i] = (i & 8) ? 0xFFFF : 0x0000;
+uint16_t lcd_mk_gray(uint8_t C)
+{
+	return (C & 0xF8) | (C >> 5) | ((C & 0xFC) << 11) | ((C & 0xF8) << 5);
+}
+
+uint16_t lcd_mk_hsl_color(uint16_t h, uint8_t s, float l)
+{
+	float _2PI = 2*M_PI;
+	float _23PI = _2PI/3;
+	float Rphase = _2PI*(h/360.0);
+	float Gphase = Rphase+_23PI;
+	float Bphase = Gphase+_23PI;
+
+	return lcd_mk_color(
+		(int)((s*sin(Rphase)+127)*l) << 16	|
+		(int)((s*sin(Gphase)+127)*l) << 8	|
+		(int)((s*sin(Bphase)+127)*l)
+	);
+}
+
+// 0 < t < 32
+uint16_t lcd_mk_temperature_color(uint8_t t)
+{
+	uint8_t steps = 32;
+	uint8_t hmin = 40;
+	uint8_t hmax = 200;
+	float hstep = (float)(hmax-hmin)/steps;
+	float minl = 0.4;
+	float lstep = (1-minl)/steps;
+	return lcd_mk_hsl_color((int)(hmax-(t*hstep)),127,minl+(t*lstep));
+}
+
+void lcd_gray_test()
+{
+	for(int gray=0;gray < 32;gray++)
+	{
+		lcd_fill_rect(5*gray,0,5,80,lcd_mk_temperature_color(gray));
 	}
+	lcd_redraw();
+}
 
-	lcd_set_window(0,0,79,159);
+void lcd_draw_osc(int len)
+{
+	lcd_fill_screen(0);
+	uint16_t tempcolors[32];
+	for(int i=0; i < 32; i++)
+		tempcolors[i] = i ? lcd_mk_temperature_color(i) : 0;
+	int16_t *buf = (int16_t *)sonar_buffer;
+	int min = 2047;
+	int max = -2048;
+	for(int i=0; i < len; i++)
+	{
+		if(max < buf[i])
+			max = buf[i];
+		if(min > buf[i])
+			min = buf[i];
+	}
 	
-	spi_write_data((uint8_t*)framebuf, 2*LCD_PIXELS);
-	printf("Screen fill completed!\n");
+	int amax = (abs(max) > abs(min)) ? abs(max) : abs(min);
+	printf("Min: %d; Max: %d; Absmax: %d\n",min,max,amax);
 
-	// gpio_set_level(LCD_CS_PIN, 1);
+	float vscale = amax/40.0;
+	int hscale = len/160;
+
+	printf("Vscale: %.3f; Hscale: %d; \n",vscale,hscale);
+
+	uint16_t col[80];
+	int colnum = 0;
+	int colidx;
+	uint16_t fill,maxfill;
+	uint16_t vline[80];
+	int vlidx;
+	float k_br;
+	uint8_t bright;
+	uint16_t x = 0;
+	for(int startsamp=0; startsamp < len; startsamp+=hscale)
+	{
+		memset(col,0,sizeof(col));
+		int stopsamp = startsamp+hscale;
+		for(int samp=startsamp; samp < stopsamp; samp++)
+		{
+			colidx = (int)((buf[samp]+amax)/vscale);
+			// printf("Samp: %d; colidx: %d\n",samp,colidx);
+			col[colidx]++;
+		}
+		
+		fill = 0; 
+		maxfill = 0;
+		for(int i=0; i < 40; i++)
+		{
+			if(col[i])
+			{
+				fill += col[i];
+				if(maxfill < fill)
+					maxfill = fill;
+			}
+			col[i] = fill;
+		}
+		fill = 0;
+		for(int i=79; i >=40; i--)
+		{
+			if(col[i])
+			{
+				fill += col[i];
+				if(maxfill < fill)
+					maxfill = fill;
+			}
+			col[i] = fill;
+		}
+
+		k_br = 31.0/maxfill;
+
+		for(int i=0; i < 80; i++)
+		{
+			bright = (int)(col[i]*k_br) << 3;
+			vline[79-i] = tempcolors[bright];
+			st7735_vline_buf(vline,x);
+		}
+
+		x++;
+	}	
+
+	// for(int i=0; i < 80; i++)
+	// {
+	// 	printf("%x\n",vline[i]);
+	// }
+}
+
+
+
+void drawBlock(char *caption, int y, uint16_t color,  char *msg)
+{
+	st7735_fill_rect(0,y,20,11,color);
+	// st7735_fill_rect(20,y,140,11,0);
+	st7735_draw_string(2, y+2, caption, ST7735_WHITE, 1);
+	st7735_draw_string(25, y+2, msg, ST7735_WHITE, 1);
+}
+
+void lcd_update()
+{
+	if(is_sleeping || is_waveform)
+		return;
+	printf("LCD UPDATE...\n");
+
+	drawBlock(
+		"TIM",
+		0, 
+		DSTAT->time_set && DSTAT->date_set ? ST7735_TURQUOSE : ST7735_RED,  
+		DSTAT->datetime
+	);
+	char fnum[10];
+	sprintf(fnum,"%d",DSTAT->filenum);
+	drawBlock(
+		"SD", 
+		12, 
+		DSTAT->sd_ok ? ST7735_DARKGREEN : ST7735_RED, 
+		fnum
+	);
+	drawBlock(
+		"GPS",
+		24, 
+		DSTAT->gps_enabled 
+			? (DSTAT->gps_ok ?  ST7735_DARKBLUE : ST7735_RED)
+			: ST7735_DARKORANGE, 
+		DSTAT->gps_str
+	);
+
+	printf("LCD UPDATE OK\n");
+}
+
+void lcd_sleep(int state)
+{
+	printf("LCD SLEEP %d\n",state);
+	is_sleeping = state;
+	st7735_sleep(state);
+
+	if(!state)
+		lcd_update();
+}
+
+
+void lcd_waveform(uint16_t *buf, int samples, int toggle)
+{
+	st7735_fill_screen(0);
+	if(toggle && is_waveform)
+	{
+		is_waveform = 0;
+		lcd_update();
+		return;
+	}
+	is_waveform = 1;
+	
+	float ysc = 51.2;
+	float xsc = samples/160;
+	int min,max,start,end;
+	for(int x=0; x < 160; x++)
+	{
+		min=4095;
+		max=0;
+		start=(int)(x*xsc);
+		end=(int)(start+xsc);
+		for(int i=start; i < end; i++)
+		{
+			if(buf[i] > max)
+				max = buf[i];
+			if(buf[i] < min)
+				min = buf[i];
+		}
+		max = (int)(max/ysc);
+		min = (int)(min/ysc);
+		printf("max %d min %d\n",max,min);
+		st7735_fill_rect(x,80-max,1,max-min,0xFFFF);
+	}
 }
