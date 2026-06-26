@@ -19,7 +19,7 @@ def readWAVbyNum(num):
 		raise Exception("File not found (")
 
 	with open(fname,"rb") as f:
-		f.seek(44)
+		f.seek(2110)
 		return readSignalFromFp(f)
 	
 def readSignalFromFp(f):

@@ -4,14 +4,23 @@
 #include "esp_rom_sys.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/semphr.h"
+#include "freertos/queue.h"
 #include "esp_log.h"
 #include <inttypes.h>
 #include "cons.h"
 #include "lib.h"
 #include "gps.h"
+#include "ui.h"
+#include "lcd.h"
+#include "dsp.h"
+#include "recorder.h"
 #include <time.h>
 #include <sys/time.h>
-#include "freertos/semphr.h"
+#include <string.h>
+
+
+#define TX_DISABLE		0	// Blocks DCDC from working
 
 
 #define TX_GPIO_1		13
@@ -34,7 +43,7 @@
 #define LCD_ROWS		160
 #define LCD_COLS		80
 #define LCD_SPI_SPEED		1000000
-#define LCD_LED_PIN		5
+#define LCD_LED_PIN		2
 #define LCD_CS_PIN		15
 #define LCD_DC_PIN		21
 #define LCD_RST_PIN		22
@@ -50,8 +59,8 @@
 // Buttons
 #define ENC_A_PIN		17
 #define ENC_B_PIN		16
+#define BUT0_PIN		5
 #define BUT1_PIN		0
-#define BUT2_PIN		2
 
 
 
@@ -70,7 +79,7 @@
 #define SONAR_BUF_SZ_PINGS		5
 #define SONAR_BUF_SZ_SAMPLES	ADC_RECORD_SAMPLES * SONAR_BUF_SZ_PINGS
 
-#define WAV_INFO_SZ				1024
+#define WAV_INFO_SZ				2048
 
 
 #define UART_PORT               UART_NUM_0
@@ -87,12 +96,12 @@ typedef struct {
 	float lat;
 	uint8_t satnum;
 	char gps_str[24];
-	int16_t filenum;
+	int16_t next_filenum;
 	char datetime[64];
 	gps_data_t *gps;
 	uint8_t gps_enabled;
-	float depth;
-	uint8_t is_measuring;
+	float depth_set_mm;
+	uint8_t ui_blocked;
 
 } dev_status_t;
 

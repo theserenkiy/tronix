@@ -1,19 +1,37 @@
 #include "common.h"
 #include "ui.h"
+#include "views.h"
 #include "encoder.h"
 
-int buttons[] = {BUT1_PIN,1,BUT2_PIN,1}; 
-int cur_view = 0;
+int buttons[] = {BUT0_PIN,1,BUT1_PIN,1}; 
+int cur_view_idx = 0;
+view_t *cur_view = NULL;
 
-typedef struct {
-	char type;
-	int value;
-} queue_item_t;
 
-QueueHandle_t xQueue;
+view_t views[] = {
+	{
+		.title = "MAIN",
+		.update = view_main_update,
+		.on_event = view_main_on_event
+	},
+	{
+		.title = "OSC",
+		.update = view_osc_update,
+		.on_event = view_osc_on_event
+	}
+};
+
+int view_count = 2;
+
+
+
+QueueHandle_t event_queue;
+
+
 
 void ui_init()
 {
+	lcd_init();
 	encoder_init();
 
 	for(int i=0; i < 4; i+=2)
@@ -23,10 +41,12 @@ void ui_init()
 		gpio_set_pull_mode(buttons[i], GPIO_PULLUP_ONLY);
 	}
 
-	xQueue = xQueueCreate(10, sizeof(queue_item_t));
+	ui_switch_view(0);
+
+	event_queue = xQueueCreate(10, sizeof(event_t));
 
 	xTaskCreate(
-		ui_task,    // Pointer to the task function
+		ui_button_task,    // Pointer to the task function
 		"BUTTON_TASK",    // Debug name string (Max 16 chars)
 		4096,              // Stack size in BYTES (Note: Vanilla FreeRTOS uses words, ESP32 uses bytes)
 		NULL,              // Pointer to pass parameters (NULL if none)
@@ -46,17 +66,38 @@ void ui_init()
 	xTaskCreate(
 		ui_task,    // Pointer to the task function
 		"UI_TASK",    // Debug name string (Max 16 chars)
-		4096,              // Stack size in BYTES (Note: Vanilla FreeRTOS uses words, ESP32 uses bytes)
+		8192,              // Stack size in BYTES (Note: Vanilla FreeRTOS uses words, ESP32 uses bytes)
 		NULL,              // Pointer to pass parameters (NULL if none)
 		1,                 // Task priority (Higher number = Higher priority)
 		NULL              // Task handle pointer (NULL if not needed)
 	);
+
+	if(!DSTAT->sd_ok)
+	{
+		DSTAT->ui_blocked = 1;
+		lcd_fill_screen(0);
+		lcd_text_format(4,COLOR_WHITE,COLOR_RED,10);
+		lcd_set_origin(10,10);
+		lcd_draw_string("No SD");
+		lcd_redraw();
+	}
 }
 
 void ui_task(void *prm)
 {
+	event_t ev;
+	int ret;
 	while(1)
 	{
+		while(xQueueReceive(event_queue, &ev, portMAX_DELAY) == pdPASS) {
+            // ui_print_event("Event received",&ev);
+			ret = cur_view->on_event(&ev);
+			if(ev.type=='B' && ev.value==1 && !ret)
+			{
+				ui_next_view();
+			}
+        }
+
 		vTaskDelay(pdMS_TO_TICKS(20));
 	}
 	
@@ -67,26 +108,64 @@ void ui_button_task(void *prm)
 	int butlvl;
 	while(1)
 	{
+		vTaskDelay(pdMS_TO_TICKS(50));
+		if(DSTAT->ui_blocked)
+			continue;
 		for(int i=0; i < 4;i+=2)
 		{
 			butlvl = gpio_get_level(buttons[i]);
 			if(!butlvl && buttons[i+1])
-			{
-				ui_on_button(i >> 1);
-			}
+				ui_send_event('B',i >> 1);
 
 			buttons[i+1] = butlvl;
 		}
-		vTaskDelay(pdMS_TO_TICKS(20));
+		
 	}
 }
 
-void ui_on_button(int num)
+void ui_send_event(char type, int value)
 {
-	printf("Button pressed: %d\n",num);
+	event_t ev;
+	ev.type = type;
+	ev.value = value;
+	ui_print_event("Send event",&ev);
+	xQueueSend(event_queue, (void *)&ev, 0);
 }
 
-void ui_on_encoder(int direction)
+void ui_print_event(const char *prefix, event_t *ev)
 {
-	printf("Encoder changed: %d\n",direction);
+	printf("%s: type=%c; value=%d\n", prefix, ev->type, ev->value);
 }
+
+void ui_next_view()
+{
+	ui_switch_view((cur_view_idx+1)%view_count);
+}
+
+void ui_update_view()
+{
+	lcd_fill_screen(0);
+	cur_view->update();
+	lcd_redraw();
+}
+
+void ui_switch_view(int view_idx)
+{
+	if(view_idx >= view_count)
+	{
+		printf("ERROR: view %d not exists!\n",view_idx);
+		return;
+	}
+	cur_view_idx = view_idx;
+	cur_view = &views[view_idx];
+	ui_update_view();
+}
+
+void ui_sleep(int state)
+{
+	DSTAT->ui_blocked = state;
+	lcd_sleep(state);
+	if(!state)
+		ui_update_view();
+}
+

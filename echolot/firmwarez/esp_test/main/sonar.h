@@ -15,7 +15,8 @@ void sonar_tx_prepare();
 
 void sonar_tx_done();
 
-void sonar_ping(uint16_t *buf, int ntimes);
+void sonar_ping(uint16_t *buf);
+
 
 esp_err_t sonar_adc_init(void);
 esp_err_t sonar_adc_capture(uint16_t *buffer, size_t samples);

@@ -78,7 +78,7 @@ void sd_init()
 	delay_ms(100);
 
 	int fnum = get_max_file_number();
-	DSTAT->filenum = fnum < 0 ? 1 : fnum;
+	DSTAT->next_filenum = fnum < 0 ? 1 : fnum+1;
 	DSTAT->sd_ok = 1;
 
 
@@ -166,26 +166,26 @@ void get_info(char *str)
 	);
 }
 
-FILE * sd_open_wav(int len)
-{
-	printf("Saving to SD...\n");
-	if(!sd_check())
-	{
-		con_err("SD card not connected\n");
-		return NULL;
-	}
+// FILE * sd_open_wav(int len)
+// {
+// 	printf("Saving to SD...\n");
+// 	if(!sd_check())
+// 	{
+// 		con_err("SD card not connected\n");
+// 		return NULL;
+// 	}
 
-	char bname[24];
-	DSTAT->filenum++;
-	sprintf(bname, "/sdcard/save_%06d", DSTAT->filenum);
+// 	char bname[24];
+// 	DSTAT->filenum++;
+// 	sprintf(bname, "/sdcard/save_%06d", DSTAT->filenum);
 
-	printf("Bname: %s\n", bname);
+// 	printf("Bname: %s\n", bname);
 
-	char fname[32];
-	sprintf(fname, "%s.wav",bname);
-	printf("Trying save to %s\n",fname);
-	return wav_open(fname, len, 3125, "test test test");
-}
+// 	char fname[32];
+// 	sprintf(fname, "%s.wav",bname);
+// 	printf("Trying save to %s\n",fname);
+// 	return wav_open(fname, len, 3125, "test test test");
+// }
 
 
 

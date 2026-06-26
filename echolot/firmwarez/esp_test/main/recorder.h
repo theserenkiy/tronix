@@ -1,10 +1,5 @@
 #pragma once
 
-void recorder_init();
-
-void recorder_test();
-
-void recorder_make_record();
 
 typedef struct {
 	char type;	// L - LFM, P - PSK
@@ -19,5 +14,14 @@ typedef struct {
 	//PSK data, 1bit=1symbol, MSB-first
 	uint16_t psk_pattern;
 	uint8_t psk_sym_count;
-	uint8_t nbufs;
+	uint8_t npings;
 } record_cfg_t;
+
+
+void recorder_init();
+
+void recorder_test();
+
+void recorder_record_by_config(record_cfg_t *cnf, int len);
+
+void recorder_make_record();

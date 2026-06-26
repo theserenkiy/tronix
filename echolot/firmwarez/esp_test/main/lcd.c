@@ -5,6 +5,17 @@
 int is_sleeping = 0;
 int is_waveform = 0;
 
+lcd_conf_t lcd_conf = {
+	.x = 0,
+	.y = 0,
+	.font_size = 2,
+	.font_color = COLOR_WHITE,
+	.text_bg = 0,
+	.padding = 2
+};
+
+lcd_conf_t *lcdc = &lcd_conf;
+
 void lcd_init(void)
 {
 	spi_mutex = xSemaphoreCreateMutex();
@@ -45,9 +56,20 @@ void lcd_init(void)
 	st7735_redraw();
 }
 
-inline void lcd_fill_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color)
+void lcd_upd_last_block(uint8_t x, uint8_t y, uint8_t w, uint8_t h)
+{
+	lcdc->last_block.x = x;
+	lcdc->last_block.y = y;
+	lcdc->last_block.w = w;
+	lcdc->last_block.h = h;
+	lcdc->last_block.x1 = x+w;
+	lcdc->last_block.y1 = y+h;
+}
+
+void lcd_fill_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color)
 {
 	st7735_fill_rect(x,y,w,h,color);
+	lcd_upd_last_block(x,y,w,h);
 }
 
 inline void lcd_fill_screen(uint16_t color)
@@ -60,9 +82,52 @@ inline void lcd_put_pixel(uint16_t x, uint16_t y, uint16_t color)
 	st7735_draw_pixel(x, y, color);
 }
 
+void lcd_text_format(uint8_t size, uint16_t color, uint16_t bg, uint8_t padding)
+{
+	lcdc->text_bg = bg;
+	lcdc->font_color = color;
+	lcdc->font_size = size;
+	lcdc->padding = padding;
+}
+
+void lcd_draw_string(const char *str)
+{
+	int slen = strlen(str);
+	lcd_fill_rect(
+		lcdc->x,
+		lcdc->y,
+		6*lcdc->font_size*slen+2*lcdc->padding,
+		7*lcdc->font_size+2*lcdc->padding,
+		lcdc->text_bg
+	);
+	st7735_draw_string(
+		lcdc->x + lcdc->padding,
+		lcdc->y + lcdc->padding,
+		str,
+		lcdc->font_color,
+		lcdc->font_size
+	);
+}
+
 inline void lcd_redraw()
 {
 	st7735_redraw();
+}
+
+void lcd_set_origin(int x, int y)
+{
+	lcdc->x = x;
+	lcdc->y = y;
+}
+
+void lcd_stack_right(uint8_t dx, uint8_t dy)
+{
+	lcd_set_origin(lcdc->last_block.x1+dx, lcdc->last_block.y+dy);
+}
+
+void lcd_stack_down(uint8_t dx, uint8_t dy)
+{
+	lcd_set_origin(lcdc->last_block.x+dx, lcdc->last_block.y1+dy);
 }
 
 uint16_t lcd_mk_color(int C)
@@ -75,6 +140,7 @@ uint16_t lcd_mk_gray(uint8_t C)
 	return (C & 0xF8) | (C >> 5) | ((C & 0xFC) << 11) | ((C & 0xF8) << 5);
 }
 
+//h (0..359), s (0..127), l (0.0..1.0)
 uint16_t lcd_mk_hsl_color(uint16_t h, uint8_t s, float l)
 {
 	float _2PI = 2*M_PI;
@@ -102,7 +168,7 @@ uint16_t lcd_mk_temperature_color(uint8_t t)
 	return lcd_mk_hsl_color((int)(hmax-(t*hstep)),127,1);//minl+(t*lstep));
 }
 
-void lcd_gray_test()
+void lcd_color_test()
 {
 	for(int gray=0;gray < 32;gray++)
 	{
@@ -110,6 +176,8 @@ void lcd_gray_test()
 	}
 	lcd_redraw();
 }
+
+
 
 void lcd_draw_osc(int len)
 {
@@ -197,55 +265,12 @@ void lcd_draw_osc(int len)
 }
 
 
-
-void drawBlock(char *caption, int y, uint16_t color,  char *msg)
-{
-	st7735_fill_rect(0,y,20,11,color);
-	// st7735_fill_rect(20,y,140,11,0);
-	st7735_draw_string(2, y+2, caption, ST7735_WHITE, 1);
-	st7735_draw_string(25, y+2, msg, ST7735_WHITE, 1);
-}
-
-void lcd_update()
-{
-	if(is_sleeping || is_waveform)
-		return;
-	printf("LCD UPDATE...\n");
-
-	drawBlock(
-		"TIM",
-		0, 
-		DSTAT->time_set && DSTAT->date_set ? ST7735_TURQUOSE : ST7735_RED,  
-		DSTAT->datetime
-	);
-	char fnum[10];
-	sprintf(fnum,"%d",DSTAT->filenum);
-	drawBlock(
-		"SD", 
-		12, 
-		DSTAT->sd_ok ? ST7735_DARKGREEN : ST7735_RED, 
-		fnum
-	);
-	drawBlock(
-		"GPS",
-		24, 
-		DSTAT->gps_enabled 
-			? (DSTAT->gps_ok ?  ST7735_DARKBLUE : ST7735_RED)
-			: ST7735_DARKORANGE, 
-		DSTAT->gps_str
-	);
-
-	printf("LCD UPDATE OK\n");
-}
-
 void lcd_sleep(int state)
 {
 	printf("LCD SLEEP %d\n",state);
 	is_sleeping = state;
 	st7735_sleep(state);
 
-	if(!state)
-		lcd_update();
 }
 
 

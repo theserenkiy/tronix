@@ -9,15 +9,16 @@
 #include "common.h"
 
 // Настройки SPI
-#define GEN_SPI_HOST     SPI3_HOST
-#define PIN_NUM_MOSI       TX_GPIO_2     // Сигнал чирпа выйдет на этот пин!
-#define SPI_CLOCK_HZ       10000000 // 10 МГц тактовая частота SPI (1 бит = 100 нс)
+#define GEN_SPI_HOST	SPI3_HOST
+#define PIN_NUM_MOSI	TX_GPIO_2     // Сигнал чирпа выйдет на этот пин!
+#define SPI_CLOCK_HZ	10000000 // 10 МГц тактовая частота SPI (1 бит = 100 нс)
+#define GEN_BUF_SZ		4096
 
 #define _2PI	2.0 * M_PI
 
 // Буфер в DMA-способной памяти
 // 1 мс = 10000 бит = 1.2кБ
-uint8_t gen_buffer[4096];
+uint8_t gen_buffer[GEN_BUF_SZ];
 int gen_bits = 0;
 
 
@@ -49,9 +50,16 @@ void gen_init() {
 	ESP_ERROR_CHECK(spi_bus_add_device(GEN_SPI_HOST, &devcfg, &spi_device));
 }
 
+void gen_clear_buffer()
+{
+	memset(gen_buffer,0,GEN_BUF_SZ);
+}
+
 // Функция заполнения буфера битовой маской ЛЧМ
 void gen_psk(int freq, float sym_dur, float trans_dur, uint16_t data_bits, int sym_len) {
 	// Очищаем буфер
+
+	gen_clear_buffer();
 
 	float half_trans_dur = trans_dur/2;
 	float clean_dur = sym_dur-trans_dur;
@@ -85,6 +93,7 @@ void gen_psk(int freq, float sym_dur, float trans_dur, uint16_t data_bits, int s
 
 void gen_chirp(int freq_start, int freq_end, float duration)
 {
+	gen_clear_buffer();
 	double phase = 0.0;
 	int bit_num = 0;
 	gen_bits = gen_chirp_continue(freq_start, freq_end, duration, &phase, &bit_num);

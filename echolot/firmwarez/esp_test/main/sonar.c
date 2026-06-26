@@ -36,6 +36,8 @@ void sonar_precharge(int ms)
 
 void sonar_charge(int state)
 {
+	if(TX_DISABLE)
+		return;
 	gpio_set_level(DCDC_ENA_PIN, state);
 }
 
@@ -52,17 +54,16 @@ void sonar_tx_done()
 	sonar_charge(0);
 }
 
-void sonar_ping(uint16_t *buf, int ntimes)
+void sonar_ping(uint16_t *buf)
 {
-	for(int i=0; i < ntimes; i++)
-	{
-		sonar_tx_prepare();
-		gen_fire();
-		sonar_tx_done();
+	sonar_tx_prepare();
+	gen_fire();
+	sonar_tx_done();
 
+	if(buf!=NULL)
 		sonar_adc_capture(buf, ADC_RECORD_SAMPLES);
-		buf += ADC_RECORD_SAMPLES;
-	}
+	// else
+	// 	delay_ms(ADC_RECORD_TIME_MS);
 }
 
 

@@ -60,7 +60,7 @@ void encoder_init()
 
 void encoder_on_change(int direction)
 {
-	ui_on_encoder(direction);
+	ui_send_event('E',direction);
 }
 
 void encoder_task(void *prm)
@@ -78,7 +78,7 @@ void encoder_loop()
 	{
 		delay_ms(50);
 
-		if(DSTAT->is_measuring)
+		if(DSTAT->ui_blocked)
 			continue;
 
 		pcnt_unit_get_count(pcnt_unit, &pcnt_count);

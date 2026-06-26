@@ -163,17 +163,35 @@ def dsp_lfm(sig):
 
 try:
 
-	# sig = readWAVbyNum(num)
-	f = open("test.wav","rb")
-	f.seek(1088)
-	sig = readSignalFromFp(f)
-	f.close()
+	sig = readWAVbyNum(num)
+	# f = open("test.wav","rb")
+	# f.seek(1088)
+	# sig = readSignalFromFp(f)
+	# f.close()
 	# dsp(sig,0)
 	# dsp(sig,1)
 	# dsp_shift(sig,0,6)
 	# dsp_corr(sig,0)
 	# dsp_corr(sig,0,6)
-	dsp_lfm(sig)
+	# dsp_lfm(sig)
+
+	sig = removeDC(sig)
+	s = 12500
+
+	a = []
+	for i in range(60):
+		a.append(sig[s*i+6000:s*i+9000])
+
+	createPlotWindow("Q",[
+		np.concatenate(a),
+		# sig
+		# sig[0:s*5],
+		# sig[s*5:s*10],
+		# sig[s*10:s*15],
+		# sig[s*15:s*20],
+		# sig[s*20:s*25],
+		# sig[s*25:s*30]
+	])
 
 	plotAll()
 
