@@ -12,12 +12,16 @@ view_t views[] = {
 	{
 		.title = "MAIN",
 		.update = view_main_update,
-		.on_event = view_main_on_event
+		.on_event = view_main_on_event,
+		.init = NULL,
+		.deinit = NULL
 	},
 	{
 		.title = "OSC",
 		.update = view_osc_update,
-		.on_event = view_osc_on_event
+		.on_event = view_osc_on_event,
+		.init = view_osc_init,
+		.deinit = NULL
 	}
 };
 
@@ -66,7 +70,7 @@ void ui_init()
 	xTaskCreate(
 		ui_task,    // Pointer to the task function
 		"UI_TASK",    // Debug name string (Max 16 chars)
-		8192,              // Stack size in BYTES (Note: Vanilla FreeRTOS uses words, ESP32 uses bytes)
+		16384,              // Stack size in BYTES (Note: Vanilla FreeRTOS uses words, ESP32 uses bytes)
 		NULL,              // Pointer to pass parameters (NULL if none)
 		1,                 // Task priority (Higher number = Higher priority)
 		NULL              // Task handle pointer (NULL if not needed)
@@ -77,7 +81,7 @@ void ui_init()
 		DSTAT->ui_blocked = 1;
 		lcd_fill_screen(0);
 		lcd_text_format(4,COLOR_WHITE,COLOR_RED,10);
-		lcd_set_origin(10,10);
+		lcd_origin(10,10);
 		lcd_draw_string("No SD");
 		lcd_redraw();
 	}
@@ -86,11 +90,15 @@ void ui_init()
 void ui_task(void *prm)
 {
 	event_t ev;
-	int ret;
+	int ret, skip;
 	while(1)
 	{
-		while(xQueueReceive(event_queue, &ev, portMAX_DELAY) == pdPASS) {
+		skip = 0;
+		while(xQueueReceive(event_queue, &ev, 20 / portTICK_PERIOD_MS) == pdPASS) {
             // ui_print_event("Event received",&ev);
+			if(skip)
+				continue;
+			skip = 1;
 			ret = cur_view->on_event(&ev);
 			if(ev.type=='B' && ev.value==1 && !ret)
 			{
@@ -128,7 +136,7 @@ void ui_send_event(char type, int value)
 	event_t ev;
 	ev.type = type;
 	ev.value = value;
-	ui_print_event("Send event",&ev);
+	// ui_print_event("Send event",&ev);
 	xQueueSend(event_queue, (void *)&ev, 0);
 }
 
@@ -151,6 +159,10 @@ void ui_update_view()
 
 void ui_switch_view(int view_idx)
 {
+	if(cur_view && cur_view->deinit)
+	{
+		cur_view->deinit();
+	}
 	if(view_idx >= view_count)
 	{
 		printf("ERROR: view %d not exists!\n",view_idx);
@@ -158,6 +170,9 @@ void ui_switch_view(int view_idx)
 	}
 	cur_view_idx = view_idx;
 	cur_view = &views[view_idx];
+	if(cur_view->init)
+		cur_view->init();
+		
 	ui_update_view();
 }
 
@@ -167,5 +182,12 @@ void ui_sleep(int state)
 	lcd_sleep(state);
 	if(!state)
 		ui_update_view();
+}
+
+void ui_show_error(char *s)
+{
+	lcd_text_format(2,COLOR_WHITE,COLOR_DARKRED,3);
+	lcd_origin(0,26);
+	lcd_wl(s);
 }
 

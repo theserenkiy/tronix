@@ -8,7 +8,6 @@
 #include "sdmmc_cmd.h"
 #include "driver/gpio.h"
 #include "cons.h"
-#include "gps.h"
 #include "wav.h"
 #include <stdio.h>
 #include <string.h>
@@ -78,7 +77,7 @@ void sd_init()
 	delay_ms(100);
 
 	int fnum = get_max_file_number();
-	DSTAT->next_filenum = fnum < 0 ? 1 : fnum+1;
+	DSTAT->last_filenum = fnum < 0 ? 0 : fnum;
 	DSTAT->sd_ok = 1;
 
 

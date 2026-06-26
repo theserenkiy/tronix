@@ -1,6 +1,7 @@
 #include "common.h"
 #include "lcd.h"
 #include "math.h"
+#include <stdarg.h>
 
 int is_sleeping = 0;
 int is_waveform = 0;
@@ -109,12 +110,24 @@ void lcd_draw_string(const char *str)
 	);
 }
 
+void lcd_wl(const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    
+    // vprintf принимает va_list вместо многоточия
+	char str[24];
+    vsnprintf(str, 23, format, args);
+    
+    va_end(args);
+	lcd_draw_string(str);
+}
+
 inline void lcd_redraw()
 {
 	st7735_redraw();
 }
 
-void lcd_set_origin(int x, int y)
+void lcd_origin(int x, int y)
 {
 	lcdc->x = x;
 	lcdc->y = y;
@@ -122,12 +135,12 @@ void lcd_set_origin(int x, int y)
 
 void lcd_stack_right(uint8_t dx, uint8_t dy)
 {
-	lcd_set_origin(lcdc->last_block.x1+dx, lcdc->last_block.y+dy);
+	lcd_origin(lcdc->last_block.x1+dx, lcdc->last_block.y+dy);
 }
 
 void lcd_stack_down(uint8_t dx, uint8_t dy)
 {
-	lcd_set_origin(lcdc->last_block.x+dx, lcdc->last_block.y1+dy);
+	lcd_origin(lcdc->last_block.x+dx, lcdc->last_block.y1+dy);
 }
 
 uint16_t lcd_mk_color(int C)

@@ -1,2 +1,5 @@
 #pragma once
-void dsp_read_wav(char *fname, int pinglen_samp, int ping_idx);
+
+void dsp_process_raw_ping();
+
+void dsp_read_wav(char *fname, int ping_idx);

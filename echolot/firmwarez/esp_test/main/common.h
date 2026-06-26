@@ -8,13 +8,6 @@
 #include "freertos/queue.h"
 #include "esp_log.h"
 #include <inttypes.h>
-#include "cons.h"
-#include "lib.h"
-#include "gps.h"
-#include "ui.h"
-#include "lcd.h"
-#include "dsp.h"
-#include "recorder.h"
 #include <time.h>
 #include <sys/time.h>
 #include <string.h>
@@ -96,9 +89,9 @@ typedef struct {
 	float lat;
 	uint8_t satnum;
 	char gps_str[24];
-	int16_t next_filenum;
+	int16_t last_filenum;
 	char datetime[64];
-	gps_data_t *gps;
+	// gps_data_t *gps;
 	uint8_t gps_enabled;
 	float depth_set_mm;
 	uint8_t ui_blocked;
@@ -122,3 +115,12 @@ extern uint16_t sonar_buffer[SONAR_BUF_SZ_SAMPLES];
 extern dev_status_t *DSTAT;
 
 extern SemaphoreHandle_t spi_mutex;
+
+
+#include "cons.h"
+#include "lib.h"
+#include "ui.h"
+#include "lcd.h"
+#include "dsp.h"
+#include "wav.h"
+#include "recorder.h"

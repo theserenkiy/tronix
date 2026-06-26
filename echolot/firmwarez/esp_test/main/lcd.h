@@ -52,7 +52,7 @@ void lcd_text_format(uint8_t size, uint16_t color, uint16_t bg, uint8_t padding)
 
 void lcd_redraw();
 
-void lcd_set_origin(int x, int y);
+void lcd_origin(int x, int y);
 
 void lcd_stack_right(uint8_t dx, uint8_t dy);
 
@@ -66,5 +66,6 @@ void lcd_color_test();
 
 void lcd_draw_string(const char *str);
 
+void lcd_wl(const char *str, ...);
 
 void lcd_draw_osc(int len);

@@ -2,7 +2,7 @@
 
 
 typedef struct {
-	char type;	// L - LFM, P - PSK
+	char type;	// L - LFM, P - PSK, F - one freq
 	uint16_t fstart_khz;
 	uint16_t fstop_khz;
 	uint16_t dur_us;

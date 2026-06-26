@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include <string.h>
+#include "common.h"
 
 #pragma pack(push, 1)
 

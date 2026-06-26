@@ -22,16 +22,19 @@ static void sub_dc(int16_t* buf, size_t len, uint16_t dc)
 	}
 }
 
-
-void dsp_read_wav(char *fname, int pinglen_samp, int ping_idx)
+void dsp_process_raw_ping()
 {
-	FILE *fp = fopen(fname, "rb");
-	fseek(fp, sizeof(WAVHeader)+(pinglen_samp*2*ping_idx), SEEK_SET);
-	fread(sonar_buffer,2,pinglen_samp,fp);
-	fclose(fp);
-
-	int halfsz = pinglen_samp >> 1;
+	int halfsz = ADC_RECORD_SAMPLES >> 1;
 	uint16_t dc = mean(sonar_buffer+halfsz,halfsz,2048);
 	int16_t *intbuf = (int16_t *)sonar_buffer;
-	sub_dc(intbuf, pinglen_samp, dc);
+	sub_dc(intbuf, ADC_RECORD_SAMPLES, dc);
+}
+
+void dsp_read_wav(char *fname, int ping_idx)
+{
+	FILE *fp = fopen(fname, "rb");
+	fseek(fp, sizeof(WAVHeader)+(ADC_RECORD_SAMPLES*2*ping_idx), SEEK_SET);
+	fread(sonar_buffer,2,ADC_RECORD_SAMPLES,fp);
+	fclose(fp);
+	dsp_process_raw_ping();
 }

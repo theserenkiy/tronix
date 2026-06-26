@@ -4,7 +4,6 @@
 #include "sonar.h"
 #include "lcd.h"
 #include "sd.h"
-#include "gps.h"
 #include "gen.h"
 #include "recorder.h"
 #include "encoder.h"
@@ -44,7 +43,7 @@ dev_status_t dstat = {
 	.gps_ok = 0,
 	.time_set = 0,
 	.date_set = 0,
-	.next_filenum = -1,
+	.last_filenum = -1,
 	.gps_updtime = 0,
 	.gps_str = "--.----  --.---- S--",
 	.lon = 0,

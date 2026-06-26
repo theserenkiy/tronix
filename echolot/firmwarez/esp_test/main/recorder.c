@@ -35,8 +35,8 @@ static void flush_buf(FILE *fp, int len)
 
 void recorder_make_file_path(char *path)
 {
-	sprintf(path, "/sdcard/save_%06d.wav", DSTAT->next_filenum);
-	DSTAT->next_filenum++;
+	DSTAT->last_filenum++;
+	sprintf(path, "/sdcard/save_%06d.wav", DSTAT->last_filenum);
 }
 
 void recorder_record_by_config(record_cfg_t *cnf, int len)
@@ -84,6 +84,14 @@ void recorder_record_by_config(record_cfg_t *cnf, int len)
 			gen_chirp(
 				cnf[i].fstart_khz*1000,
 				cnf[i].fstop_khz*1000, 
+				cnf[i].dur_us/1e6
+			);
+		}
+		else if(cnf[i].type=='F')
+		{
+			gen_chirp(
+				cnf[i].fstart_khz*1000,
+				cnf[i].fstart_khz*1000,
 				cnf[i].dur_us/1e6
 			);
 		}
