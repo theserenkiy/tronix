@@ -22,10 +22,24 @@ view_t views[] = {
 		.on_event = view_osc_on_event,
 		.init = view_osc_init,
 		.deinit = NULL
+	},
+	{
+		.title = "TESTCONF",
+		.update = view_tconf_update,
+		.on_event = view_tconf_on_event,
+		.init = view_tconf_init,
+		.deinit = view_tconf_deinit
+	},
+	{
+		.title = "FREQ",
+		.update = view_freq_update,
+		.on_event = view_freq_on_event,
+		.init = view_freq_init,
+		.deinit = view_freq_deinit
 	}
 };
 
-int view_count = 2;
+int view_count = 4;
 
 
 
@@ -78,14 +92,10 @@ void ui_init()
 
 	if(!DSTAT->sd_ok)
 	{
-		DSTAT->ui_blocked = 1;
-		lcd_fill_screen(0);
-		lcd_text_format(4,COLOR_WHITE,COLOR_RED,10);
-		lcd_origin(10,10);
-		lcd_draw_string("No SD");
-		lcd_redraw();
+		ui_fatal("No SD");
 	}
 }
+
 
 void ui_task(void *prm)
 {
@@ -94,7 +104,7 @@ void ui_task(void *prm)
 	while(1)
 	{
 		skip = 0;
-		while(xQueueReceive(event_queue, &ev, 20 / portTICK_PERIOD_MS) == pdPASS) {
+		while(xQueueReceive(event_queue, &ev, 0) == pdPASS) {
             // ui_print_event("Event received",&ev);
 			if(skip)
 				continue;
@@ -136,7 +146,7 @@ void ui_send_event(char type, int value)
 	event_t ev;
 	ev.type = type;
 	ev.value = value;
-	// ui_print_event("Send event",&ev);
+	ui_print_event("Send event",&ev);
 	xQueueSend(event_queue, (void *)&ev, 0);
 }
 
@@ -186,8 +196,18 @@ void ui_sleep(int state)
 
 void ui_show_error(char *s)
 {
-	lcd_text_format(2,COLOR_WHITE,COLOR_DARKRED,3);
+	lcd_text_format(2,COL_WHITE,COL_DRED,3);
 	lcd_origin(0,26);
 	lcd_wl(s);
+}
+
+void ui_fatal(char *str)
+{
+	DSTAT->ui_blocked = 1;
+	lcd_fill_screen(0);
+	lcd_text_format(4,COL_WHITE,COL_RED,10);
+	lcd_origin(10,10);
+	lcd_draw_string("No SD");
+	lcd_redraw();
 }
 

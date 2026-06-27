@@ -76,8 +76,7 @@ void sd_init()
 
 	delay_ms(100);
 
-	int fnum = get_max_file_number();
-	DSTAT->last_filenum = fnum < 0 ? 0 : fnum;
+	get_max_file();
 	DSTAT->sd_ok = 1;
 
 
@@ -154,16 +153,6 @@ int sd_check()
 	return 1;
 }
 
-void get_info(char *str)
-{
-	sprintf(str,
-		"datetime	%s\nlat	%.5f\nlon	%.5f\nsatnum	%d\n",
-		DSTAT->datetime,
-		DSTAT->lat,
-		DSTAT->lon,
-		DSTAT->satnum
-	);
-}
 
 // FILE * sd_open_wav(int len)
 // {
@@ -193,17 +182,19 @@ void get_info(char *str)
  * @return Максимальный найденный номер (например, 2 для "save_0002.wav").
  *         Если файлы не найдены или произошла ошибка, возвращает -1.
  */
-int get_max_file_number(void) {
+void get_max_file(void) {
     const char *base_path = "/sdcard";
     DIR *dir = opendir(base_path);
     
     if (dir == NULL) {
         printf("Не удалось открыть директорию: %s", base_path);
-        return -1; 
+        return; 
     }
 
+	DSTAT->last_filenum = 0;
+
     struct dirent *entry;
-    int max_num = -1;
+    int max_num = 0;
 
     while ((entry = readdir(dir)) != NULL) {
         // Пропускаем папки
@@ -212,15 +203,18 @@ int get_max_file_number(void) {
         }
 
         int current_num = -1;
+
         // sscanf ищет строгое соответствие шаблону. %d автоматически проигнорирует ведущие нули.
         // Обязательно проверяем, что функция успешно распарсила ровно 1 аргумент
-        if (sscanf(entry->d_name, "save_%d.wav", &current_num) == 1) {
+        if (sscanf(entry->d_name, "save_%d", &current_num) == 1) {
             if (current_num > max_num) {
                 max_num = current_num;
+				strcpy((char *)DSTAT->last_filename,entry->d_name);
             }
         }
     }
 
+	DSTAT->last_filenum = max_num;
     closedir(dir);
-    return max_num;
+    return;
 }

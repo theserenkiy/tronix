@@ -10,9 +10,9 @@
 
 // Настройки SPI
 #define GEN_SPI_HOST	SPI3_HOST
-#define PIN_NUM_MOSI	TX_GPIO_2     // Сигнал чирпа выйдет на этот пин!
-#define SPI_CLOCK_HZ	10000000 // 10 МГц тактовая частота SPI (1 бит = 100 нс)
-#define GEN_BUF_SZ		4096
+#define PIN_NUM_MOSI	TX_GPIO_2
+#define SPI_CLOCK_HZ	10000000
+#define GEN_BUF_SZ		8192	//65536 samples -> 6553 us
 
 #define _2PI	2.0 * M_PI
 
@@ -32,7 +32,7 @@ void gen_init() {
 		.sclk_io_num = -1, // Клок не нужен, нам нужна только линия данных
 		.quadwp_io_num = -1,
 		.quadhd_io_num = -1,
-		.max_transfer_sz = 2048
+		.max_transfer_sz = GEN_BUF_SZ
 	};
 
 	// Инициализируем SPI с включенным DMA (автовыбор канала 1 или 2)
@@ -137,6 +137,6 @@ void gen_fire() {
 		.tx_buffer = gen_buffer
 	};
 	
-	spi_device_transmit(spi_device, &t);
+	spi_device_polling_transmit(spi_device, &t);
 }
 

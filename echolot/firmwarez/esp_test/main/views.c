@@ -1,6 +1,6 @@
 #include "common.h"
 #include "views.h"
-#include <sys/stat.h>
+
 
 void set_next_depth(int direction)
 {
@@ -26,12 +26,20 @@ void view_main_update()
 {
 	printf("View main update\n");
 	lcd_origin(0,0);
-	lcd_text_format(2,COLOR_WHITE,COLOR_DARKGREEN,1);
-	lcd_wl("NXT FIL");	
-	
+	lcd_text_format(1,COL_WHITE,COL_DGREEN,1);
+	lcd_wl("NEXT FILE");	
 	lcd_stack_right(4,0);
 	lcdc->text_bg = 0;
 	lcd_wl("%d",DSTAT->last_filenum+1);
+
+	lcd_stack_down(0,1);
+	lcdc->x = 0;
+	lcd_text_format(1,COL_WHITE,COL_DORANGE,1);
+	lcd_wl("TST CNF");	
+	lcd_stack_right(4,0);
+	lcdc->text_bg = 0;
+	lcd_wl("%s",confparser_get_name());
+
 	lcd_stack_down(0,10);
 	lcdc->x = 10;
 	lcd_text_format(4,COLOR(0xCCCCCC),COLOR(0x000055),6);
@@ -39,6 +47,10 @@ void view_main_update()
 		DSTAT->depth_set_mm >= 10000 ? "%.0fm" : "%.1fm",
 		DSTAT->depth_set_mm/1000.0
 	);
+
+	lcd_origin(100,0);
+	lcd_text_format(2,COL_WHITE,COL_BLACK,2);
+	lcd_wl("%dk",DSTAT->center_freq_khz);
 
 }
 
@@ -63,112 +75,86 @@ int view_main_on_event(event_t *ev)
 	return 0;
 }
 
-/////////////////////////////////////////////////////////
-// OSC
-typedef struct {
-	int num;
-	int size;
-	int pingidx;
-	int total_pings;
-	FILE *fp;
-	char error[16];
-} pingfile_t;
 
-pingfile_t pingfile = {
-	.num = 0,
-	.error = "Not inited",
-	.fp = NULL
-};
 
-pingfile_t *pf = &pingfile;
+///////////////////////////////////////////////////////
+// TESTCONF
 
-void view_osc_init()
+void view_tconf_init()
 {
-	if(!DSTAT->last_filenum)
-	{
-		strcpy(pf->error,"No files");
-		return;
-	}
 
-	if(DSTAT->last_filenum != pf->num)
-	{
-		if(pf->fp)
-		{
-			printf("Close prev file\n");
-			fclose(pf->fp);
-		}
-
-		char path[24];
-		sprintf(path, "/sdcard/save_%06d.wav", DSTAT->last_filenum);
-		
-		pf->num = DSTAT->last_filenum;
-		pf->pingidx = 0;
-
-		struct stat st;
-		stat(path, &st);
-		pf->size = st.st_size;
-		printf("Size: %d\n",pf->size);
-
-		if(pf->size < (ADC_RECORD_SAMPLES << 1))
-		{
-			strcpy(pf->error,"Too short");
-		}
-		else{
-			pf->total_pings = pf->size/2/ADC_RECORD_SAMPLES;
-			*pf->error = 0;
-			printf("Opening %s\n",path);
-			pf->fp = fopen(path,"rb");
-			printf("Opened\n");
-			fseek(pf->fp,sizeof(WAVHeader),SEEK_SET);
-			printf("WAV header seeked\n");
-		}
-	}
 }
 
-
-void view_osc_update()
+void view_tconf_deinit()
 {
-	printf("View osc update\n");
-	// lcd_color_test();
+	dump_saves();
+}
 
-	printf("Reading...");
+void view_tconf_update()
+{
+	lcd_text_format(2,COL_WHITE, COL_DTURQ, 2);
+	lcd_origin(10,0);
+	lcd_wl("TEST");
+	lcd_stack_down(0,2);
+	lcdc->text_bg = 0;
+	char *name = confparser_get_name();
+	lcd_wl("%s",name);
+	lcd_stack_down(0,4);
+	lcdc->x = 0;
+	lcd_text_format(1,COL_YELLOW,0,2);
+	char str[16];
+	confparser_test_summary(str);
+	lcd_wl(str);
+}
+
+int view_tconf_on_event(event_t *ev)
+{
+	if(ev->type=='E')
+	{
+		printf("TEST encoder %d\n",ev->value);
+		confparser_next(ev->value);
+		printf("DONE\n");
+		ui_update_view();
+	}
+	return 0;
+}
+
+/////////////////////////////////////////////////
+// FREQ
+
+///////////////////////////////////////////////////////
+// TESTCONF
+
+void view_freq_init()
+{
+
+}
+
+void view_freq_deinit()
+{
+	dump_saves();
+}
+
+void view_freq_update()
+{
+	lcd_text_format(2,COL_BLACK, COL_GREEN, 2);
+	lcd_origin(10,0);
+	lcd_wl("FREQ");
+	lcd_stack_down(0,2);
+	lcd_text_format(2,COL_WHITE, COL_BLACK, 2);
 	
-	if(*pf->error)
-	{
-		ui_show_error(pf->error);
-	}
-	else
-	{
-		fseek(pf->fp,sizeof(WAVHeader) + ADC_RECORD_SAMPLES*2*pf->pingidx,SEEK_SET);
-		fread(sonar_buffer,2,ADC_RECORD_SAMPLES,pf->fp);
-		dsp_process_raw_ping();
-		lcd_draw_osc(ADC_RECORD_SAMPLES);
-		lcd_redraw();
-	}
-
-	lcd_text_format(1,COLOR_WHITE,COLOR_DARKGREEN,2);
-	lcd_origin(0,0);
-	printf("PF NUM %d\n",pf->num);
-	printf("Q\n");
-	lcd_wl("%d",pf->num);
-	lcd_stack_right(0,0);
-	lcd_text_format(1,COLOR_BLACK,COLOR_YELLOW,2);
-	lcd_wl("%d / %d",pf->pingidx,pf->total_pings);
+	lcd_wl("%d kHz",DSTAT->center_freq_khz);
 }
 
-int view_osc_on_event(event_t *ev)
+int view_freq_on_event(event_t *ev)
 {
-	ui_print_event("View osc received event",ev);
-	if(ev->type == 'E')
+	if(ev->type=='E')
 	{
-		if(*pf->error)
-			return 0;
-		pf->pingidx += ev->value;
-		if(pf->pingidx >= pf->total_pings)
-			pf->pingidx = pf->total_pings-1;
-		else if(pf->pingidx < 0)
-			pf->pingidx = 0;
-
+		DSTAT->center_freq_khz += ev->value;
+		if(DSTAT->center_freq_khz < 140)
+			DSTAT->center_freq_khz = 140;
+		if(DSTAT->center_freq_khz > 250)
+			DSTAT->center_freq_khz = 250;
 		ui_update_view();
 	}
 	return 0;

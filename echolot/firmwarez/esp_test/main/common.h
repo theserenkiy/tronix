@@ -13,7 +13,11 @@
 #include <string.h>
 
 
+
 #define TX_DISABLE		0	// Blocks DCDC from working
+#define RECORDER_NO_WRITE	0
+
+#define SONAR_BUF_MAX_SZ_BYTES	120*1024
 
 
 #define TX_GPIO_1		13
@@ -58,18 +62,20 @@
 
 
 // TX params
-#define TX_FREQ_HZ				187000
 #define IR_DSBL_DELAY_US		1000
 #define MT_PRECHARGE_DELAY_MS	10
 
 // ADC params
 #define ADC_UNIT_USED           ADC_UNIT_1
 #define ADC_CHANNEL_USED        ADC_CHANNEL_6     // GPIO34
-#define ADC_SAMPLE_FREQ_HZ      250000
+#define ADC_SAMPLE_FREQ_HZ      500000
+#define ADC_REAL_FS_HZ			125000
 
 #define ADC_RECORD_TIME_MS		50
 #define ADC_RECORD_SAMPLES		(int)(ADC_RECORD_TIME_MS*ADC_SAMPLE_FREQ_HZ/1000)
-#define SONAR_BUF_SZ_PINGS		5
+
+
+#define SONAR_BUF_SZ_PINGS		(int)(SONAR_BUF_MAX_SZ_BYTES/2/ADC_RECORD_SAMPLES)
 #define SONAR_BUF_SZ_SAMPLES	ADC_RECORD_SAMPLES * SONAR_BUF_SZ_PINGS
 
 #define WAV_INFO_SZ				2048
@@ -78,23 +84,20 @@
 #define UART_PORT               UART_NUM_0
 #define UART_BAUDRATE           921600
 
+#define TESTCONFIG_PATH		"/sdcard/_testconfig.txt"
+
 
 typedef struct {
 	uint8_t sd_ok;
-	uint8_t time_set;
-	uint8_t date_set;
-	uint8_t gps_ok;
-	time_t gps_updtime;
-	float lon;
-	float lat;
-	uint8_t satnum;
-	char gps_str[24];
 	int16_t last_filenum;
-	char datetime[64];
+	char last_filename[32];
 	// gps_data_t *gps;
 	uint8_t gps_enabled;
 	float depth_set_mm;
 	uint8_t ui_blocked;
+	uint16_t center_freq_khz;
+	uint16_t testcfg_idx;
+	
 
 } dev_status_t;
 
@@ -124,3 +127,4 @@ extern SemaphoreHandle_t spi_mutex;
 #include "dsp.h"
 #include "wav.h"
 #include "recorder.h"
+#include "confparser.h"

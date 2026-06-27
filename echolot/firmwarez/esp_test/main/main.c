@@ -40,21 +40,14 @@ void init_spi2_host()
 
 dev_status_t dstat = {
 	.sd_ok = 0,
-	.gps_ok = 0,
-	.time_set = 0,
-	.date_set = 0,
 	.last_filenum = -1,
-	.gps_updtime = 0,
-	.gps_str = "--.----  --.---- S--",
-	.lon = 0,
-	.lat = 0,
-	.satnum = 0,
-	.datetime = "",
-	.gps_enabled = 1,
+	.last_filename = "",
 	.ui_blocked = 0,
-	.depth_set_mm = 1000
+	.depth_set_mm = 1000,
+	.center_freq_khz = 200,
+	.testcfg_idx = 0
 };
-dev_status_t *DSTAT;
+dev_status_t *DSTAT = &dstat;
 
 SemaphoreHandle_t spi_mutex;
 
@@ -64,13 +57,12 @@ SemaphoreHandle_t spi_mutex;
 
 void app_main()
 {
-	sonar_init();
+	printf("Entering app_main...\n");
 
 	if(TX_DISABLE)
 		printf("!!!!! WARNING !!!!! TX DISABLED (DCDC blocked)\n"); 
-
-	printf("Entering app_main...\n");
-	DSTAT = &dstat;
+	
+	sonar_init();
 
 	// recorder_test();
 
@@ -78,7 +70,14 @@ void app_main()
 	sd_init();
 	
 
+	if(DSTAT->sd_ok)
+	{
+		load_saves();
+		confparser_init();
+	}
 	ui_init();
+
+	
 
 	while(1)
 	{

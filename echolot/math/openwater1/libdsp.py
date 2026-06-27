@@ -4,6 +4,7 @@ from scipy.signal import butter, filtfilt
 import numpy as np
 from lib import *
 import os
+from scipy.signal import chirp
 
 
 
@@ -84,7 +85,34 @@ def genRefPack(N_puls, delay_us, N_cycles, fs, f0, f1):
 	conlist.append(ref)
 	return np.concatenate(conlist)
 
+def gen_chirp(chirp_dur,f0,f1,fs):
+	win = 10
+	t = np.linspace(0, chirp_dur, int(chirp_dur * fs), endpoint=False) # Вектор времени от 0 до 2 сек
 
+	# Генерация chirp-сигнала: от 100 Гц в начале до 1000 Гц через 2 секунды
+	return chirp(t, f0=f0, t1=chirp_dur, f1=f1, method='linear', phi=270)
+
+
+def gen_psk(f,fs,symlen,code):
+	# 1. Параметры сигнала
+	sps = symlen*fs             # Количество отсчетов (samples) на один бит
+	fc = f*symlen               # Несущая частота (количество периодов на бит)
+
+	# 2. Генерация случайных битов (0 или 1)
+	bits = np.array(code)
+
+	# 3. Преобразование в BPSK символы: 0 -> 1, 1 -> -1
+	symbols = 1 - 2 * bits
+
+	# 4. Повторение каждого символа (формирование прямоугольных импульсов)
+	baseband = np.repeat(symbols, sps)
+
+	# 5. Генерация несущей частоты
+	t = np.arange(len(baseband)) / sps
+	carrier = np.cos(2 * np.pi * fc * t)
+
+	# 6. BPSK сигнал (умножение базовой полосы на несущую)
+	return baseband * carrier
 
 def quad_shift(sig, fhet, fs):
 	N = len(sig)

@@ -99,7 +99,8 @@ static void transmit(spi_transaction_t *t, int dc, int delay_ms)
 		
 		gpio_set_level(dc_pin, dc);
 		// Мьютекс у нас! Безопасно отправляем данные
-		int res = spi_device_transmit(spi, t);
+		// int res = 
+		spi_device_transmit(spi, t);
         // printf("spi_device_transmit res = %d\n",res);
 
 		if(delay_ms)
@@ -254,6 +255,7 @@ void st7735_redraw()
 	// memset(vmem,VMEM_SZ*2,0xff);
 	set_address_window(0,0,display_width-1,display_height-1);
 	write_data((uint8_t *)vmem, VMEM_SZ*2);
+	printf("REDRAW DONE\n");
 }
 
 // void st7735_fill_rect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color) {

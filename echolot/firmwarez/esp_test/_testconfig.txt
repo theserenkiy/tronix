@@ -1,0 +1,44 @@
+#L absrel npings fstart fstop dur
+#S abslel npings fstart dur
+#F absrel npings f dur
+#P absrel npings f sym_dur trans_dur sym_cnt pattern
+
+test RESP0
+S A 30 200 1000
+
+test FR_RESP
+F A 1 200 1000
+F A 1 202 1000
+F A 1 204 1000
+F A 1 206 1000
+F A 1 208 1000
+F A 1 210 1000
+F A 1 212 1000
+F A 1 214 1000
+F A 1 216 1000
+F A 1 218 1000
+F A 1 220 1000
+F A 1 222 1000
+F A 1 224 1000
+F A 1 226 1000
+F A 1 228 1000
+F A 1 230 1000
+
+
+test LFM
+L R 5 -10 10 1000
+L R 5 -10 10 500
+L R 5 -10 10 300
+L R 5 -20 20 1000
+L R 5 -20 20 500
+L R 5 -20 20 300
+
+
+test MAIN
+L R 5 -10 10 1000
+L R 5 -10 10 500
+L R 5 -10 10 300
+P R 1 -10 100 40 4 100110000   
+P R 5 -5 200 40 4 11010000
+P R 5 -15 300 40 4 1110000
+

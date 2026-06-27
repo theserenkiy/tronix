@@ -33,3 +33,5 @@ void ui_switch_view(int view);
 void ui_sleep(int state);
 
 void ui_show_error(char *s);
+
+void ui_fatal(char *str);

@@ -10,7 +10,7 @@ lcd_conf_t lcd_conf = {
 	.x = 0,
 	.y = 0,
 	.font_size = 2,
-	.font_color = COLOR_WHITE,
+	.font_color = COL_WHITE,
 	.text_bg = 0,
 	.padding = 2
 };
@@ -133,12 +133,12 @@ void lcd_origin(int x, int y)
 	lcdc->y = y;
 }
 
-void lcd_stack_right(uint8_t dx, uint8_t dy)
+void lcd_stack_right(int16_t dx, int16_t dy)
 {
 	lcd_origin(lcdc->last_block.x1+dx, lcdc->last_block.y+dy);
 }
 
-void lcd_stack_down(uint8_t dx, uint8_t dy)
+void lcd_stack_down(int16_t dx, int16_t dy)
 {
 	lcd_origin(lcdc->last_block.x+dx, lcdc->last_block.y1+dy);
 }
@@ -177,7 +177,7 @@ uint16_t lcd_mk_temperature_color(uint8_t t)
 	uint8_t hmax = 170;
 	float hstep = (float)(hmax-hmin)/steps;
 	float minl = 0.4;
-	float lstep = (1-minl)/steps;
+	// float lstep = (1-minl)/steps;
 	return lcd_mk_hsl_color((int)(hmax-(t*hstep)),127,1);//minl+(t*lstep));
 }
 

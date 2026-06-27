@@ -5,13 +5,13 @@ import os
 import traceback
 from scipy.signal import chirp
 
-fs = 250000
-f0 = 185000
-fhet = 125000
+fs = 500000
+f0 = 214000
+fhet = 250000
 pinglen_ms = 50
 pinglen_samp = int(fs*pinglen_ms/1000)
 
-f1 = f0-fhet
+f1 = abs(f0-fhet)
 
 print("Ping len samples: ",pinglen_samp)
 
@@ -87,7 +87,8 @@ def dsp_corr(sig,start_offset=3,end_offset=6):
 	])
 
 	# plotAll()
-	
+
+
 
 def dsp_lfm(sig):
 
@@ -163,34 +164,37 @@ def dsp_lfm(sig):
 
 try:
 
-	sig = readWAVbyNum(num)
-	# f = open("test.wav","rb")
-	# f.seek(1088)
-	# sig = readSignalFromFp(f)
-	# f.close()
-	# dsp(sig,0)
-	# dsp(sig,1)
-	# dsp_shift(sig,0,6)
-	# dsp_corr(sig,0)
-	# dsp_corr(sig,0,6)
-	# dsp_lfm(sig)
+	s = 25000
+	n = 15
+	sig = readWAVbyNum(num)[s*n:s*(n+1)]
+
 
 	sig = removeDC(sig)
-	s = 12500
+	# sig1 = removeDC(sig1)
+	# sig2 = removeDC(sig2)
+	
 
-	a = []
-	for i in range(60):
-		a.append(sig[s*i+6000:s*i+9000])
+	ref = genT(400e-6,fs,f1)
+	# a = []
+	# for i in range(60):
+	# 	a.append(sig[s*i+6000:s*i+9000])
+
+	lfm = gen_chirp(1000e-6,fhet-205e3,fhet-225e3,fs)
+
+	barker5 = gen_psk(fhet-215e3,fs,200e-6,[1,1,1,0,1])
+	barker7 = gen_psk(fhet-214e3,fs,200e-6,[1,1,1,0,0,1,0])
+	barker11 = gen_psk(fhet-215e3,fs,200e-6,[1,1,1,0,0,0,1,0,0,1,0])
+	p2 = gen_psk(fhet-215e3,fs,200e-6,[0,0,0,0,0,0,0])
+	p3 = gen_psk(fhet-215e3,fs,200e-6,		[1,1,1,1,1,1,1,1,1,1,1])
+
 
 	createPlotWindow("Q",[
-		np.concatenate(a),
-		# sig
-		# sig[0:s*5],
-		# sig[s*5:s*10],
-		# sig[s*10:s*15],
-		# sig[s*15:s*20],
-		# sig[s*20:s*25],
-		# sig[s*25:s*30]
+		sig,
+		np.abs(quad_shift(sig,fhet-215e3,fs)),
+		# correlate(sig,barker11),
+		# correlate(sig,p3),
+		# correlate(sig,p3),
+		correlate(sig,lfm)
 	])
 
 	plotAll()

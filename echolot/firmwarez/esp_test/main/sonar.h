@@ -19,4 +19,5 @@ void sonar_ping(uint16_t *buf);
 
 
 esp_err_t sonar_adc_init(void);
+void sonar_adc_start();
 esp_err_t sonar_adc_capture(uint16_t *buffer, size_t samples);

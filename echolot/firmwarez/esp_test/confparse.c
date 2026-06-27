@@ -20,8 +20,24 @@ typedef struct {
 	uint8_t npings;
 } record_cfg_t;
 
-record_cfg_t records[16];
+record_cfg_t records[32];
 int nrec = 0;
+
+void print_rec(record_cfg_t *rec)
+{
+	printf(
+			"%c %d %d %d %d %d %d %d %x\n",
+			rec->type,
+			rec->npings, 
+			rec->fstart_khz,
+			rec->fstop_khz, 
+			rec->dur_us,
+			rec->psk_sym_dur_us,
+			rec->psk_trans_us,
+			rec->psk_sym_count,
+			rec->psk_pattern
+		);
+}
 
 char names[16][16];
 int names_num = 0;
@@ -67,6 +83,8 @@ void get_config(int n, int cfreq)
 	int freq0,freq1;
 	char absrel;
 	int abs;
+	sprintf(substr, "test %s",names[n]);
+	printf("Searching |%s|\n",substr);
 	record_cfg_t *r;
 	while(fgets(str,256,fp))
 	{
@@ -74,16 +92,28 @@ void get_config(int n, int cfreq)
 			continue;
 		if(!inside)
 		{
-			sprintf(substr, "test %s",names[n]);
 			char *ptr = strstr(str, substr);
 			if(ptr == str)
+			{
+				printf("FOUND\n");
 				inside = 1;
+				sprintf(substr, "test ",names[n]);
+			}
 			continue;
 		}
 
-		r = &records[nrec];
-		nrec++;
-		memset(r,0,sizeof(record_cfg_t));
+		char *ptr = strstr(str, substr);
+		if(ptr == str)
+			break;	
+
+		if(*str == 'L' || *str == 'F' || *str == 'P')
+		{
+			r = records + nrec;
+			nrec++;
+			memset(r,0,sizeof(record_cfg_t));
+		}
+
+		int np;
 
 		if(*str == 'L')
 		{
@@ -106,6 +136,7 @@ void get_config(int n, int cfreq)
 		}
 		else if(*str == 'F')
 		{
+			// printf("F found\n");
 			sscanf(str, "F %c %d %d %d",
 				&absrel,
 				&r->npings,
@@ -119,12 +150,13 @@ void get_config(int n, int cfreq)
 			}
 			r->type = 'F';
 			r->fstart_khz = freq0;
+			
 		}
 		else if(*str == 'P')
 		{
 			sscanf(str, "P %c %d %d %d %d %d %s",
 				&absrel,
-				&r->npings,
+				&np,
 				&freq0,
 				&r->psk_sym_dur_us,
 				&r->psk_trans_us,
@@ -132,7 +164,9 @@ void get_config(int n, int cfreq)
 				pattern
 			);
 			
-			printf("NP: %d\n",r->npings);
+			printf("nrec: %d\n",nrec);
+			printf("NP: %d\n",np);
+			r->npings = np;
 
 			if(absrel == 'R')
 			{
@@ -144,9 +178,11 @@ void get_config(int n, int cfreq)
 
 			for(int i=0; i < 16; i++)
 			{
-				if(!pattern[i])break;
+				// printf("I: %d\n",i);
+				if(!pattern[i])
+					break;
 				if(pattern[i]=='1')
-					r->psk_pattern |= 1 << (15-i);
+					r->psk_pattern |= (uint16_t)(1 << (15-i));
 			}
 			
 		}
@@ -156,31 +192,91 @@ void get_config(int n, int cfreq)
 	fclose(fp);
 }
 
+//type npings fstart fstop dur sym_dur trans_dur sym_cnt pattern
+#define WAV_INFO_SZ 2048
+char str[WAV_INFO_SZ];
+typedef struct {
+	char type;
+	uint16_t pings;
+	uint16_t f0;
+	uint16_t f1;
+	uint16_t dur;
+} cfg_short_t;
+
+cfg_short_t cfgs[64];
+cfg_short_t *ping_cfgs[128];
+int cfglen = 0;
+void parse_header(FILE *fp)
+{
+	fseek(fp, 0x38, SEEK_SET);
+	fread(str,1,WAV_INFO_SZ,fp);
+	char *ptr = str;
+	str[WAV_INFO_SZ-1]=0;
+	// printf("META %s\n",str);
+
+	char typ;
+	int f0,f1,dur,sdur,pings;
+	cfglen = 0;
+	cfg_short_t *c;
+	int ret;
+	while (ptr = strstr(ptr, "\n"))
+	{
+		// printf("NL found str=%p ptr=%p char=|%c|\n",str,ptr,*ptr);
+		if(ptr >= str+WAV_INFO_SZ-1)
+		{
+			printf("Break\n");
+			break;
+		}
+		ptr++;
+		if((*ptr == 'L' || *ptr == 'F' || *ptr == 'P') && *(ptr+1)==' ')
+		{
+			ret = sscanf(ptr,"%c %d %d %d %d %d",&typ,&pings,&f0,&f1,&dur,&sdur);
+			if(ret && pings)
+			{
+				c = &cfgs[cfglen];
+				c->type = typ;
+				c->pings = pings;
+				c->f0 = f0;
+				c->f1 = f1;
+				c->dur = sdur ? sdur : dur;
+				cfglen++;
+			}
+		}
+	}
+	
+	int pci = 0;
+	for(int i=0; i < cfglen; i++)
+	{
+		c = &cfgs[i];
+		// printf("%c %d %d %d %d\n",c->type,c->pings,c->f0,c->f1,c->dur);
+		for(int j=0; j < c->pings; j++)
+		{
+			ping_cfgs[pci++] = c;
+		}
+	}
+
+}
+
 
 int main()
 {
 	
-	conf_parse_names();
+	// conf_parse_names();
 
-	get_config(2,200);
+	// get_config(2,200);
 
+	// printf("%d found\n",nrec);
 
-	for(int i=0; i < nrec; i++)
-	{
-		printf(
-			"%c %d %d %d %d %d %d %d %x\n",
-			records[i].type,
-			records[i].npings, 
-			records[i].fstart_khz,
-			records[i].fstop_khz, 
-			records[i].dur_us,
-			records[i].psk_sym_dur_us,
-			records[i].psk_trans_us,
-			records[i].psk_sym_count,
-			records[i].psk_pattern
-		);
-	}
+	// for(int i=0; i < nrec; i++)
+	// {
+	// 	print_rec(records+i);
+	// }
 
-	
+	FILE *fp = fopen("save_000159.wav","rb");
+
+	parse_header(fp);
+
+	fclose(fp);
+
 	return 0;
 }

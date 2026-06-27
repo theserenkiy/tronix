@@ -11,6 +11,7 @@
 
 static adc_continuous_handle_t adc_handle = NULL;
 
+portMUX_TYPE sonar_mutex = portMUX_INITIALIZER_UNLOCKED;
 
 void sonar_init()
 {
@@ -31,7 +32,7 @@ void sonar_init()
 void sonar_precharge(int ms)
 {
 	sonar_charge(1);
-	vTaskDelay(pdMS_TO_TICKS(ms));
+	delay_ms(ms);
 }
 
 void sonar_charge(int state)
@@ -49,19 +50,36 @@ void sonar_tx_prepare()
 
 void sonar_tx_done()
 {
-	esp_rom_delay_us(IR_DSBL_DELAY_US);
+	delay_us(IR_DSBL_DELAY_US);
 	gpio_set_level(MOSDRV_ENA_PIN, 0); 
 	sonar_charge(0);
 }
 
 void sonar_ping(uint16_t *buf)
 {
+	// vTaskSuspendAll();
 	sonar_tx_prepare();
+
+	taskENTER_CRITICAL(&sonar_mutex);
+	if(buf!=NULL)
+	{
+		sonar_adc_start();
+	}
 	gen_fire();
 	sonar_tx_done();
 
-	if(buf!=NULL)
+
+	taskEXIT_CRITICAL(&sonar_mutex);
+
+	if(buf != NULL)
 		sonar_adc_capture(buf, ADC_RECORD_SAMPLES);
+	
+	sonar_charge(1);
+
+	// if( !xTaskResumeAll () )
+	// {
+	// 	taskYIELD ();
+	// }
 	// else
 	// 	delay_ms(ADC_RECORD_TIME_MS);
 }
@@ -100,6 +118,12 @@ esp_err_t sonar_adc_init(void)
 	return ESP_OK;
 }
 
+void sonar_adc_start()
+{
+	ESP_ERROR_CHECK(
+		adc_continuous_start(adc_handle)
+	);
+}
 
 esp_err_t sonar_adc_capture(uint16_t *buffer, size_t samples)
 {
@@ -109,9 +133,7 @@ esp_err_t sonar_adc_capture(uint16_t *buffer, size_t samples)
 
 	size_t collected = 0;
 
-	ESP_ERROR_CHECK(
-		adc_continuous_start(adc_handle)
-	);
+	
 
 	while (collected < samples)
 	{

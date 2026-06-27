@@ -3,18 +3,22 @@
 
 #define COLOR(C)(uint16_t)(((C >> 16) & 0xF8)  | ((C << 3) & 0xE000) | ((C >> 13) & 0x7) | ((C << 5) & 0x1F00))
 
-#define COLOR_RED			COLOR(0xFF0000)
-#define COLOR_DARKRED		COLOR(0x770000)
-#define COLOR_GREEN			COLOR(0x00FF00)
-#define COLOR_DARKGREEN		COLOR(0x007700)
-#define COLOR_BLUE			COLOR(0x0000FF)
-#define COLOR_DARKBLUE		COLOR(0x000077)
-#define COLOR_CYAN			COLOR(0x00FFFF)
-#define COLOR_YELLOW		COLOR(0xFFFF00)
-#define COLOR_DARKYELLOW	COLOR(0x777700)
-#define COLOR_MAGENTA		COLOR(0xFF00FF)
-#define COLOR_BLACK			0
-#define COLOR_WHITE			COLOR(0xFFFFFF)
+#define COL_RED			COLOR(0xFF0000)
+#define COL_DRED		COLOR(0x770000)
+#define COL_GREEN		COLOR(0x00FF00)
+#define COL_DGREEN		COLOR(0x007700)
+#define COL_BLUE		COLOR(0x0000FF)
+#define COL_DBLUE		COLOR(0x000077)
+#define COL_CYAN		COLOR(0x00FFFF)
+#define COL_YELLOW		COLOR(0xFFFF00)
+#define COL_DYELLOW		COLOR(0x777700)
+#define COL_MAGENTA		COLOR(0xFF00FF)
+#define COL_ORANGE		COLOR(0xFF8800)
+#define COL_DORANGE		COLOR(0x885500)
+#define COL_TURQ		COLOR(0x00FF88)
+#define COL_DTURQ		COLOR(0x008855)
+#define COL_BLACK		0
+#define COL_WHITE		COLOR(0xFFFFFF)
 
 
 typedef struct {
@@ -54,9 +58,9 @@ void lcd_redraw();
 
 void lcd_origin(int x, int y);
 
-void lcd_stack_right(uint8_t dx, uint8_t dy);
+void lcd_stack_right(int16_t dx, int16_t dy);
 
-void lcd_stack_down(uint8_t dx, uint8_t dy);
+void lcd_stack_down(int16_t dx, int16_t dy);
 
 uint16_t lcd_mk_color(int C);
 
