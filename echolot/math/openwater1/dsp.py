@@ -107,10 +107,7 @@ def dsp_lfm(sig):
 	ref12 /= np.linalg.norm(ref12)
 
 	# ref12 = np.sign(ref)
-
 	ref2 = genN(64,fs,f0,f1)
-
-	
 
 	res = None
 	res2 = None
@@ -165,7 +162,9 @@ def dsp_lfm(sig):
 try:
 
 	s = 25000
-	n = 15
+	df = 20
+	n = 20
+
 	sig = readWAVbyNum(num)[s*n:s*(n+1)]
 
 
@@ -179,11 +178,11 @@ try:
 	# for i in range(60):
 	# 	a.append(sig[s*i+6000:s*i+9000])
 
-	lfm = gen_chirp(1000e-6,fhet-205e3,fhet-225e3,fs)
+	lfm = gen_chirp(1000e-6,fhet-(215-df)*1e3,fhet-(215+df)*1e3,fs)
 
 	barker5 = gen_psk(fhet-215e3,fs,200e-6,[1,1,1,0,1])
-	barker7 = gen_psk(fhet-214e3,fs,200e-6,[1,1,1,0,0,1,0])
-	barker11 = gen_psk(fhet-215e3,fs,200e-6,[1,1,1,0,0,0,1,0,0,1,0])
+	barker7 = gen_psk(fhet-215e3,fs,300e-6,[1,1,1,0,0,1,0])
+	barker11 = gen_psk(fhet-215e3,fs,300e-6,[1,1,1,0,0,0,1,0,0,1,0])
 	p2 = gen_psk(fhet-215e3,fs,200e-6,[0,0,0,0,0,0,0])
 	p3 = gen_psk(fhet-215e3,fs,200e-6,		[1,1,1,1,1,1,1,1,1,1,1])
 

@@ -4,20 +4,22 @@ import pyqtgraph as pg
 from pyqtgraph.Qt import QtWidgets
 import os
 import signal
+import sys
+import re
 
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 from pathlib import Path
 
 
-
-def readWAVbyNum(num):
+def getWAVNameByArg(argnum=1):
+	num = sys.argv[argnum] if len(sys.argv) > argnum else 0
 	if not num:
-		raise Exception("No file number given")
+		exit("File num not specified")
+	return getWAVNameByNum(num)
 
-	# fname = f'save/save_{num.rjust(6,"0")}.wav'
 
-	# Define the target directory
+def getWAVNameByNum(num):
 	directory = Path('./save')
 
 	# 1. Non-recursive (only in the current directory)
@@ -29,7 +31,48 @@ def readWAVbyNum(num):
 	if not len(file_paths):
 		exit("File not found")
 	
-	fname = file_paths[0]
+	return file_paths[0]
+
+
+def readWAVInfo(f):
+	f.seek(0x38, 0)
+	s = f.read(2048).split(b'\x00')[0].decode('utf-8')
+
+	d = {}
+	for k in ["depth","ping_samples","fs"]:
+		mm = re.findall(rf"{k} ([\d\.]+)",s)
+		d[k] = float(mm[0]) if len(mm) else -1
+
+	mm = re.findall(r"^([LFSP]) (\d+) (\d+) (\d+) (\d+) (\d+) (\d+) (\d+) ([a-f\d]+)",s,re.MULTILINE)
+
+	mn=0
+	d["tests"] = []
+	for m in mm:
+		pattern = (int(m[7],16) << ((8-len(m[7]))*4))
+		d["tests"].append({
+			"type": m[0],
+			"npings": m[1],
+			"f0": (int(m[2])*1000),
+			"f1": (int(m[3])*1000),
+			"dur": (int(m[4])*1e-6),
+			"symdur": (int(m[5])*1e-6),
+			# "data": f"{:b}"
+			"data": f"{pattern:b}"
+			# "data": int(m[7],16)
+		})
+
+	print(d,mm)
+	return s
+
+
+def readWAVbyNum(num):
+	if not num:
+		raise Exception("No file number given")
+
+	# fname = f'save/save_{num.rjust(6,"0")}.wav'
+
+	# Define the target directory
+	fname = getWAVNameByNum(num)
 
 	print(f"Trying to open {fname}")
 
