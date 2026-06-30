@@ -11,6 +11,16 @@ signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 from pathlib import Path
 
+def parseArgToList(n,dflt):
+	if len(sys.argv) <= n:
+		return None
+	v = sys.argv[n]
+	mm = re.findall(r"(\d+)\-(\d+)",v)
+	if len(mm):
+		return list(range(int(mm[0][0]), int(mm[0][1])+1))
+	lst = v.split(",")
+	return [int(x) for x in lst]
+	
 
 def getWAVNameByArg(argnum=1):
 	num = sys.argv[argnum] if len(sys.argv) > argnum else 0
@@ -46,24 +56,31 @@ def readWAVInfo(f):
 	mm = re.findall(r"^([LFSP]) (\d+) (\d+) (\d+) (\d+) (\d+) (\d+) (\d+) ([a-f\d]+)",s,re.MULTILINE)
 
 	mn=0
+	pingn = 0
 	d["tests"] = []
+	d["pings"] = []
+
+
 	for m in mm:
-		pattern = (int(m[7],16) << ((8-len(m[7]))*4))
+		pattern = [int(x) for x in list(f"{int(m[8],16):b}"[0:int(m[7])])]
 		d["tests"].append({
 			"type": m[0],
-			"npings": m[1],
+			"npings": int(m[1]),
+			"pingrange": [pingn,pingn+int(m[1])],
 			"f0": (int(m[2])*1000),
 			"f1": (int(m[3])*1000),
 			"dur": (int(m[4])*1e-6),
 			"symdur": (int(m[5])*1e-6),
-			# "data": f"{:b}"
-			"data": f"{pattern:b}"
-			# "data": int(m[7],16)
+			"pattern": pattern
 		})
+		for i in range(int(m[1])):
+			d["pings"].append(mn)
+			pingn+=1
+		mn+=1;
 
-	print(d,mm)
-	return s
 
+	# print(d)
+	return d
 
 def readWAVbyNum(num):
 	if not num:
@@ -111,13 +128,16 @@ def createPlotWindow(title,datas):
 	if not app:
 		app = QtWidgets.QApplication([])
 
-	win = pg.GraphicsLayoutWidget(show=True)
+	win = pg.GraphicsLayoutWidget(show=True, size=(1200, 800))
 	win.setWindowTitle(title)
 
 	plot1 = None
 	first = True
 	for data in datas:
-		plot = win.addPlot()
+		title = None
+		if type(data) == tuple:
+			(title, data) = data
+		plot = win.addPlot(title=title)
 		if xsync:
 			if not plot1:
 				plot1 = plot

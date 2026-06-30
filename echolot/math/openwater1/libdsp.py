@@ -6,7 +6,12 @@ from lib import *
 import os
 from scipy.signal import chirp
 
+def sigsum(sig1,sig2):
+	return sig2 if sig1 is None else sig1+sig2
 
+def prepareRawSig(sig):
+	# print("PREPARE RAW ",len(sig))
+	return removeDC(np.frombuffer(sig, dtype=np.uint16))
 
 def correlate(sig,ref,win=100):
 	corr = np.correlate(sig, ref, mode="same")
@@ -34,6 +39,11 @@ def winfilt2(data, alpha=0.005, imba=10):
 		env2[i] = env2[i-1] + (alpha if delta < 0 else alpha2) * delta
 	
 	return env2
+
+
+def get_env(sig, win=100):
+	asig = np.abs(sig)
+	return winfilt(asig, win)
 
 
 def mancorr(sig, pattern):
