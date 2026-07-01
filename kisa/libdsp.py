@@ -4,7 +4,7 @@ from scipy.signal import butter, filtfilt
 import numpy as np
 from lib import *
 import os
-from scipy.signal import chirp
+from scipy import signal
 
 def sigsum(sig1,sig2):
 	return sig2 if sig1 is None else sig1+sig2
@@ -35,7 +35,7 @@ def winfilt2(data, alpha=0.005, imba=1):
 	alpha2 = alpha*imba
 
 	for i in range(1, len(data)):
-		delta = abs(data[i]) - env2[i-1]
+		delta = data[i] - env2[i-1]
 		env2[i] = env2[i-1] + (alpha if delta < 0 else alpha2) * delta
 	
 	return env2
@@ -84,9 +84,12 @@ def genN(N,fs,f0,f1):
 	return np.sin(2*np.pi*f1*t)
 
 def genT(T,fs,f):
-	Ns = int(T*fs)
+	Ns = round(T*fs)
 	t = np.arange(Ns) / fs
 	return np.sin(2*np.pi*f*t)
+
+def genSameLen(sig,f,fs):
+	return genT(len(sig)/fs,fs,f)
 
 def genRefPack(N_puls, delay_us, N_cycles, fs, f0, f1):
 	ref = genN(10,fs,f0,f1)
@@ -100,7 +103,7 @@ def gen_chirp(chirp_dur,f0,f1,fs):
 	t = np.linspace(0, chirp_dur, int(chirp_dur * fs), endpoint=False) # Вектор времени от 0 до 2 сек
 
 	# Генерация chirp-сигнала: от 100 Гц в начале до 1000 Гц через 2 секунды
-	return chirp(t, f0=f0, t1=chirp_dur, f1=f1, method='linear', phi=270)
+	return signal.chirp(t, f0=f0, t1=chirp_dur, f1=f1, method='linear', phi=270)
 
 
 def gen_psk(f,fs,symlen,code):
@@ -158,80 +161,26 @@ def quad_shift_abs(sig, fhet, fs):
 	return np.abs(quad_shift(sig, fhet, fs))
 
 
-def dsp_old(files):
-	data = readFiles([files[0]])[0]
-	# data = data[]
-	dc = np.mean(data[int(len(data)/2):])
+def mfb_bpass(sig,f0,q,fs):
+	w0 = 2 * np.pi * f0
+	gain = 1
+	# Для MFB полосового фильтра передаточная функция имеет вид:
+	# H(s) = - (Gain * w0 / Q * s) / (s^2 + (w0 / Q) * s + w0^2)
+	b_analog = [0.0, -gain * w0 / q, 0.0]
+	a_analog = [1.0, w0 / q, w0**2]
 
-	data = data - dc
+	b_digital, a_digital = signal.bilinear(b_analog, a_analog, fs=fs)
 
-	adata = np.abs(data)
+	return signal.lfilter(b_digital, a_digital, sig)
 
-	env2 = winfilt2(data,0.01)
-
-	fs = 250000
-
-	# spectr(data, fs)
-	# return
-
+def mfb_hpass(sig,f0,q,fs):
+	gain = 1
+	w0 = 2 * np.pi * f0
+	w0_warped = 2 * fs * np.tan(w0 / (2 * fs))
 	
-	fhet = 62000
-	
+	b_analog = [1, 0, 0]                       # Коэффициенты при s^2, s^1, s^0
+	a_analog = [1.0, w0_warped / q, w0_warped**2]
 
+	b_digital, a_digital = signal.bilinear(b_analog, a_analog, fs=fs)
 
-	
-
-	I_f2 = winfilt(I,100)
-	Q_f2 = winfilt(Q,100)
-
-	
-	complex2 = I_f2 + 1j * Q_f2
-	mag1 = np.abs(complex1)
-	mag2 = np.abs(complex2)
-
-	c_mag1 = mag1 #np.clip(mag1, 0, 100)
-	c_mag2 = mag2 #np.clip(mag2, 0, 100)
-
-	ref0 = genN(32,fs,fhet)
-	ref = genN(10,fs,fhet)
-	zz = np.zeros(int(40/(1e6/fs)))
-	ref2 = np.concatenate((ref, zz, ref, zz, ref, zz, ref))
-
-
-	corr = np.correlate(data, ref0[::-1], mode='same')
-	corr = np.abs(corr)
-	# corr = np.clip(corr,0,2000)
-
-	mcorr = mancorr(data,ref)
-	mcenv = winfilt(mcorr,4000)
-	fmcorr = winfilt(mcorr,20)
-	
-	fmag = winfilt2(c_mag2,0.005)
-	mmag = winfilt2(fmag,0.0005)
-
-
-
-
-	# displayData(
-	# 	c_mag2[0:10000] + c_mag2[10000:20000]
-	# )
-
-	displayData([
-		# refsig
-		data, 
-		adata, 
-		# env2, 
-		# mag2, 
-		# c_mag2, #[0:10000] + c_mag2[10000:20000]+ c_mag2[20000:30000]+ c_mag2[30000:40000], 
-		# fmag,
-		# mmag,
-		# fmag-mmag
-		# norm(c_mag2,0.00001,0.005)
-		
-		corr,
-		# mcorr,
-		# mcenv,
-		# fmcorr,
-		# fmcorr-mcenv
-	])
-	# spectr(magnitude, fs)
+	return signal.lfilter(b_digital, a_digital, sig)

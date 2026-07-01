@@ -135,8 +135,15 @@ def createPlotWindow(title,datas):
 	first = True
 	for data in datas:
 		title = None
+		zoom_on_x = 0
+		
 		if type(data) == tuple:
-			(title, data) = data
+			zoom_on_x = data[2] if len(data) > 2 else 0
+			title = data[0]
+			data = data[1]
+
+		# print("ZOOM ON X",zoom_on_x)
+
 		plot = win.addPlot(title=title)
 		if xsync:
 			if not plot1:
@@ -145,7 +152,10 @@ def createPlotWindow(title,datas):
 				plot.setXLink(plot1)
 
 		plot.showGrid(x=True, y=True)
-		plot.setMouseEnabled(x=first, y=not first)
+		x = bool(first or zoom_on_x)
+		y = not first and not zoom_on_x
+		# print(f"X={x}, Y={y}")
+		plot.setMouseEnabled(x=x, y=y)
 		curve = plot.plot(data)
 		win.nextRow()
 		first = False
