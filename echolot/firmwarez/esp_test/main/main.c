@@ -64,7 +64,7 @@ void app_main()
 	
 	sonar_init();
 
-	// recorder_test();
+	recorder_test();
 
 	init_spi2_host();
 	sd_init();

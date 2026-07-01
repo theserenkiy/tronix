@@ -19,7 +19,7 @@ void recorder_test()
 	while (1)
 	{
 		sonar_ping(NULL);
-		delay_ms(ADC_RECORD_TIME_MS);
+		
 	}
 }
 

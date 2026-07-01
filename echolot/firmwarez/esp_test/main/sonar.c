@@ -73,6 +73,8 @@ void sonar_ping(uint16_t *buf)
 
 	if(buf != NULL)
 		sonar_adc_capture(buf, ADC_RECORD_SAMPLES);
+	else 
+		delay_ms(ADC_RECORD_TIME_MS);
 	
 	sonar_charge(1);
 
