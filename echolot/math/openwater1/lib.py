@@ -11,7 +11,7 @@ signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 from pathlib import Path
 
-def parseArgToList(n,dflt):
+def parseArgToList(n):
 	if len(sys.argv) <= n:
 		return None
 	v = sys.argv[n]

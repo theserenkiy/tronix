@@ -5,7 +5,8 @@ import os
 import traceback
 from scipy.signal import chirp
 
-onlyTests = parseArgToList(2,-1)
+onlyTests = parseArgToList(2)
+onlyPings = parseArgToList(3)
 
 
 data_offset = 0x840
@@ -26,6 +27,7 @@ info = readWAVInfo(f)
 
 testnums = list(range(len(info["tests"]))) if not onlyTests else onlyTests
 
+print("DEPTH", info["depth"])
 print("TESTNUMS: ",testnums)
 
 sigs = []
@@ -64,7 +66,8 @@ for testnum in testnums:
 	
 	corr_sum = None
 	sigs = []
-	for i in range(test["npings"]):
+	pingnums = onlyPings if onlyPings else range(test["npings"])
+	for i in pingnums:
 		sig = prepareRawSig(f.read(pinglen_bytes))
 		sigs.append(sig)
 
@@ -88,17 +91,18 @@ for testnum in testnums:
 	
 	corrs.append((f"#{testnum} {name}", corr_sum))
 
-	
 
-createPlotWindow(f"{fnum} ({preset}) {info['depth']}m",
-[
-	np.concatenate(sigs),
-	("Env",env_sum),
-	("quad",quad_sum),
-	
-	# winfilt(quad_sum),
-	# ref,
-]
-+ corrs
-)
-plotAll()
+if onlyTests:
+
+	createPlotWindow(f"{fnum} ({preset}) {info['depth']}m",
+	[
+		np.concatenate(sigs),
+		("Env",env_sum),
+		("quad",quad_sum),
+		
+		# winfilt(quad_sum),
+		# ref,
+	]
+	+ corrs
+	)
+	plotAll()
