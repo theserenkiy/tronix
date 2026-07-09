@@ -89,7 +89,8 @@ for testnum in testnums:
 		corr = correlate(sig,ref)
 		corr_sum = corr_sum + corr if corr_sum is not None else corr
 	
-	corrs.append((f"#{testnum} {name}", corr_sum))
+	# corrs.append((f"#{testnum} {name}", corr_sum))
+	corrs.append(corr_sum)
 
 
 if onlyTests:
@@ -97,8 +98,8 @@ if onlyTests:
 	createPlotWindow(f"{fnum} ({preset}) {info['depth']}m",
 	[
 		np.concatenate(sigs),
-		("Env",env_sum),
-		("quad",quad_sum),
+		# ("Env",env_sum),
+		# ("quad",quad_sum),
 		
 		# winfilt(quad_sum),
 		# ref,

@@ -30,7 +30,7 @@ def getWAVNameByArg(argnum=1):
 
 
 def getWAVNameByNum(num):
-	directory = Path('./save')
+	directory = Path('./sensor2')
 
 	# 1. Non-recursive (only in the current directory)
 	files = directory.glob(f'save_{str(num).rjust(6,"0")}*.wav')
