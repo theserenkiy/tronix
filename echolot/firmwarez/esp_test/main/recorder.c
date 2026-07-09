@@ -14,7 +14,7 @@ void recorder_init()
 
 void recorder_test()
 {
-	gen_chirp(215000, 215000, 1000e-6);
+	gen_chirp(182000, 182000, 200e-6);
 	// gen_psk(100000,100e-6,20e-6,0b1001010100000000,8);
 	while (1)
 	{

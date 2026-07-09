@@ -45,7 +45,7 @@ void sonar_charge(int state)
 void sonar_tx_prepare()
 {
 	sonar_precharge(MT_PRECHARGE_DELAY_MS);
-	gpio_set_level(MOSDRV_ENA_PIN, 1);
+	gpio_set_level(MOSDRV_ENA_PIN, 1); 
 }
 
 void sonar_tx_done()

@@ -4,6 +4,7 @@ import sys
 import os
 import traceback
 from scipy.signal import chirp
+import math
 
 onlyTests = parseArgToList(2)
 onlyPings = parseArgToList(3)
@@ -34,6 +35,8 @@ sigs = []
 corrs = []
 quad_sum = None
 env_sum = None
+powers = []
+powers2 = []
 for testnum in testnums:
 	test = info["tests"][testnum]
 	sigs = []
@@ -67,6 +70,7 @@ for testnum in testnums:
 	corr_sum = None
 	sigs = []
 	pingnums = onlyPings if onlyPings else range(test["npings"])
+	# powers = []
 	for i in pingnums:
 		sig = prepareRawSig(f.read(pinglen_bytes))
 		sigs.append(sig)
@@ -88,6 +92,12 @@ for testnum in testnums:
 
 		corr = correlate(sig,ref)
 		corr_sum = corr_sum + corr if corr_sum is not None else corr
+
+		power = np.mean(np.abs(sig[2000:24000]))
+		power2 = math.sqrt(power)
+		# print("POW",power)
+		powers.append(power)
+		powers2.append(power2)
 	
 	# corrs.append((f"#{testnum} {name}", corr_sum))
 	corrs.append(corr_sum)
@@ -104,6 +114,7 @@ if onlyTests:
 		# winfilt(quad_sum),
 		# ref,
 	]
-	+ corrs
+	# + corrs
+	+ [powers]
 	)
 	plotAll()
