@@ -63,7 +63,7 @@
 
 // TX params
 #define IR_DSBL_DELAY_US		1000
-#define MT_PRECHARGE_DELAY_MS	10
+#define MT_PRECHARGE_DELAY_MS	50
 
 // ADC params
 #define ADC_UNIT_USED           ADC_UNIT_1
@@ -71,7 +71,7 @@
 #define ADC_SAMPLE_FREQ_HZ      500000
 #define ADC_REAL_FS_HZ			125000
 
-#define ADC_RECORD_TIME_MS		80
+#define ADC_RECORD_TIME_MS		60
 #define ADC_RECORD_SAMPLES		(int)(ADC_RECORD_TIME_MS*ADC_SAMPLE_FREQ_HZ/1000)
 
 
