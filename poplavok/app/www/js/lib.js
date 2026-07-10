@@ -1,4 +1,9 @@
 
+function delay(ms)
+{
+    return new Promise(s => setTimeout(s,ms))
+}
+
 function clog(s,lvl=0)
 {
     let colors = ["#000", "#b80", "#a00"]

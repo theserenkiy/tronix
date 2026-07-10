@@ -62,6 +62,24 @@ static int ble_gatt_write_cb(uint16_t conn_handle, uint16_t attr_handle, struct 
     return BLE_ATT_ERR_UNLIKELY;
 }
 
+static int ble_gap_event_cb(struct ble_gap_event *event, void *arg) {
+    switch (event->type) {
+        case BLE_GAP_EVENT_CONNECT:
+            ESP_LOGI(TAG, "Смартфон подключился! Статус: %d", event->connect.status);
+            break;
+
+        case BLE_GAP_EVENT_DISCONNECT:
+            ESP_LOGI(TAG, "Смартфон отключился! Причина: %d. Возобновляем рекламу...", event->disconnect.reason);
+            // Перезапускаем рекламу, чтобы ESP32 снова стал виден в эфире
+            ble_app_advertise();
+            break;
+            
+        default:
+            break;
+    }
+    return 0;
+}
+
 // Запуск рекламы (Advertising) устройства в эфир
 void ble_app_advertise(void) {
     struct ble_gap_adv_params adv_params;
@@ -87,7 +105,7 @@ void ble_app_advertise(void) {
     adv_params.conn_mode = BLE_GAP_CONN_MODE_UND;
     adv_params.disc_mode = BLE_GAP_DISC_MODE_GEN;
 
-    rc = ble_gap_adv_start(ble_addr_type, NULL, BLE_HS_FOREVER, &adv_params, NULL, NULL);
+    rc = ble_gap_adv_start(ble_addr_type, NULL, BLE_HS_FOREVER, &adv_params, ble_gap_event_cb, NULL);
     if (rc != 0) {
         ESP_LOGE(TAG, "Ошибка запуска рекламы: %d", rc);
     }

@@ -14,11 +14,13 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "cordova-android": "^15.0.0",
+    "cordova-browser": "^7.0.0",
     "cordova-plugin-ble-central": "^2.0.0"
   },
   "cordova": {
     "platforms": [
-      "android"
+      "android",
+      "browser"
     ],
     "plugins": {
       "cordova-plugin-ble-central": {
