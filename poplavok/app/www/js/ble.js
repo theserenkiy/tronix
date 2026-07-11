@@ -7,14 +7,54 @@ class BLE
 
 	SERVICE_UUID = "";
 	CHAR_UUID    = "";
-	connectedDeviceId = null;
+	DEVICE_NAME = "";
+	dev_id = 0
+	is_connected = 0
+	listeners = []
+	ble = null
 
-	init(svc_uuid_hex_array, char_uuid_hex_array)
+	async init(device_name, svc_uuid_hex_array, char_uuid_hex_array)
 	{
-		this.SERVICE_UUID = this.mkUUID(svc_uuid_hex_array)
-		this.CHAR_UUID = this.mkUUID(char_uuid_hex_array)
+		this.ble = window.cordova.platformId == "browser" ? ble_mock : ble
+		try{
+			this.SERVICE_UUID = this.mkUUID(svc_uuid_hex_array)
+			this.CHAR_UUID = this.mkUUID(char_uuid_hex_array)
+			this.DEVICE_NAME = device_name
 
-		this.ensureBluetoothEnabled()
+			if(!await this.isEnabled())
+			{
+				this.status("init","Подключаем Bluetooth")
+				if(!await this.enable())
+					throw ["cannot_enable","Не удалось включить Bluetooth"]
+			}
+			return 1
+		}
+		catch(e)
+		{
+			this.status(e[0], e[1], "error")
+			return 0
+		}
+	}
+
+	async scanAndConnect()
+	{
+		if(await this.scan())
+			await this.connect()
+	}
+
+	addListener(callback)
+	{
+		this.listeners.push(callback)
+	}
+
+	status(code, msg,level="info")
+	{
+		this.listeners.map(v => v(code, msg, level))
+	}
+
+	error(code, msg)
+	{
+		this.status(code, msg, "error")
 	}
 
 	mkUUID(hex_array)
@@ -30,103 +70,95 @@ class BLE
 
 	isEnabled()
 	{
-		return new Promise((s,j) => ble.isEnabled(() => s(1), () => s(0)))
+		return new Promise((s,j) => this.ble.isEnabled(() => s(1), () => s(0)))
 	}
 
 	enable()
 	{
-		return new Promise((s,j) => ble.enable(() => s(1), () => s(0)))
+		return new Promise((s,j) => this.ble.enable(() => s(1), () => s(0)))
 	}
 
 
-	// Проверяем, включен ли Bluetooth (плагин сам запросит права, если нужно)
-	async ensureBluetoothEnabled() {
-		return await new Promise((s,j)=> ble.isEnabled(
-				function() {
-					clog("Bluetooth активен и доступен. Запускаем поиск...");
-					startScan();
-				},
-				function() {
-					clog("Bluetooth выключен или нет разрешений. Запрашиваем включение...");
-					// Этот метод принудительно вызывает системное окно включения BT и запроса прав на Android
-					ble.enable(
-						function() {
-							clog("Bluetooth успешно включен пользователем.");
-							startScan();
-						},
-						function(err) {
-							cerror("Пользователь отказался включить Bluetooth или дать права: " + err);
-						}
-					);
+	async scan(timeout=10) {
+		this.status("scan","Сканируем доступные устройства")
+		let found = 0
+		let to = new Promise((_,j) => setTimeout(j,timeout*1000))
+		let prm = new Promise((s,j) => {
+			this.ble.scan([], timeout, device => {
+				// Логируем все найденные устройства для отладки
+				this.status("scan_device",'Найдено устройство: ' + (device.name || 'Без имени') + ' [' + device.id + ']');
+				
+				// Проверяем имя устройства, которое мы жестко прописали в коде ESP32
+				if (device.name === this.DEVICE_NAME) {
+					// console.log('Ура! ESP32 найден по имени. Останавливаем поиск и подключаемся...');
+					this.ble.stopScan();
+					this.dev_id_found = device.id
+					this.status("scan_device_found",`Устройство ${this.DEVICE_NAME} найдено!`)
+					s(1)
+					found = 1
 				}
-			)
-		)
-	}
-
-	startScan() {
-		console.log("Сканирование всех BLE устройств начато...");
-		
-		// Передаем пустой массив [], чтобы сканировать всё вокруг
-		ble.scan([], 10, function(device) {
-			// Логируем все найденные устройства для отладки
-			console.log('Найдено устройство: ' + (device.name || 'Без имени') + ' [' + device.id + ']');
+			}, function(err) {
+				this.error("scan_failure",err+"")
+				s(0)
+			})
 			
-			// Проверяем имя устройства, которое мы жестко прописали в коде ESP32
-			if (device.name === "ESP32_GATT_SERVER") {
-				console.log('Ура! ESP32 найден по имени. Останавливаем поиск и подключаемся...');
-				ble.stopScan();
-				connectToDevice(device.id);
-			}
-		}, function(err) {
-			console.error('Ошибка сканирования: ' + JSON.stringify(err));
 		})
+
+		try{
+			return await Promise.race([to, prm])
+		}catch(e)
+		{
+			this.error("scan_device_not_found",`Устройство ${this.DEVICE_NAME} не найдено`)
+			return 0
+		}
 	}
 
 	// Подключение к ESP32
-	connectToDevice(deviceId) {
-		clog("Подключение к " + deviceId + "...");
-		ble.connect(
-			deviceId, 
+	async connect() {
+		this.status("connect","Подключение к " + this.dev_id + "...");
+		
+		return new Promise(s => this.ble.connect(
+			this.dev_id, 
 			peripheral => {
-				clog('Успешно подключено к ESP32!');
-				this.connectedDeviceId = deviceId;
-				
-				// Отправляем тестовую строку через 2 секунды после подключения
-				setTimeout(function() {
-					sendData("Hello ESP32!");
-				}, 2000);
-				
+				this.status("connect_ok","Устройство успешно подключено")
+				this.is_connected = 1	
+				s(1)
 			}, 
 			peripheral => {
-				cerror('Сбой подключения: ' + JSON.stringify(err));
-				this.connectedDeviceId = null;
-				setTimeout(function() {
-					this.connectToDevice(deviceId);
-				}, 3000);
+				this.error("connect_failure",'Сбой подключения: ' + JSON.stringify(err));
+				this.is_connected = 0;
+				s(0)
+				// setTimeout(function() {
+				// 	this.status("reconnect","Попытка переподключения к устройству")
+				// 	this.connect();
+				// }, 3000);
 			}
-		);
+		))
 	}
 
-	// Отправка данных на ESP32
-	sendData(message) {
+
+	async send(message, hint, as_text=0) {
+		this.status("send", hint)
 		if (!this.connectedDeviceId) {
-			cerror('Нет активного подключения');
-			return;
+			this.error("send_no_connection", 'Нет активного подключения');
+			return 0;
 		}
 
-		const buffer = new TextEncoder().encode(message).buffer;
+		const buffer = as_text ? new TextEncoder().encode(message).buffer : message
 
-		ble.write(
+		return new Promise(s => this.ble.write(
 			this.connectedDeviceId,
 			this.SERVICE_UUID,
 			this.CHAR_UUID,
 			buffer,
 			function() {
-				clog('Данные успешно отправлены: ' + message);
+				this.status("send_ok", 'Данные успешно отправлены');
+				s(1)
 			},
 			function(err) {
-				cerror('Ошибка отправки данных: ' + JSON.stringify(err));
+				this.error("send_failure",JSON.stringify(err));
+				s(0)
 			}
-		);
+		))
 	}
 }
