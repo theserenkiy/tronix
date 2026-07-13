@@ -2,3 +2,6 @@
 Настройка есп и приложения на кордове
 https://share.google/aimode/pFjI0gaeokEXtsaI4
 https://share.google/aimode/AMhP9sd3WaK2m0CFj
+
+
+https://github.com/don/cordova-plugin-ble-central

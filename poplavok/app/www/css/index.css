@@ -31,7 +31,7 @@ body {
     -webkit-text-size-adjust: none;             /* prevent webkit from resizing text to fit */
     -webkit-user-select: none;                  /* prevent copy paste, to allow, change 'none' to 'text' */
     background-color:#E4E4E4;
-    background-image:linear-gradient(to bottom, #A7A7A7 0%, #E4E4E4 51%);
+    /* background-image:linear-gradient(to bottom, #A7A7A7 0%, #E4E4E4 51%); */
     font-family: system-ui, -apple-system, -apple-system-font, 'Segoe UI', 'Roboto', sans-serif;
     font-size:12px;
     height:100vh;
@@ -40,7 +40,7 @@ body {
     /* Padding to avoid the "unsafe" areas behind notches in the screen */
     padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
     text-size-adjust: none;
-    text-transform:uppercase;
+    /* text-transform:uppercase; */
     user-select: none;
     width:100%;
 }
@@ -113,6 +113,6 @@ h1 {
 
 @media screen and (prefers-color-scheme: dark) {
     body {
-        background-image:linear-gradient(to bottom, #585858 0%, #1B1B1B 51%);
+        /* background-image:linear-gradient(to bottom, #585858 0%, #1B1B1B 51%); */
     }
 }
