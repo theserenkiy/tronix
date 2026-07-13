@@ -1,4 +1,4 @@
-document.addEventListener('deviceready', onDeviceReady, false);
+import WBLE from "./ble.js"
 
 function onBLE(code, msg, level)
 {
@@ -6,11 +6,11 @@ function onBLE(code, msg, level)
 	clog(`${level.toUpperCase()}: [${code}] ${JSON.stringify(msg)}`, lvl)
 }
 
-async function onDeviceReady() {
+export async function initApp() {
 	try{
 		clog('Cordova готова. Проверяем Bluetooth...');
 		
-		wble = new WBLE()
+		const wble = new WBLE()
 
 		wble.addListener(onBLE)
 
@@ -21,8 +21,7 @@ async function onDeviceReady() {
 		))
 			throw "Cannot connect to Bluetooth"
 		
-		if(!await wble.scan())
-			throw "No devices scanned"
+		await wble.scanUntilSuccess()
 		
 		let dev = wble.devices[0]
 		if(await dev.connect())
@@ -40,3 +39,4 @@ async function onDeviceReady() {
 		cerror("Fatal error: "+e)
 	}
 }
+

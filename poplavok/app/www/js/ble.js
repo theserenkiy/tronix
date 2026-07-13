@@ -1,126 +1,18 @@
-// UUID должны в точности соответствовать тем, что в ESP32
+import BLEDevice from "./ble_device.js"
+import ble_mock from "./ble_mock.js"
 
 if(window.cordova.platformId == "browser")
-	ble = ble_mock
-
-class BLEDevice
-{
-	constructor(device, wble)
-	{
-		this.wble = wble
-		for(let k in device)
-		{
-			this[k] = device[k]
-		}
-
-		this.is_connected = 0
-
-		this.reconnect_timeout = 0;
-	}
-
-	status(code, msg,level="info")
-	{
-		this.wble.status(code, {dev_id: this.id, msg}, level)
-	}
-
-	error(code, msg)
-	{
-		this.status(code, msg, "error")
-	}
-
-	// Подключение к ESP32
-	async connect(auto_reconnect=1) {
-		this.status("connect","Подключение к " + this.id + "...");
-		
-		return new Promise(s => ble.connect(
-			this.id, 
-			peripheral => {
-				this.status("connect_ok","Устройство успешно подключено")
-				this.is_connected = 1	
-				this.reconnect_timeout = 0
-				this.subscribeToData()
-				s(1)
-			}, 
-			peripheral => {
-				this.error("connect_error",'Сбой подключения: ' + JSON.stringify(err));
-				this.is_connected = 0;
-				if(auto_reconnect)
-					this.reconnect()
-				s(0)
-			}
-		))
-	}
-
-	async reconnect()
-	{
-		this.status("reconnect")
-		if(this.reconnect_timeout)
-		{
-			for(let i=this.reconnect_timeout;i > 0; i++)
-			{
-				this.status("reconnect_in",i)
-				await delay(1000)
-			}
-		}
-		
-		this.reconnect_timeout += 2
-
-		await this.connect(1)
-	}
+	window.ble = ble_mock
 
 
-	async send(message, hint, as_text=0) {
-		this.status("send", hint)
-		if (!this.is_connected) {
-			this.error("send_no_connection", 'Нет активного подключения'); 
-			return 0;
-		}
-
-		if(!await this.wble.checkEnabled())
-			return 0
-
-		const buffer = as_text ? new TextEncoder().encode(message).buffer : message
-
-		return new Promise(s => ble.write(
-			this.id,
-			this.wble.SERVICE_UUID,
-			this.wble.CHAR_UUID,
-			buffer,
-			function() {
-				this.status("send_ok", 'Данные успешно отправлены');
-				s(1)
-			},
-			function(err) {
-				this.error("send_error",JSON.stringify(err));
-				s(0)
-			}
-		))
-	}
-
-	async subscribeToData() {
-		ble.startNotification(this.id, this.wble.SERVICE_UUID, this.wble.CHAR_UUID, 
-			function(buffer) {
-				// Этот коллбек вызывается КАЖДЫЙ РАЗ, когда устройство шлет данные
-				let dataString = bytesToString(buffer);
-				console.log("Получены новые данные: " + dataString);
-				
-				// Обновляем UI
-				this.status("received_data",dataString);
-			}, 
-			function(error) {
-				this.error("subscribe_error",error+"")
-			}
-		);
-	}
-}
-
-class WBLE
+export default class WBLE
 {
 	SERVICE_UUID = "";
 	CHAR_UUID    = "";
 	DEVICE_NAME = "";
 	dev_id = 0
 	is_connected = 0
+	bt_enabled = 0
 	listeners = []
 
 	devices = []
@@ -139,6 +31,7 @@ class WBLE
 				if(!await this.enable())
 					throw ["cannot_enable","Не удалось включить Bluetooth"]
 			}
+			this.pollBTEnable()
 			return 1
 		}
 		catch(e)
@@ -148,7 +41,16 @@ class WBLE
 		}
 	}
 
-	
+	async pollBTEnable()
+	{
+		while(1)
+		{
+			await delay(1000)
+			this.bt_enabled = await this.isEnabled()
+			if(!this.bt_enabled)
+				this.error("not_enabled","Bluetooth не включён")
+		}
+	}
 
 	addListener(callback)
 	{
@@ -175,13 +77,6 @@ class WBLE
 		return strs.toReversed().join("-").toLowerCase()
 	}
 
-	async checkEnabled()
-	{
-		if(await this.isEnabled())
-			return 1
-
-		this.error("not_enabled","Bluetooth не включён")
-	}
 
 	isEnabled()
 	{
@@ -191,6 +86,17 @@ class WBLE
 	enable()
 	{
 		return new Promise((s,j) => ble.enable(() => s(1), () => s(0)))
+	}
+
+	async scanUntilSuccess()
+	{
+		for(let i=0;;i++)
+		{
+			this.status("scan_attempt",i+"")
+			if(await this.scan(5,1))
+				break
+			await delay(1000)
+		}
 	}
 
 
@@ -217,15 +123,16 @@ class WBLE
 						ble.stopScan();
 				}
 
-			}, function(err) {
-				this.error("scan_error",err+"")
-				s(0)
+			}, err => {
+				// this.error("scan_error",err+"")
+				j(err)
 			})
 			
 		})
 
 		try{
 			await Promise.race([to, prm])
+			return 1
 		}catch(e)
 		{
 			if(e == "timeout")

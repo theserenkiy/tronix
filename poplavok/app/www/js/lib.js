@@ -8,6 +8,7 @@ function clog(s,lvl=0)
 {
     let colors = ["#000", "#b80", "#a00"]
     document.body.innerHTML += `<p style="color:${colors[lvl]}">${s}</p>`
+    console[lvl ? "error" : "log"](s)
 }
 
 function cwarn(s)

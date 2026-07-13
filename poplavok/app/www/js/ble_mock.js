@@ -14,7 +14,7 @@ const devices = [
 	}
 ]
 
-window.ble_mock = {
+export default {
 	scan: async function(services, seconds, success, failure) {
 		console.log(`[Mock BLE] Старт сканирования на ${seconds} сек...`);
 

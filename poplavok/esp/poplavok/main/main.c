@@ -29,11 +29,10 @@
 
 static const char *TAG = "BLE_ESP32";
 uint8_t ble_addr_type;
-static uint16_t tx_char_handle;
 
 // Глобальные переменные для работы вашей задачи отправки
 uint16_t global_conn_handle = BLE_HS_CONN_HANDLE_NONE; // Дефолтное значение (0xFFFF), связи нет
-uint16_t my_characteristic_val_handle = 0;             // Наш хэндл характеристики (задается при регистрации службы)
+uint16_t tx_char_handle = 0;             // Наш хэндл характеристики (задается при регистрации службы)
 
 
 static int ble_gatt_write_cb(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt *ctxt, void *arg);
@@ -137,32 +136,36 @@ static void ble_app_on_sync(void) {
 
 
 void ble_send_string(const char *str) {
-	if (global_conn_handle != BLE_HS_CONN_HANDLE_NONE) {
-		
-		// Подготавливаем буфер для данных
-		struct os_mbuf *om = ble_hs_mbuf_from_flat("HELLO", 5);
-		
-		if (om != NULL) {
-			while(1)
-			{
-				int rc = ble_gattc_notify_custom(global_conn_handle, my_characteristic_val_handle, om);
-				
-				if (rc == 3) { // BLE_HS_EAGAIN
-					// Стек занят. Освобождаем выделенный буфер вручную, чтобы не было утечки памяти!
-					os_mbuf_free_chain(om); 
-					
-					// Делаем паузу и пропускаем итерацию, попробуем в следующем цикле
-					vTaskDelay(pdMS_TO_TICKS(100));
-					printf("Retry send....\n");
-					continue; 
-				} else if (rc != 0) {
-					printf("Другая ошибка NimBLE: %d\n", rc);
-					os_mbuf_free_chain(om); // Безопасно очищаем в случае любой ошибки
-				}
-				break;
-			}
-		}
+	if (global_conn_handle == BLE_HS_CONN_HANDLE_NONE)
+	{
+		printf("BLE send: no connection\n");
+		return;
 	}
+		
+	// Подготавливаем буфер для данных
+	struct os_mbuf *om = ble_hs_mbuf_from_flat(str, strlen(str));
+	
+	if (om == NULL) 
+	{
+		printf("BLE send: cannot allocate memory for message\n");
+		return;
+	}
+
+	int rc = ble_gattc_notify_custom(global_conn_handle, tx_char_handle, om);
+	if (rc != 0) {
+		printf("BT data send error: %d\n", rc);
+		os_mbuf_free_chain(om); // Безопасно очищаем в случае любой ошибки
+	}
+	
+	// if (rc == 3) { // BLE_HS_EAGAIN
+	// 	// Стек занят. Освобождаем выделенный буфер вручную, чтобы не было утечки памяти!
+	// 	os_mbuf_free_chain(om); 
+		
+	// 	// Делаем паузу и пропускаем итерацию, попробуем в следующем цикле
+	// 	vTaskDelay(pdMS_TO_TICKS(100));
+	// 	printf("Retry send....\n");
+	// 	continue; 
+	// }
 }
 
 

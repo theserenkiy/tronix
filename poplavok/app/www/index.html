@@ -10,21 +10,23 @@
 			* Disables use of inline scripts in order to mitigate risk of XSS vulnerabilities. To change this:
 				* Enable inline JS: add 'unsafe-inline' to default-src
 		-->
-		<meta http-equiv="Content-Security-Policy" content="default-src 'self' data: https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src *; img-src 'self' data: content:;">
+		<!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src *; img-src 'self' data: content:;"> -->
+		<meta http-equiv="Content-Security-Policy" content="default-src 'self' data: https://gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-CY896sVVk/E2G6o2VMlbThNqWW0RF58kZvt0Wm18bbs='">
+
 		<meta name="format-detection" content="telephone=no">
 		<meta name="msapplication-tap-highlight" content="no">
 		<meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover">
 		<meta name="color-scheme" content="light dark">
+
 		<link rel="stylesheet" href="css/index.css">
 		<title>Hello World</title>
 		<script src="cordova.js"></script>
 		<script src="js/lib.js"></script>
-
-		<script src="js/ble_mock.js"></script>
-		<script src="js/ble.js"></script>
-		
-
-		<script src="js/main.js"></script>
+	
+		<script type="module">
+			import { initApp } from "./js/main.js"
+			document.addEventListener('deviceready', initApp, false);
+		</script>
 	</head>
 	<body>
 		
