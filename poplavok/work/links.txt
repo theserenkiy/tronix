@@ -5,3 +5,7 @@ https://share.google/aimode/AMhP9sd3WaK2m0CFj
 
 
 https://github.com/don/cordova-plugin-ble-central
+
+
+
+cordova plugin add cordova-plugin-browsersync-gen2

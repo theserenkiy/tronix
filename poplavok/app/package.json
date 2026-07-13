@@ -15,7 +15,8 @@
   "devDependencies": {
     "cordova-android": "^15.0.0",
     "cordova-browser": "^7.0.0",
-    "cordova-plugin-ble-central": "^2.0.0"
+    "cordova-plugin-ble-central": "^2.0.0",
+    "cordova-plugin-browsersync-gen2": "^1.1.7"
   },
   "cordova": {
     "platforms": [
@@ -25,7 +26,8 @@
     "plugins": {
       "cordova-plugin-ble-central": {
         "ACCESS_BACKGROUND_LOCATION": "false"
-      }
+      },
+      "cordova-plugin-browsersync-gen2": {}
     }
   }
 }
