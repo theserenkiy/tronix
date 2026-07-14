@@ -27,17 +27,16 @@ export default class WBLE
 
 			if(!await this.isEnabled())
 			{
-				this.status("init","Подключаем Bluetooth")
+				this.status("bt.init","Подключаем Bluetooth")
 				if(!await this.enable())
-					throw ["cannot_enable","Не удалось включить Bluetooth"]
+					return this.error("bt_cannot_enable","Не удалось включить Bluetooth")
 			}
 			this.pollBTEnable()
-			return 1
+			return this.status("bt.ok","Bluetooth включён")
 		}
 		catch(e)
 		{
-			this.status(e[0], e[1], "error")
-			return 0
+			return this.error("bt.error",e+"")
 		}
 	}
 
@@ -60,11 +59,12 @@ export default class WBLE
 	status(code, msg,level="info")
 	{
 		this.listeners.map(v => v(code, msg, level))
+		return {code, msg, level}
 	}
 
 	error(code, msg)
 	{
-		this.status(code, msg, "error")
+		return this.status(code, msg, "error")
 	}
 
 	mkUUID(hex_array)
@@ -88,16 +88,16 @@ export default class WBLE
 		return new Promise((s,j) => ble.enable(() => s(1), () => s(0)))
 	}
 
-	async scanUntilSuccess()
-	{
-		for(let i=0;;i++)
-		{
-			this.status("scan_attempt",i+"")
-			if(await this.scan(5,1))
-				break
-			await delay(1000)
-		}
-	}
+	// async scanUntilSuccess(timeout=60)
+	// {
+	// 	for(let i=0;i < ;i++)
+	// 	{
+	// 		this.status("scan_attempt",i+"")
+	// 		if(await this.scan(5,1))
+	// 			break
+	// 		await delay(1000)
+	// 	}
+	// }
 
 
 	async scan(timeout=10, stop_when_found=1) {
@@ -107,20 +107,23 @@ export default class WBLE
 		let prm = new Promise((s,j) => {
 			ble.scan([], timeout, device => {
 				// Логируем все найденные устройства для отладки
-				this.status("scan_device_found",device);
+				this.status("scan.device_found",device);
 				if(device.name !== this.DEVICE_NAME)
 					return
 
 				if(this.devices.find(v => v.id == device.id))
 				{
-					this.status("scan_device_exists",device.id);
+					this.status("scan.device_exists",device.id);
 				}
 				else
 				{
 					let dev = new BLEDevice(device, this)
 					devices.push(dev)
 					if(stop_when_found)
+					{
 						ble.stopScan();
+						s(1)
+					}
 				}
 
 			}, err => {
@@ -132,26 +135,21 @@ export default class WBLE
 
 		try{
 			await Promise.race([to, prm])
-			return 1
+			cl("Race completed")
 		}catch(e)
 		{
-			if(e == "timeout")
+			if(e != "timeout")
 			{
-				if(devices.length)
-				{
-					this.devices = [...this.devices, ...devices]
-					this.status("scan_completed",devices.map(d => d.id))
-					return 1
-				}
-				// this.error("scan_devices_not_found",`Устройство ${this.DEVICE_NAME} не найдено`)
+				return this.error("scan.error",e+"")
 			}
-			else
-			{
-				this.error("scan_error",e+"")
-			}
-			
-			return 0
 		}
+
+		if(devices.length)
+		{
+			this.devices = [...this.devices, ...devices]
+			return this.status("scan.completed",devices.map(d => d.id))
+		}
+		return this.error("scan.devices_not_found",`Устройство ${this.DEVICE_NAME} не найдено`)
 	}
 
 	

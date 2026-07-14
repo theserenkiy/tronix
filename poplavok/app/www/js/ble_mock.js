@@ -33,12 +33,15 @@ export default {
 		console.log(`[Mock BLE] Подключение к ${deviceId}...`);
 		setTimeout(() => {
 			// Возвращаем тестовую структуру периферийного устройства
-			success({
-				name: "Эмулированное Устройство",
-				id: deviceId,
-				services: ["180d"],
-				characteristics: ["2a37"]
-			});
+			if(Math.random()>0.5)
+				success({
+					name: "Эмулированное Устройство",
+					id: deviceId,
+					services: ["180d"],
+					characteristics: ["2a37"]
+				});
+			else
+				failure("Просто такая ошибка")
 			
 		}, 1500);
 	},
@@ -59,6 +62,7 @@ export default {
 			ok()
 		else
 			err()
-	}
+	},
+	startNotification: () => {}
 
 }

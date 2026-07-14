@@ -1,5 +1,7 @@
 
 
+const MAX_CONNECT_ATTEMPTS = 3
+
 export default class BLEDevice
 {
 	constructor(device, wble)
@@ -13,37 +15,46 @@ export default class BLEDevice
 		this.is_connected = 0
 
 		this.reconnect_timeout = 0;
+		this.connect_attempts = MAX_CONNECT_ATTEMPTS
 	}
 
 	status(code, msg,level="info")
 	{
-		this.wble.status(code, {dev_id: this.id, msg}, level)
+		return this.wble.status(code, {dev_id: this.id, msg}, level)
 	}
 
 	error(code, msg)
 	{
-		this.status(code, msg, "error")
+		return this.status(code, msg, "error")
 	}
 
 	// Подключение к ESP32
-	async connect(auto_reconnect=1) {
+	async connect(auto_reconnect=0) {
 		this.status("connect","Подключение к " + this.id + "...");
 		
 		return new Promise(s => ble.connect(
 			this.id, 
 			peripheral => {
-				this.status("connect_ok","Устройство успешно подключено")
 				this.is_connected = 1	
 				this.reconnect_timeout = 0
+				this.connect_attempts = MAX_CONNECT_ATTEMPTS
 				this.subscribeToData()
-				s(1)
+				s(this.status("connect.ok","Устройство успешно подключено"))
 			}, 
 			err => {
-				this.error("connect_error",'Сбой подключения: ' + JSON.stringify(err));
-				this.is_connected = 0;
-				if(auto_reconnect)
-					this.reconnect()
-				s(0)
+				if(this.is_connected)
+				{
+					this.is_connected = 0;
+					if(this.connect_attempts)
+					{
+						this.connect_attempts--
+						this.reconnect()
+						s(this.status("connect.reconneting","Попытка подключения","warning"))
+						return
+					}
+				}
+				
+				s(this.error("connect.error",'Сбой подключения: ' + JSON.stringify(err)))
 			}
 		))
 	}
@@ -53,9 +64,9 @@ export default class BLEDevice
 		this.status("reconnect")
 		if(this.reconnect_timeout)
 		{
-			for(let i=this.reconnect_timeout;i > 0; i++)
+			for(let i=this.reconnect_timeout; i > 0; i++)
 			{
-				this.status("reconnect_in",i)
+				this.status("reconnect.in", i)
 				await delay(1000)
 			}
 		}
@@ -69,7 +80,7 @@ export default class BLEDevice
 	async send(message, hint, as_text=0) {
 		this.status("send", hint)
 		if (!this.is_connected) {
-			this.error("send_no_connection", 'Нет активного подключения'); 
+			this.error("send.no_connection", 'Нет активного подключения'); 
 			return 0;
 		}
 
@@ -84,11 +95,11 @@ export default class BLEDevice
 			this.wble.CHAR_UUID,
 			buffer,
 			() => {
-				this.status("send_ok", 'Данные успешно отправлены');
+				this.status("send.ok", 'Данные успешно отправлены');
 				s(1)
 			},
 			err => {
-				this.error("send_error",JSON.stringify(err));
+				this.error("send.error",JSON.stringify(err));
 				s(0)
 			}
 		))
@@ -105,10 +116,10 @@ export default class BLEDevice
 				console.log("Получены новые данные: " + dataString);
 				
 				// Обновляем UI
-				this.status("received_data",dataString);
+				this.status("data.received",dataString);
 			}, 
 			error => {
-				this.error("subscribe_error",error+"")
+				this.error("subscribe.error",error+"")
 			}
 		);
 	}
