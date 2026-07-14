@@ -1,5 +1,8 @@
 //out: ../www/css/main.css
 
+@import "battery.less";
+@import "signal-strength.less";
+
 @bgcol: #333;
 
 *{
@@ -23,28 +26,47 @@ body {
 }
 
 button{
-	color: #222;
-	padding: 0.3em 0.8em;
+	background-color: #222;
+	padding: 0.5em 0.8em;
 	font-size: 1.3em;
+	border: 1px solid #777;
+	border-radius: 5px;
+	cursor: pointer;
+	&:hover{
+		background-color: #333;
+	}
+	&:active{
+		background-color: #555;
+	}
 }
 
-.over{
-	position: absolute;
-	top: 0px;
-	left: 0px;
+.view{
 	display: flex;
-	align-items: center;
+	flex-direction: column;
+	align-items: stretch;
 	justify-content: center;
 	width: 100vw;
 	height: 100vh;
 	.central{
 		padding: 1em;
-		border-radius: 10px;
+		border-radius: 5px;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
+		.message{
+			text-align: center;
+		}
 	}
 }
+
+.over{
+	.view;
+	background-color: @bgcol;
+	position: absolute;
+	padding: 0 1em;
+	
+}
+
 
 .preloader {
 	.over;
@@ -54,7 +76,7 @@ button{
 		align-items: center;
 		height: 200px;
 		.message{
-			margin-bottom: 1.9em;
+			margin-bottom: 3em;
 			font-size: 1.5em;
 		}
 	}
@@ -62,15 +84,90 @@ button{
 
 .error {
 	.over;
+	top: 0px;
+	left: 0px;
 	background-color: fade(#000,50%);
 	.central{
 		background-color: #a00;
 		.message{
 			margin-bottom: 1.9em;
-			font-size: 1.5em;
+			// font-size: 1.5em;
+		}
+		.buttons{
+			display: flex;
+			flex-direction: column;
+			align-items: stretch;
+			width: 250px;
+			button {
+				margin-bottom: 0.5em;
+				font-size: 1em;
+			}
 		}
 	}
 }
 
+.bottom_popup(@col){
+	.over;
+	height: auto;
+	top: auto;
+	bottom: 1em;
+	// @col: #c70;
+	.central{
+		border: 1px solid @col;
+		background-color: fade(@col,50%);
+		flex-direction: row;
+		justify-content: center;
+		.message{
+			margin-right: 1em;
+			font-size: 1em;
+			
+		}
+		.buttons{
+			display: flex;
+			button {
+				margin-right: 0.5em;
+				background-color: darken(@col,20%);
+				font-size: 1em;
+			}
+		}
+	}
+}
+
+.warn{
+	.bottom_popup(#c70)
+}
+
+.notify{
+	.bottom_popup(#085)
+}
+
+.topbar{
+	display: flex;
+	justify-content: space-between;
+	height: 60px;
+	background-color: lighten(@bgcol,10%);
+	border-bottom: 1px solid lighten(@bgcol,20%);
+	box-shadow: 0 5px 10px #000;
+	&>*{
+		flex-grow: 1;
+		display: flex;
+	}
+	.title{
+		font-size: 1.5em;
+		align-items: center;
+		padding-left: 1em;
+	}
+	.indicators{
+		display: flex;
+		&>*{
+			display: flex;
+			align-items: center;
+			margin-right: 10px;
+		}
+		.charge{
+			margin-right: 15px;
+		}
+	}
+}
 
 @import (inline) "loader1.css";

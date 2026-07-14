@@ -1,0 +1,45 @@
+/* Container sizing and layout */
+.signal-indicator {
+  display: inline-flex;
+  align-items: flex-end;
+  /* Aligns bars to the bottom */
+  gap: 3px;
+  /* Spacing between bars */
+  width: 24px;
+  height: 20px;
+}
+/* Base style for all signal bars */
+.bar {
+  flex: 1;
+  background-color: #e0e0e0;
+  /* Unfilled/Inactive bar color */
+  border-radius: 1px;
+  transition: background-color 0.2s ease;
+}
+/* Step-up heights for traditional cellular look */
+.bar-1 {
+  height: 25%;
+}
+.bar-2 {
+  height: 50%;
+}
+.bar-3 {
+  height: 75%;
+}
+.bar-4 {
+  height: 100%;
+}
+/* Define filled colors based on strength level class */
+.signal-1 .bar-1,
+.signal-2 .bar-1,
+.signal-2 .bar-2,
+.signal-3 .bar-1,
+.signal-3 .bar-2,
+.signal-3 .bar-3,
+.signal-4 .bar-1,
+.signal-4 .bar-2,
+.signal-4 .bar-3,
+.signal-4 .bar-4 {
+  background-color: #2ecc71;
+  /* Active bar color (Green) */
+}

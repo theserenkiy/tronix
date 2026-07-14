@@ -14,6 +14,9 @@ const devices = [
 	}
 ]
 
+let connect_failure;
+let once_connected = 0
+
 export default {
 	scan: async function(services, seconds, success, failure) {
 		console.log(`[Mock BLE] Старт сканирования на ${seconds} сек...`);
@@ -31,15 +34,28 @@ export default {
 	},
 	connect: function(deviceId, success, failure) {
 		console.log(`[Mock BLE] Подключение к ${deviceId}...`);
+		connect_failure = failure
+		let fail = 
+			// once_connected || 
+			Math.random() < 0.5
+
+		if(!fail)
+		{
+			setTimeout(() => connect_failure("а вот так захотелось!"),3000)
+		}
+
 		setTimeout(() => {
 			// Возвращаем тестовую структуру периферийного устройства
-			if(Math.random()>0.5)
+			if(!fail)
+			{
+				once_connected = 1
 				success({
 					name: "Эмулированное Устройство",
 					id: deviceId,
 					services: ["180d"],
 					characteristics: ["2a37"]
 				});
+			}
 			else
 				failure("Просто такая ошибка")
 			
@@ -63,6 +79,10 @@ export default {
 		else
 			err()
 	},
-	startNotification: () => {}
+	startNotification: () => {},
+	readRSSI: (devid, ok, fail) =>
+	{
+		ok(-Math.random()*60-40)
+	}
 
 }

@@ -20,12 +20,9 @@ export async function initApp() {
 		app.mount(document.body);
 		
 		
-
-			
-
 	}catch(e)
 	{
-		cerror("Fatal error: "+e)
+		clog("Fatal error: "+e,"error")
 	}
 }
 

@@ -1,0 +1,70 @@
+//main: ./main.less
+/* The main body of the battery */
+
+@sz: 32px;
+@w: @sz/1.2;
+@h: @sz/2;
+
+.battery {
+	box-sizing: border-box;
+	position: relative;
+	width: @w;
+	height: @h;
+	border: 1px solid #fff;
+	border-radius: 2px;
+	// padding: 2px;
+	box-sizing: border-box;
+	
+
+	&.blinking{
+		&, &::after{animation: blink-animation 1s infinite; }
+	}
+
+	&::after {
+		@ch: @h/2;
+		content: '';
+		position: absolute;
+		top: @h/2-1;
+		right: -@sz/6;
+		transform: translateY(-50%);
+		width: @sz/10;
+		height: @ch;
+		// background-color: #fff;
+		border: inherit;
+		border-radius: 0 2px 2px 0;
+	}
+
+	span{
+		top:0px;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		width: @w;
+		height: @h;
+		position: absolute;
+		font-size: @sz/3;
+	}
+}
+
+/* The dynamic inner charging fluid */
+.charge-level {
+	height: 100%;
+	background-color: #0d0;
+	border-radius: 1px;
+	
+	/* Change this width to adjust the charge percentage */
+	width: 75%; 
+	
+	/* Optional: Smooth transition when width changes */
+	// transition: width 0.5s ease-in-out; 
+}
+
+
+@keyframes blink-animation {
+	0%, 100% {
+		border-color: #ff0000; /* Fully visible color */
+	}
+	50% {
+		border-color: #fff; /* Becomes hidden */
+	}
+}

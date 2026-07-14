@@ -16,6 +16,38 @@ export default class BLEDevice
 
 		this.reconnect_timeout = 0;
 		this.connect_attempts = MAX_CONNECT_ATTEMPTS
+		this.connect_state = "initial"
+		this.running = 1
+		this.rssi = -100
+	}
+
+	async stop()
+	{
+		this.running = 0
+		if(this.is_connected)
+			ble.disconnect(this.id)
+	}
+
+	async poll()
+	{
+		while(1)
+		{
+			if(!this.running)
+				break
+
+			await this.updateRSSI()
+
+			await delay(1000)
+		}
+	}
+
+	async updateRSSI()
+	{
+		ble.readRSSI(
+			this.id,
+			rssi => this.rssi = rssi,
+			() => {console.error("Cannot read RSSI")}
+		)
 	}
 
 	status(code, msg,level="info")
@@ -28,6 +60,40 @@ export default class BLEDevice
 		return this.status(code, msg, "error")
 	}
 
+	connect_failure(err)
+	{
+		try{
+			if(this.connect_state == "initial")
+				throw err
+
+			if(this.is_connected)
+			{
+				this.connect_state = "reconnect"
+				this.connect_attempts = 0
+				this.is_connected = 0
+			}
+
+			if(this.connect_state == "reconnect")
+			{
+				if(this.connect_attempts >= MAX_CONNECT_ATTEMPTS)
+				{
+					this.connect_state = "initial"
+					throw err
+				}
+				this.connect_attempts++
+				let ret = this.status("connect.lost", err, "warn")
+				this.status("connect.retry",`Связь потеряна. Попытка подключения ${this.connect_attempts} из ${MAX_CONNECT_ATTEMPTS}`)
+				this.reconnect()
+				return ret
+			}
+		}
+		catch(err)
+		{
+			this.is_connected = 0;
+			return this.error("connect.error",'Сбой подключения: ' + JSON.stringify(err))
+		}
+	}
+
 	// Подключение к ESP32
 	async connect(auto_reconnect=0) {
 		this.status("connect","Подключение к " + this.id + "...");
@@ -35,36 +101,34 @@ export default class BLEDevice
 		return new Promise(s => ble.connect(
 			this.id, 
 			peripheral => {
-				this.is_connected = 1	
+				if(!this.running)
+				{
+					ble.disconnect(this.id)
+					return
+				}
+				this.is_connected = 1
+				this.connect_state = "ok"
 				this.reconnect_timeout = 0
-				this.connect_attempts = MAX_CONNECT_ATTEMPTS
+				this.connect_attempts = 0
 				this.subscribeToData()
 				s(this.status("connect.ok","Устройство успешно подключено"))
 			}, 
 			err => {
-				if(this.is_connected)
-				{
-					this.is_connected = 0;
-					if(this.connect_attempts)
-					{
-						this.connect_attempts--
-						this.reconnect()
-						s(this.status("connect.reconneting","Попытка подключения","warning"))
-						return
-					}
-				}
-				
-				s(this.error("connect.error",'Сбой подключения: ' + JSON.stringify(err)))
+				if(!this.running)
+					return
+				s(this.connect_failure(err))
 			}
 		))
 	}
 
 	async reconnect()
 	{
+		if(!this.running)
+			return
 		this.status("reconnect")
 		if(this.reconnect_timeout)
 		{
-			for(let i=this.reconnect_timeout; i > 0; i++)
+			for(let i=this.reconnect_timeout; i > 0; i--)
 			{
 				this.status("reconnect.in", i)
 				await delay(1000)

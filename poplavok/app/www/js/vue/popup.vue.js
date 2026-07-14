@@ -1,23 +1,22 @@
 
 
 export default {
-	props: ["message", "buttons"],
+	props: ["type","message", "buttons"],
 	data(){return{
 		is_shown: 0,
 		q: 0
 	}},
 	created()
 	{
-		console.log("BUTTONS",this.buttons)
 	},
 	watch: {
 		buttons(v)
 		{
-			console.log("BUTTONS",v)
+			console.log("ERROR",this.message,JSON.stringify(v))
 		}
 	},
 	template: `
-	<div class="error">
+	<div :class="type">
 		<div class="central">
 			<div class="message" v-html="message"></div>
 			<div class="buttons">

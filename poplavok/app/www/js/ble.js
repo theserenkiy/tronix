@@ -25,11 +25,14 @@ export default class WBLE
 			this.CHAR_UUID = this.mkUUID(char_uuid_hex_array)
 			this.DEVICE_NAME = device_name
 
+			this.running = 1
+
 			if(!await this.isEnabled())
 			{
 				this.status("bt.init","Подключаем Bluetooth")
 				if(!await this.enable())
-					return this.error("bt_cannot_enable","Не удалось включить Bluetooth")
+					return this.error("bt.cannot_enable","Не удалось включить Bluetooth")
+				cl("ENABLED")
 			}
 			this.pollBTEnable()
 			return this.status("bt.ok","Bluetooth включён")
@@ -40,14 +43,28 @@ export default class WBLE
 		}
 	}
 
+	async stop()
+	{
+		this.running = 0
+		for(let dev of this.devices)
+		{
+			await dev.stop()
+		}
+		this.devices = []
+		
+	}
+
 	async pollBTEnable()
 	{
 		while(1)
 		{
 			await delay(1000)
-			this.bt_enabled = await this.isEnabled()
-			if(!this.bt_enabled)
-				this.error("not_enabled","Bluetooth не включён")
+			if(!this.running)
+				break
+			let res = await this.isEnabled()
+			if(!res && this.bt_enabled)
+				this.error("bt.not_enabled","Bluetooth не включён")
+			this.bt_enabled = res
 		}
 	}
 
@@ -56,7 +73,7 @@ export default class WBLE
 		this.listeners.push(callback)
 	}
 
-	status(code, msg,level="info")
+	status(code, msg, level="log")
 	{
 		this.listeners.map(v => v(code, msg, level))
 		return {code, msg, level}
