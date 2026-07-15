@@ -3,9 +3,12 @@
 https://share.google/aimode/pFjI0gaeokEXtsaI4
 https://share.google/aimode/AMhP9sd3WaK2m0CFj
 
+https://share.google/aimode/EULgVq3ScytPQX1IF
+
 
 https://github.com/don/cordova-plugin-ble-central
 
 
 
 cordova plugin add cordova-plugin-browsersync-gen2
+cordova plugin add cordova-plugin-geolocation

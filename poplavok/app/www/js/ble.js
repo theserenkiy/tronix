@@ -164,11 +164,17 @@ export default class WBLE
 		if(devices.length)
 		{
 			this.devices = [...this.devices, ...devices]
-			return this.status("scan.completed",devices.map(d => d.id))
+			return this.status("scan.ok",devices.map(d => d.id))
 		}
 		return this.error("scan.devices_not_found",`Устройство ${this.DEVICE_NAME} не найдено`)
 	}
 
-	
+	async disconnectDevice(dev)
+	{
+		if(!dev)
+			return
+		await dev.stop()
+		this.devices = this.devices.filter(d => d.id != dev.id)
+	}
 
 }

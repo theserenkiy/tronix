@@ -1,8 +1,8 @@
 /* The main body of the battery */
 .battery {
   position: relative;
-  width: 26.66666667px;
-  height: 16px;
+  width: 20px;
+  height: 12px;
   border: 1px solid #fff;
   border-radius: 2px;
   box-sizing: border-box;
@@ -14,11 +14,11 @@
 .battery::after {
   content: '';
   position: absolute;
-  top: 7px;
-  right: -5.33333333px;
+  top: 5px;
+  right: -4px;
   transform: translateY(-50%);
-  width: 3.2px;
-  height: 8px;
+  width: 2.4px;
+  height: 6px;
   border: inherit;
   border-radius: 0 2px 2px 0;
 }
@@ -27,10 +27,10 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 26.66666667px;
-  height: 16px;
+  width: 20px;
+  height: 12px;
   position: absolute;
-  font-size: 10.66666667px;
+  font-size: 8px;
 }
 /* The dynamic inner charging fluid */
 .charge-level {
@@ -316,33 +316,35 @@ button:active {
   background-color: #002215;
   font-size: 1em;
 }
-.topbar {
+.device .topbar {
   display: flex;
   justify-content: space-between;
-  height: 60px;
+  height: 40px;
   background-color: #4d4d4d;
   border-bottom: 1px solid #666666;
   box-shadow: 0 5px 10px #000;
 }
-.topbar > * {
-  flex-grow: 1;
+.device .topbar > * {
   display: flex;
 }
-.topbar .title {
+.device .topbar .title {
   font-size: 1.5em;
   align-items: center;
   padding-left: 1em;
 }
-.topbar .indicators {
+.device .topbar .indicators {
   display: flex;
 }
-.topbar .indicators > * {
+.device .topbar .indicators > * {
   display: flex;
   align-items: center;
   margin-right: 10px;
 }
-.topbar .indicators .charge {
+.device .topbar .indicators .charge {
   margin-right: 15px;
+}
+.device .topbar .indicators .disconnect i {
+  font-size: 1.5em;
 }
 .loader1 {
   --color-1: #fff;

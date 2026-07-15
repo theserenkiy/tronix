@@ -39,10 +39,10 @@ export default {
 			// once_connected || 
 			Math.random() < 0.5
 
-		if(!fail)
-		{
-			setTimeout(() => connect_failure("а вот так захотелось!"),3000)
-		}
+		// if(!fail)
+		// {
+		// 	setTimeout(() => connect_failure("а вот так захотелось!"),3000)
+		// }
 
 		setTimeout(() => {
 			// Возвращаем тестовую структуру периферийного устройства

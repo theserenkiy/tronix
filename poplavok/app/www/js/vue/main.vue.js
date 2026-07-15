@@ -27,7 +27,8 @@ export default {
 		notify_buttons: [],
 		notify_timer: null,
 		device: null,
-		view: "device"
+		view: "main"
+		// view: "device"
 	}},
 
 	async created()
@@ -37,7 +38,7 @@ export default {
 		this.wble = wble
 		this.wble.addListener(this.onBLE)
 		// this.btInit()
-		this.notify("Какое-то предупреждение",[["Отмена"]],2)
+		// this.notify("Какое-то предупреждение",[["Отмена"]],2)
 	},
 
 	async mounted(){
@@ -62,7 +63,6 @@ export default {
 
 		onBLE_event(module, event, lvl, msg)
 		{
-
 			switch(module)
 			{
 				case "bt":
@@ -71,14 +71,20 @@ export default {
 							["Повторить", ()=>this.btInit()],
 							["Отмена", ()=>this.btCancel()]
 						])
+					if(event=="ok")
+						return this.scan()
 				
 				case "scan":
 					if(lvl.error)
 						return this.error(msg, [
 							["Повторить", ()=>this.scan()],
 							["Отмена", ()=>this.btCancel()]
-				])
+						])
+					if(event=="ok")
+						return this.connect()
 			}
+			if(lvl.error)
+				this.error(`Ошибка: ${module} ${msg}`)
 		},
 
 		onBLE_device_event(module, event, lvl, msg, devid)
@@ -94,7 +100,7 @@ export default {
 					else if(event=="lost")
 						return this.warn(`Связь потеряна. Переподключаемся`,[],10)
 					else if(event == "ok")
-						return this.notify(`Связь установлена!`,[],3)
+						return this.onConnect()
 				
 				case "reconnect":
 					if(event=="in")
@@ -103,6 +109,8 @@ export default {
 						], 2)
 				
 			}
+			if(lvl.error)
+				this.error(`Ошибка: ${module} ${msg}`)
 		},
 
 		preloaderShow(msg)
@@ -165,9 +173,6 @@ export default {
 				SERVICE_UUID_ARRAY,
 				CHAR_UUID_ARRAY			
 			)
-
-			if(res.level != "error")
-				this.scan()
 		},
 
 		async btCancel()
@@ -190,19 +195,28 @@ export default {
 			this.preloaderShow("Устройство найдено, подключаемся...")
 			let dev = this.wble.devices[0]
 
-			let res = await dev.connect()
-			cl("CONNECT RES",res)
-			if(res.level != "error")
-			{
-				this.device = dev
-				this.switchView("device")
-			}
+			await dev.connect()
+		},
+
+		async onConnect()
+		{
+			this.notify(`Связь установлена!`,[],3)
+			this.device = this.wble.devices[0]
+			this.switchView("device")
 		},
 
 		switchView(name)
 		{
 			this.preloaderHide()
 			this.view = name
+		},
+
+		async disconnectDevice(id)
+		{
+			if(!confirm("Вы уверены что хотите отключить устройство?"))
+				return
+			await this.wble.disconnectDevice(id)
+			this.switchView("main")
 		}
 
 	},
@@ -236,6 +250,7 @@ export default {
 		<Device
 			v-if="view=='device'"
 			:device="device"
+			@disconnect="disconnectDevice"
 		></Device>
 		<div 
 			v-if="view=='main'"

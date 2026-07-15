@@ -19,13 +19,28 @@ export default class BLEDevice
 		this.connect_state = "initial"
 		this.running = 1
 		this.rssi = -100
+		this.mtu = 20
+
+		this.poll()
 	}
 
 	async stop()
 	{
 		this.running = 0
+		cl("STOP")
+		cl("CONNECTED:",this.is_connected)
 		if(this.is_connected)
-			ble.disconnect(this.id)
+			await this.disconnect()
+	}
+
+	async disconnect()
+	{
+		cl("DISCONNECTING...")
+		return new Promise(s => {
+			ble.disconnect(this.id,() => s(1), err => {
+				this.error("disconnect.error",err)
+			})
+		})
 	}
 
 	async poll()
@@ -101,17 +116,8 @@ export default class BLEDevice
 		return new Promise(s => ble.connect(
 			this.id, 
 			peripheral => {
-				if(!this.running)
-				{
-					ble.disconnect(this.id)
-					return
-				}
-				this.is_connected = 1
-				this.connect_state = "ok"
-				this.reconnect_timeout = 0
-				this.connect_attempts = 0
-				this.subscribeToData()
-				s(this.status("connect.ok","Устройство успешно подключено"))
+				this.onSuccessConnect()
+				s(1)
 			}, 
 			err => {
 				if(!this.running)
@@ -119,6 +125,37 @@ export default class BLEDevice
 				s(this.connect_failure(err))
 			}
 		))
+	}
+
+	async onSuccessConnect()
+	{
+		if(!this.running)
+		{
+			await this.disconnect()
+			return
+		}
+		this.is_connected = 1
+		this.connect_state = "ok"
+		this.reconnect_timeout = 0
+		this.connect_attempts = 0
+		await this.requestMTU()
+		await this.subscribeToData()
+		this.status("connect.ok","Устройство успешно подключено")
+	}
+
+	async requestMTU()
+	{
+		return new Promise(s => ble.requestMtu(this.id, 
+			512, 
+			mtu => {
+            	console.log('MTU set: ' + mtu);
+				this.mtu = mtu-3
+				s(1)
+        	}, err => {
+            	console.error('Не удалось изменить MTU: ' + JSON.stringify(err));
+				s(0)
+        	}
+		));
 	}
 
 	async reconnect()
@@ -141,17 +178,18 @@ export default class BLEDevice
 	}
 
 
-	async send(message, hint, as_text=0) {
+	async send(buffer, hint, as_text=0) {
 		this.status("send", hint)
 		if (!this.is_connected) {
 			this.error("send.no_connection", 'Нет активного подключения'); 
 			return 0;
 		}
 
-		if(!await this.wble.bt_enabled())
+		if(!this.wble.bt_enabled)
+		{
+			cl("Cannot send: BT disabled")
 			return 0
-
-		const buffer = as_text ? new TextEncoder().encode(message).buffer : message
+		}
 
 		return new Promise(s => ble.write(
 			this.id,

@@ -1,9 +1,9 @@
 //main: ./main.less
 /* The main body of the battery */
 
-@sz: 32px;
-@w: @sz/1.2;
-@h: @sz/2;
+@sz: 24px;
+@w: (@sz/1.2);
+@h: (@sz/2);
 
 .battery {
 	box-sizing: border-box;
@@ -21,13 +21,13 @@
 	}
 
 	&::after {
-		@ch: @h/2;
+		@ch: (@h/2);
 		content: '';
-		position: absolute;
-		top: @h/2-1;
-		right: -@sz/6;
+		position: absolute; 
+		top: (@h/2)-1;
+		right: -(@sz/6);
 		transform: translateY(-50%);
-		width: @sz/10;
+		width: (@sz/10);
 		height: @ch;
 		// background-color: #fff;
 		border: inherit;
@@ -42,7 +42,7 @@
 		width: @w;
 		height: @h;
 		position: absolute;
-		font-size: @sz/3;
+		font-size: (@sz/3);
 	}
 }
 

@@ -141,33 +141,6 @@ button{
 	.bottom_popup(#085)
 }
 
-.topbar{
-	display: flex;
-	justify-content: space-between;
-	height: 60px;
-	background-color: lighten(@bgcol,10%);
-	border-bottom: 1px solid lighten(@bgcol,20%);
-	box-shadow: 0 5px 10px #000;
-	&>*{
-		flex-grow: 1;
-		display: flex;
-	}
-	.title{
-		font-size: 1.5em;
-		align-items: center;
-		padding-left: 1em;
-	}
-	.indicators{
-		display: flex;
-		&>*{
-			display: flex;
-			align-items: center;
-			margin-right: 10px;
-		}
-		.charge{
-			margin-right: 15px;
-		}
-	}
-}
 
+@import "device.less";
 @import (inline) "loader1.css";
