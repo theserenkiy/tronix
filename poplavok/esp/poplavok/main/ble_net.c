@@ -3,7 +3,7 @@
 
 //receive router
 //needs ble_commands array!
-void ble_on_receive(void *buf, int len)
+void blen_on_receive(void *buf, int len)
 {
 	uint8_t *cbuf = (uint8_t *)buf;
 	uint8_t cmd_code = *cbuf;
@@ -29,4 +29,9 @@ void ble_on_receive(void *buf, int len)
 		printf("Command %d result: %d\n", cmd_code, res);
 	
 		
+}
+
+void blen_send(void* buf, int len)
+{
+	blen_send(buf, len);
 }

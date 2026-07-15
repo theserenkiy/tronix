@@ -1,8 +1,9 @@
 
 
 const cmds = {
-	set_time: 1,
-	led_toggle: 2,
+	get_state: 1,
+	set_time: 2,
+	led_toggle: 3,
 }
 
 

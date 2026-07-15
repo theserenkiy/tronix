@@ -2,7 +2,7 @@
 import Battery from "./battery.vue.js"
 import SignalStrength from "./signal_strength.vue.js"
 import DeviceUI from "./device_ui.vue.js"
-import pack from "../pack.js"
+
 
 export default {
 
@@ -23,33 +23,21 @@ export default {
 
 	created()
 	{
-		
 	},
 	
 	async mounted()
 	{
-		while(1)
-		{
-			if(this.device)
-				this.dbm = this.device.rssi
-			await delay(500)
-		}
+		this.initDevice()
+		
 	},
 
 	methods: {
-		prepareCmds()
+		
+		async initDevice()
 		{
-			let lines = cmds_header.split("\n")
-			for(let l of lines)
-			{
-				l = l.trim()
-				if(!l || l[0]=="/")
-					continue
-				let vv = s.split(/\s+/g)
-				if(vv.length < 3)
-					continue
-				this.cmds[vv[1].replace("CMD_","")] = +vv[2]
-			}
+			if(!this.device)return
+			this.device.onRSSI = rssi => this.dbm = rssi
+			this.device.onData = data => this.receiveData(data)
 		},
 
 		async sendCmd(struct)
@@ -61,10 +49,7 @@ export default {
 	watch:{
 		async device(dev)
 		{
-			if(dev)
-			{
-				let res = await this.sendCmd()
-			}
+			this.initDevice()
 		}
 	},
 

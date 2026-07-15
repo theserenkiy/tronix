@@ -11,3 +11,10 @@
 #define LED_PIN_G	32
 #define BUTTON_0 15
 #define BUTTON_1 16
+
+typedef struct {
+	uint8_t led;
+} devstate_t;
+
+
+extern devstate_t* DSTATE;

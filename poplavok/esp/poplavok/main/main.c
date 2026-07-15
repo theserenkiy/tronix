@@ -5,6 +5,11 @@
 #include "ble.h"
 #include "led.h"
 
+devstate_t devstate = {
+	.led = 0
+}
+
+devstate_t* DSTATE = &devstate;
 
 
 void app_main(void) {

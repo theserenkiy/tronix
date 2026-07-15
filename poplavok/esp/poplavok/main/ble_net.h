@@ -10,4 +10,4 @@ typedef struct {
 
 #include "ble_commands.h"
 
-void ble_on_receive(void *buf, int len);
+void blen_on_receive(void *buf, int len);

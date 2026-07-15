@@ -159,7 +159,7 @@ static int ble_gatt_write_cb(uint16_t conn_handle, uint16_t attr_handle, struct 
 			ESP_LOGI(TAG, "Получены данные: %s", rx_buf);
 			
 			printf("CMD RECEIVED %d\n",*rx_buf);
-			ble_on_receive(rx_buf, len);
+			blen_on_receive(rx_buf, len);
 
 			// Здесь можно обработать входящую строку
 		}

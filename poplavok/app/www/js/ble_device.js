@@ -1,4 +1,4 @@
-import pack from "./pack.js"
+import {pack} from "./pack.js"
 
 const MAX_CONNECT_ATTEMPTS = 3
 
@@ -21,6 +21,9 @@ export default class BLEDevice
 		this.running = 1
 		this.rssi = -100
 		this.mtu = 20
+
+		this.onRSSI = null
+		this.onData = null
 
 		this.poll()
 	}
@@ -53,6 +56,8 @@ export default class BLEDevice
 
 			await this.updateRSSI()
 
+			this.fire("onRSSI", this.rssi)
+
 			await delay(500)
 		}
 	}
@@ -81,6 +86,14 @@ export default class BLEDevice
 	error(code, msg)
 	{
 		return this.status(code, msg, "error")
+	}
+
+	fire(event_name, value)
+	{
+		cl("Fire: ",event_name)
+		if(!this[event_name])
+			return
+		this[event_name](data)
 	}
 
 	connect_failure(err)
@@ -229,11 +242,9 @@ export default class BLEDevice
 			this.wble.SERVICE_UUID, 
 			this.wble.CHAR_UUID, 
 			buffer => {
-				let dataString = new TextDecoder().decode(buffer);
-				console.log("Получены новые данные: " + dataString);
-				
 				// Обновляем UI
-				this.status("data.received",dataString);
+				this.status("data.received",buffer);
+				this.fire("onData", buffer)
 			}, 
 			error => {
 				this.error("subscribe.error",error+"")
