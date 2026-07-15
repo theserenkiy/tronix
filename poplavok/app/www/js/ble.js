@@ -32,6 +32,7 @@ export default class WBLE
 				this.status("bt.init","Подключаем Bluetooth")
 				if(!await this.enable())
 					return this.error("bt.cannot_enable","Не удалось включить Bluetooth")
+				this.bt_enabled = 1
 				cl("ENABLED")
 			}
 			this.pollBTEnable()
@@ -58,13 +59,15 @@ export default class WBLE
 	{
 		while(1)
 		{
-			await delay(1000)
+			// cl("POLL BT, running:",this.running)
 			if(!this.running)
 				break
 			let res = await this.isEnabled()
+			// cl("RES",res)
 			if(!res && this.bt_enabled)
 				this.error("bt.not_enabled","Bluetooth не включён")
 			this.bt_enabled = res
+			await delay(1000)
 		}
 	}
 

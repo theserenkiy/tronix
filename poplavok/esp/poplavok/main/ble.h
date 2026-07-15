@@ -1,4 +1,5 @@
 #pragma once
+#include "common.h"
 
 #include "nimble/nimble_port.h"
 #include "nimble/nimble_port_freertos.h"
@@ -7,8 +8,13 @@
 #include "host/ble_gatt.h" 
 #include "services/gap/ble_svc_gap.h"
 #include "services/gatt/ble_svc_gatt.h"
-#include "esp_bt.h"         // Содержит esp_ble_tx_power_set()
-// #include "esp_private/esp_bluetooth_internal.h"
+#include "esp_bt.h"
+
+#include "ble_net.h"
+
+
+extern uint16_t current_mtu;
+
 
 void ble_send(void *buf, int len);
 

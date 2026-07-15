@@ -254,7 +254,7 @@ export default {
 		></Device>
 		<div 
 			v-if="view=='main'"
-			class="view"
+			class="view centered"
 		>
 			<div class="central">
 				<button @click="btInit()">Включить Bluetooth</button>

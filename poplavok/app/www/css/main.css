@@ -126,7 +126,7 @@ button:active {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  justify-content: center;
+  justify-content: start;
   width: 100vw;
   height: 100vh;
 }
@@ -140,13 +140,17 @@ button:active {
 .view .central .message {
   text-align: center;
 }
+.view.centered {
+  justify-content: center;
+}
 .over {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  justify-content: center;
+  justify-content: start;
   width: 100vw;
   height: 100vh;
+  justify-content: center;
   background-color: #333;
   position: absolute;
   padding: 0 1em;
@@ -161,13 +165,17 @@ button:active {
 .over .central .message {
   text-align: center;
 }
+.over.centered {
+  justify-content: center;
+}
 .preloader {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  justify-content: center;
+  justify-content: start;
   width: 100vw;
   height: 100vh;
+  justify-content: center;
   background-color: #333;
   position: absolute;
   padding: 0 1em;
@@ -181,6 +189,9 @@ button:active {
 }
 .preloader .central .message {
   text-align: center;
+}
+.preloader.centered {
+  justify-content: center;
 }
 .preloader .central {
   display: flex;
@@ -196,9 +207,10 @@ button:active {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  justify-content: center;
+  justify-content: start;
   width: 100vw;
   height: 100vh;
+  justify-content: center;
   background-color: #333;
   position: absolute;
   padding: 0 1em;
@@ -215,6 +227,9 @@ button:active {
 }
 .error .central .message {
   text-align: center;
+}
+.error.centered {
+  justify-content: center;
 }
 .error .central {
   background-color: #a00;
@@ -236,9 +251,10 @@ button:active {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  justify-content: center;
+  justify-content: start;
   width: 100vw;
   height: 100vh;
+  justify-content: center;
   background-color: #333;
   position: absolute;
   padding: 0 1em;
@@ -255,6 +271,9 @@ button:active {
 }
 .warn .central .message {
   text-align: center;
+}
+.warn.centered {
+  justify-content: center;
 }
 .warn .central {
   border: 1px solid #c70;
@@ -278,9 +297,10 @@ button:active {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  justify-content: center;
+  justify-content: start;
   width: 100vw;
   height: 100vh;
+  justify-content: center;
   background-color: #333;
   position: absolute;
   padding: 0 1em;
@@ -297,6 +317,9 @@ button:active {
 }
 .notify .central .message {
   text-align: center;
+}
+.notify.centered {
+  justify-content: center;
 }
 .notify .central {
   border: 1px solid #085;
@@ -315,6 +338,27 @@ button:active {
   margin-right: 0.5em;
   background-color: #002215;
   font-size: 1em;
+}
+.device {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: start;
+  width: 100vw;
+  height: 100vh;
+}
+.device .central {
+  padding: 1em;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.device .central .message {
+  text-align: center;
+}
+.device.centered {
+  justify-content: center;
 }
 .device .topbar {
   display: flex;
@@ -345,6 +389,21 @@ button:active {
 }
 .device .topbar .indicators .disconnect i {
   font-size: 1.5em;
+}
+.device .device_ui {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.device .device_ui .row {
+  display: flex;
+  justify-content: center;
+}
+.device .device_ui .row select,
+.device .device_ui .row button,
+.device .device_ui .row input {
+  font-size: 2em;
 }
 .loader1 {
   --color-1: #fff;

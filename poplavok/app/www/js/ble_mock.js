@@ -23,7 +23,7 @@ export default {
 
 		for(let dev of devices)
 		{
-			await delay(1000)
+			await delay(500)
 			success(dev)
 		}
 		
@@ -35,9 +35,9 @@ export default {
 	connect: function(deviceId, success, failure) {
 		console.log(`[Mock BLE] Подключение к ${deviceId}...`);
 		connect_failure = failure
-		let fail = 
+		let fail = 0
 			// once_connected || 
-			Math.random() < 0.5
+			// Math.random() < 0.5
 
 		// if(!fail)
 		// {
@@ -59,7 +59,7 @@ export default {
 			else
 				failure("Просто такая ошибка")
 			
-		}, 1500);
+		}, 500);
 	},
 	read: function(deviceId, serviceUUID, characteristicUUID, success, failure) {
 		// Возвращаем фейковый ArrayBuffer с данными (например, число 42)
@@ -71,10 +71,10 @@ export default {
 		if(success) success();
 	},
 	isEnabled: (ok, err) => {
-		err()
+		ok()
 	},
 	enable: (ok, err) => {
-		if(confirm("Ok to use BT?"))
+		if(1 || confirm("Ok to use BT?"))
 			ok()
 		else
 			err()
@@ -83,6 +83,14 @@ export default {
 	readRSSI: (devid, ok, fail) =>
 	{
 		ok(-Math.random()*60-40)
+	},
+	requestMtu(devid, mtu, ok, fail)
+	{
+		ok(256)
+	},
+	write(devid, svc, char, buf, ok, err)
+	{
+		ok()
 	}
 
 }

@@ -1,6 +1,5 @@
-#include <stdio.h>
 #include "ble_commands.h"
-
+#include "led.h"
 
 ble_command_t ble_commands[] = {
 	{
@@ -17,14 +16,19 @@ ble_command_t ble_commands[] = {
 };
 
 
-void blec_set_time(void* buf, int len)
+int blec_set_time(void* buf, int len)
 {
 	int* ibuf = (int*)buf;
 	printf("SET TIME: %d\n",*ibuf);
+	return 0;
 }
 
-void blec_led_toggle(void* buf, int len)
+int blec_led_toggle(void* buf, int len)
 {
-	char* cbuf = (char*)buf;
-	printf("LED_TOGGLE: %s\n",cbuf);
+	uint8_t* cbuf = (uint8_t*)buf;
+	printf("LED_TOGGLE: %d\n",*cbuf);
+	led_set_levels(*cbuf);
+
+	return 0;
 }
+

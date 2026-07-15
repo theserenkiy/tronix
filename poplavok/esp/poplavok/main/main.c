@@ -1,12 +1,10 @@
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/event_groups.h"
-#include <stdio.h>
-#include <string.h>
-#include "esp_log.h"
+#include "common.h"
+
 #include "nvs_flash.h"
 
 #include "ble.h"
+#include "led.h"
+
 
 
 void app_main(void) {
@@ -20,7 +18,7 @@ void app_main(void) {
 
 	ble_init();
 
-	char * str = "Preved medved!";
+	led_init();
 
 	while (1)
 	{

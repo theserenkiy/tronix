@@ -1,4 +1,4 @@
-
+import pack from "./pack.js"
 
 const MAX_CONNECT_ATTEMPTS = 3
 
@@ -13,6 +13,7 @@ export default class BLEDevice
 		}
 
 		this.is_connected = 0
+		this.is_alive = 0
 
 		this.reconnect_timeout = 0;
 		this.connect_attempts = MAX_CONNECT_ATTEMPTS
@@ -52,7 +53,7 @@ export default class BLEDevice
 
 			await this.updateRSSI()
 
-			await delay(1000)
+			await delay(500)
 		}
 	}
 
@@ -60,8 +61,15 @@ export default class BLEDevice
 	{
 		ble.readRSSI(
 			this.id,
-			rssi => this.rssi = rssi,
-			() => {console.error("Cannot read RSSI")}
+			rssi => {
+				this.rssi = rssi
+				this.is_alive = 1
+			},
+			() => {
+				this.rssi = 1
+				this.is_alive = 0
+				console.error("Cannot read RSSI");
+			}
 		)
 	}
 
@@ -86,6 +94,7 @@ export default class BLEDevice
 				this.connect_state = "reconnect"
 				this.connect_attempts = 0
 				this.is_connected = 0
+				this.is_alive = 0
 			}
 
 			if(this.connect_state == "reconnect")
@@ -105,6 +114,7 @@ export default class BLEDevice
 		catch(err)
 		{
 			this.is_connected = 0;
+			this.is_alive = 0;
 			return this.error("connect.error",'Сбой подключения: ' + JSON.stringify(err))
 		}
 	}
@@ -178,8 +188,8 @@ export default class BLEDevice
 	}
 
 
-	async send(buffer, hint, as_text=0) {
-		this.status("send", hint)
+	async send(buffer) {
+		this.status("send", buffer)
 		if (!this.is_connected) {
 			this.error("send.no_connection", 'Нет активного подключения'); 
 			return 0;
@@ -207,6 +217,11 @@ export default class BLEDevice
 		))
 	}
 
+	async sendStruct(struct)
+	{
+		await this.send(pack(struct))
+	}
+
 	async subscribeToData() {
 		this.status("subscribe")
 		ble.startNotification(
@@ -225,4 +240,6 @@ export default class BLEDevice
 			}
 		);
 	}
+
+	
 }

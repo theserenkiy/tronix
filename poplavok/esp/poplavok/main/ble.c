@@ -1,16 +1,5 @@
-#include <stdio.h>
-#include <string.h>
-#include "esp_log.h"
-#include "nvs_flash.h"
-
-// Корректный порядок подключения NimBLE для ESP-IDF 6.0
-
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/event_groups.h"
-
 #include "ble.h"
-#include "ble_net_layer.h"
+
 
 #define DEVICE_NAME "POPLAVOK"
 
@@ -33,6 +22,7 @@ uint16_t tx_char_handle = 0;             // Наш хэндл характери
 
 uint8_t rx_buf[128] = {0};
 
+uint16_t current_mtu = 23;
 
 // Определение структуры GATT-сервера
 static const struct ble_gatt_svc_def gatt_svcs[] = {
@@ -157,6 +147,9 @@ void ble_send(void *buf, int len) {
 
 // Колбэк, срабатывающий при получении данных от смартфона
 static int ble_gatt_write_cb(uint16_t conn_handle, uint16_t attr_handle, struct ble_gatt_access_ctxt *ctxt, void *arg) {
+
+	current_mtu = ble_att_mtu(conn_handle);
+
 	if (ctxt->op == BLE_GATT_ACCESS_OP_WRITE_CHR) {
 		
 		size_t len = OS_MBUF_PKTLEN(ctxt->om);
@@ -180,6 +173,7 @@ void ble_host_task(void *param) {
 	nimble_port_run();
 	nimble_port_freertos_deinit();
 }
+
 
 
 

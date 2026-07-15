@@ -12,7 +12,7 @@ export default {
 	watch: {
 		buttons(v)
 		{
-			console.log("ERROR",this.message,JSON.stringify(v))
+			console.log("NOTIFY",this.message,JSON.stringify(v))
 		}
 	},
 	template: `
