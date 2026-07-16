@@ -3,9 +3,10 @@
 const cmds = {
 	get_state: 1,
 	set_time: 2,
-	led_toggle: 3,
+	set_led: 3,
 }
 
+const led_colors = ["off","green","red"]
 
 export default {
 	props: ["rcvd_data"],
@@ -18,7 +19,7 @@ export default {
 		sendCmd(cmd,struct)
 		{
 			cl("SEND CMD",cmd)
-			
+			 
 			let cmd_code = cmds[cmd]
 			if(cmd_code === undefined)
 			{
@@ -36,10 +37,14 @@ export default {
 	watch: {
 		led_color(v)
 		{
-			let colors = ["off","green","red"]
-			let code = colors.indexOf(v)
+			let code = led_colors.indexOf(v)
 			if(code < 0)code = 0
-			this.sendCmd("led_toggle",[["uint8", [code]]])
+			this.sendCmd("set_led",[["uint8", [code]]])
+		},
+
+		"rcvd_data.led"(v)
+		{
+			this.led_color = led_colors[v]
 		}
 	},
 

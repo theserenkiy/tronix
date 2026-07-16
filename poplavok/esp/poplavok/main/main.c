@@ -7,12 +7,13 @@
 
 devstate_t devstate = {
 	.led = 0
-}
+};
 
-devstate_t* DSTATE = &devstate;
+devstate_t *DSTATE = &devstate;
 
 
 void app_main(void) {
+	
 	// Инициализация NVS (требуется для BLE)
 	esp_err_t ret = nvs_flash_init();
 	if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {

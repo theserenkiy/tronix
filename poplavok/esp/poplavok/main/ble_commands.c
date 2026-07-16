@@ -15,7 +15,7 @@ ble_command_t ble_commands[] = {
 	{
 		.code = 3,
 		.name = "LED_TOGGLE",
-		.cb = blec_led_toggle
+		.cb = blec_set_led
 	},
 	{0}
 };
@@ -23,19 +23,21 @@ ble_command_t ble_commands[] = {
 #pragma pack(push, 1)
 
 typedef struct {
+	uint8_t code;
 	uint8_t led;
 } resp_state_t;
 
 #pragma pack(pop)
 
-resp_state_t resp_state = {}
+resp_state_t resp_state = {};
 
 int blec_get_state(void* buf, int len)
 {
 	resp_state_t* rst = &resp_state;
 
-	rst->led = DSTAT.led;
-	ble_send()
+	rst->code = 1;
+	rst->led = DSTATE->led;
+	blen_send(rst, sizeof(resp_state_t));
 	return 0;
 }
 
@@ -47,10 +49,9 @@ int blec_set_time(void* buf, int len)
 	return 0;
 }
 
-int blec_led_toggle(void* buf, int len)
+int blec_set_led(void* buf, int len)
 {
 	uint8_t* cbuf = (uint8_t*)buf;
-	printf("LED_TOGGLE: %d\n",*cbuf);
 	led_set_levels(*cbuf);
 
 	return 0;

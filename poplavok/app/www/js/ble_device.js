@@ -90,10 +90,10 @@ export default class BLEDevice
 
 	fire(event_name, value)
 	{
-		cl("Fire: ",event_name)
+		// cl("Fire: ",event_name)
 		if(!this[event_name])
 			return
-		this[event_name](data)
+		this[event_name](value)
 	}
 
 	connect_failure(err)
@@ -243,7 +243,7 @@ export default class BLEDevice
 			this.wble.CHAR_UUID, 
 			buffer => {
 				// Обновляем UI
-				this.status("data.received",buffer);
+				// this.status("data.received",buffer);
 				this.fire("onData", buffer)
 			}, 
 			error => {

@@ -404,6 +404,7 @@ button:active {
 .device .device_ui .row button,
 .device .device_ui .row input {
   font-size: 2em;
+  background-color: transparent;
 }
 .loader1 {
   --color-1: #fff;

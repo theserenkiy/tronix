@@ -33,5 +33,5 @@ void blen_on_receive(void *buf, int len)
 
 void blen_send(void* buf, int len)
 {
-	blen_send(buf, len);
+	ble_send(buf, len);
 }

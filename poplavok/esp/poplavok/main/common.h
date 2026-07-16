@@ -1,3 +1,4 @@
+#pragma once
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
@@ -11,6 +12,7 @@
 #define LED_PIN_G	32
 #define BUTTON_0 15
 #define BUTTON_1 16
+
 
 typedef struct {
 	uint8_t led;

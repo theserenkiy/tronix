@@ -1,6 +1,8 @@
-
+import { pack } from "./pack.js";
 // Проверяем, запущены ли мы в браузере без плагина
 
+
+let notif_started = 0
 
 const devices = [
 	{
@@ -79,7 +81,22 @@ export default {
 		else
 			err()
 	},
-	startNotification: () => {},
+	startNotification: async (devid, svc, char, onData, err) => {
+		if(notif_started)
+			return
+		notif_started = 1
+		while(1)
+		{
+			let buf = pack([
+				["uint8",[1]],
+				["uint8",[Math.floor(Math.random()*3)]]
+			])
+			// cl("BUFLEN",buf.byteLength)
+			cl("ONDATA")
+			onData(buf)
+			await delay(2000)
+		}
+	},
 	readRSSI: (devid, ok, fail) =>
 	{
 		ok(-Math.random()*60-40)

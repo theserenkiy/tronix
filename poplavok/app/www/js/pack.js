@@ -62,16 +62,15 @@ export function pack(struct)
 		}
 	}
 
-	console.log("OUT",out)
+	// console.log("OUT",out)
 	return out.buffer
 }
 
 //[["int",1,"id"], ["uint8",4,"data"], ...]
-export function unpack(buf,struct)
+export function unpack(buf, struct, offs=0)
 {
 	let out = {}
 	let view = new DataView(buf)
-	let offs = 0;
 	for(let f of struct)
 	{
 		let d = []
@@ -107,7 +106,7 @@ export function unpack(buf,struct)
 				d = view.subarray(offs,offs+f[1]).buffer
 				break
 		}
-		out[f[2]] = d
+		out[f[2]] = f[1] > 1 || ["str","raw"].includes(f[0]) ? d : d[0]
 	}
 	return out
 }
