@@ -17,3 +17,9 @@ https://github.com/don/cordova-plugin-ble-central
 
 cordova plugin add cordova-plugin-browsersync-gen2
 cordova plugin add cordova-plugin-geolocation
+
+
+Sleeve Antenna
+
+Программатор на Blue Pill
+https://habr.com/ru/articles/406281/

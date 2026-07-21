@@ -19,7 +19,7 @@ export default {
 		sendCmd(cmd,struct)
 		{
 			cl("SEND CMD",cmd)
-			 
+			
 			let cmd_code = cmds[cmd]
 			if(cmd_code === undefined)
 			{
