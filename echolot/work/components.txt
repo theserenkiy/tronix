@@ -38,6 +38,31 @@ nRF52840 - 200кБ ОЗУ доступно, 100р
 
 LPS28DFWTR - до 30м
 
+===================================================
+АЦП
+
+ADCS7476
+
+===================================================
+Другое
+
+OPA1632 - диф усилитель с диф выходом
+ADSxx54 - АЦП с диф входом: 
+	84 - 16бит 700к
+	78 - 14бит 1М
+	72 - 12бит 1М
+
+MCP41XXX - цифровой потенциометр
+
+====================================================
+Симуляции
+
+Диф усилитель
+https://www.falstad.com/circuit/circuitjs.html?ctz=CQAgDCCMB0Z-DGQKYFoDsIDM0uUgKwAsBkAnAQBwBsZATHnVCASEVi2vgFABOIdSpShEibOCLERIiPlHrymg4eSYQi6OHNUCC1AUN371msHOXYs+i3T3gosgMYHhWKy-HrwsBJAHQiMnQiGTIiagisMAopHz8zAHMPIgkLEONwbgB3T0lcuhTMnIsdGwLM50hBRRqdMRRUYVQ6XALqOCraciEOMDiKqGrbfVK7erQmlqwGSBTwvWo9SlY+jsyAFRBUSHaaxohh+1Wweq3jsGpIdDd266p0IQozn3hILEoiSmiwTUo6SEo9BW0DIoO4SW2u0OkIO6DUmQASlsdtIFM1yjppAJEN54kdoAQ5Ps9jsauozDlidDSYcKWxqPVRGwyCMqpkUhxiGJUJ8QCyDmBhNICAB9IgisBi6KUEUtSjoBmUQgELApMgXOjUCUvSAi7aykWEEVYbhqjwFckHQp+GQQZrQajLQWkYhgAgUKKxeLcJE3bGudxXDLklhHbyEpJ+uhwyzWQwQMzOFLSJnhRlicaNfzhOgsgiChjUKLR7xrMz8NN5St0crSWRJavlauFBPcAAmIC+Rk7EGmBygADkQp9sj3u1VhLTR12+4NXHRWzkuxO56u6cuFCvMeDV1vqvh4YlV7OV37Wx3TwvV4cmJAh7NKO3d5v90NB8PHx3l9UN0p3w+fS2LsWWRJkQKxZMJD6PEEwJIlgP0YlMQcLQcj9dCPljdkwA4LACCYZMQGoGNqFrbBRQZCUpTIGVRWgvVdUgcxDCjQUsLreA5HQ9w-UIjjUKwwi0ig0cLG4-Qz0AhcAxGBV2PsQoVnxQl+EhGpf3sGstFUmk7C7WkBAXOkSiZEoFDMIA
+с диодами, шунтирующими дифлинию:
+https://www.falstad.com/circuit/circuitjs.html?ctz=CQAgDCCMB0Z-DGQKYFoDsIDMAOATNOgGx4Cs+kALFgJw1hGVQikjUtqSQBQATiHhw4olJpTgimESIj5QaeeYsHDIC8G3Rw5a5aSIChA-RspawcldiwGrZA9NkBjQ8Kw3XbCUxQYB0SjoaLHR8IhpSd0hSRTBYMEhwbgBzT3EIK0pIBySAdy9pUQKBcTzPXU88PCluF0hBJUaKnzRhVDiZEnCcSlJQykYuB3jEizqG+0bJltRhDrAwmh6iKiISXCxwEaSAFRBUKh91VEZjHLi4Hy3ELFJosH0uPpw1Uhomdvj4W8gcPrM1OIBlhRtAgil9oczpCinh0LEkgAlGFHRSoPALRrSASIKAQfFbUhyE6ojQVCDibj5EnQjImCz5AY+IqBAxcWLccSbPoGVCUYQ4Gi2THSUgAfUoYrAErASzFpEIMSFIIYLxeZClX0gYoOYrwYuiYqwnNllVK6RK2JkEAO0EE8NEfxoWgGVC2o24yPcwrcHkgxA0FIgrAJcSJqW9Anh1lsRnxtWKUKZkjYUGgpEQmfgeFa-nQkBBESI5motCk2ws-GTSdOVSkeIQEOTdbYtdK8fyODpbIm9KpIC7TQa5IhSdURSwCIsABMoL2e6p1IpIAA5LL87izwcVQeTZdrqg4T37U7ZSHDnKJdISDqBwnE05Ck+kxzafK3RSR3BMSMWLksANqggQUDGTCAsGlRgpRlOVxQ6HVtR4fgrEjDFfUvRt+A-GNsBiYpXzfXDFAtTIb37FCPGw39jzQnD-QMX9TGDO8wzkaR1G3dQMgxSsNEmXd6QEHjyKMKErBHfJ6mESZ2WwMAaiAA
+
+
 
 КОРПУС
 Какую смолу (резин) выбрать для корпуса:

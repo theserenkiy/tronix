@@ -1,3 +1,12 @@
 CIC/FIR-децимация
 https://share.google/aimode/A104t3f07LU9GDkgg
 
+
+Tayloe детектор
+https://eax.me/2022/2022-10-17-tayloe-detector.html
+
+
+#################################
+Components
+
+FST3253 - переключатель для тэйло детектора
